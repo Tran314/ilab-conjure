@@ -69,12 +69,24 @@ import {
   updateApiRequestEndpointPreview,
 } from "./api-provider-settings";
 import { initApiProviderSortFeature } from "./api-provider-sort";
+import { initProviderModelDiscovery } from "./provider-model-discovery";
 
 let apiSettingsFeatureInitialized = false;
 
 export function initApiSettingsFeature(): void {
   if (apiSettingsFeatureInitialized) return;
   apiSettingsFeatureInitialized = true;
+  const { els, state } = getLegacyBridge();
+  initProviderModelDiscovery({
+    container: els.apiProviderBindings,
+    connectionInputs: [els.apiBaseUrl, els.apiKey],
+    getConnection: () => ({
+      provider_id: String(state.apiProviderDraft?.id || ""),
+      api_key_source_provider_id: String(state.apiProviderDraft?.api_key_source_provider_id || ""),
+      base_url: String(els.apiBaseUrl?.value || "").trim(),
+      api_key: String(els.apiKey?.value || "").trim(),
+    }),
+  });
   document.addEventListener(LOCALE_CHANGE_EVENT, () => {
     const bridge = getLegacyBridge();
     renderAuthSource(bridge.state.authStatus);

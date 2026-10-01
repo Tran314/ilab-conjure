@@ -1,31 +1,68 @@
 /* Prompt */
 .prompt-panel {
+  container: prompt / inline-size;
   --prompt-action-column-width: var(--workspace-side-action-width);
   --prompt-action-gap: 12px;
   --prompt-secondary-action-height: 40px;
-  --prompt-secondary-chip-height: 32px;
+  --prompt-secondary-chip-height: 28px;
 }
 
 .prompt-heading {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--prompt-action-column-width);
-  gap: var(--prompt-action-gap);
-  align-items: end;
-  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 0;
+  margin-bottom: 8px;
 }
 
 .prompt-heading-main {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   min-width: 0;
-  justify-content: space-between;
-  gap: 12px;
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.prompt-heading-main h2 {
+  margin: 0;
+}
+
+.prompt-heading-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1 1 auto;
+  gap: 8px;
+  min-width: 0;
+}
+
+.prompt-heading .execution-summary {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+#restoreComposerDraft {
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 0 8px;
+  border-color: transparent;
+  background: transparent;
+  font-size: 12px;
 }
 
 .prompt-count {
   color: var(--text-muted);
   font-size: 12px;
   line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
   padding: 1px 6px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--surface-soft) 72%, var(--surface));
@@ -35,11 +72,13 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--prompt-action-column-width);
   gap: var(--prompt-action-gap);
-  align-items: start;
+  align-items: stretch;
 }
 
 .prompt-run-wrap {
+  display: flex;
   min-width: 0;
+  min-height: 0;
 }
 
 .prompt-template-row {
@@ -55,14 +94,16 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex: 0 0 auto;
   min-width: 0;
 }
 
 .prompt-template-recent-cell {
   display: flex;
+  flex-wrap: nowrap;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  gap: 4px 8px;
   min-height: var(--prompt-secondary-action-height);
   min-width: 0;
 }
@@ -76,6 +117,10 @@
   height: var(--prompt-secondary-action-height);
   min-height: var(--prompt-secondary-action-height);
   white-space: nowrap;
+}
+
+#restoreComposerDraft:hover {
+  background: var(--surface-soft);
 }
 
 .prompt-box {
@@ -542,7 +587,8 @@
   justify-content: flex-end;
   gap: 6px;
   max-width: 100%;
-  min-height: var(--prompt-secondary-action-height);
+  min-width: 0;
+  min-height: var(--prompt-secondary-chip-height);
   overflow: hidden;
 }
 
@@ -1429,7 +1475,8 @@
   justify-content: flex-start;
   align-items: center;
   flex: 1 1 auto;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 4px;
   min-height: var(--prompt-secondary-action-height);
   min-width: 0;
   font-size: 12px;
@@ -1464,7 +1511,7 @@
   grid-template-columns: minmax(78px, 1fr) minmax(78px, 1fr) max-content;
   align-items: center;
   gap: 6px;
-  flex: 1 1 auto;
+  flex: 1 1 100%;
   min-height: var(--prompt-secondary-action-height);
   min-width: 0;
   max-width: 100%;
@@ -1516,6 +1563,7 @@
 
 .prompt-compose .run-button {
   width: 100%;
+  min-height: 140px;
   height: 140px;
   padding: 0 14px;
   border-radius: 8px;
@@ -1524,4 +1572,16 @@
   line-height: 1.25;
   text-align: center;
   justify-content: center;
+}
+
+@container prompt (max-width: 650px) {
+  .prompt-panel .prompt-find-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prompt-panel .prompt-find-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+    width: 100%;
+  }
 }

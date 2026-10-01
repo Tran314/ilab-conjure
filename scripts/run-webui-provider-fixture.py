@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import base64
 import json
 import sys
@@ -21,7 +22,7 @@ from codex_image.webui.app import create_app
 
 
 PNG_B64 = (
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADUlEQVR42mNk+M/wHwAEAQH/69ZkWQAAAABJRU5ErkJggg=="
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNgaPgPAAIDAYAkYfWXAAAAAElFTkSuQmCC"
 )
 PNG_BYTES = base64.b64decode(PNG_B64)
 LONG_RELAY_NAME = "Fixture Multi-Model Relay — GPT Image 2 + Nano Banana Pro/2/Lite"
@@ -344,10 +345,15 @@ def build_fixture_app(root: Path, *, host: str, port: int, auto_start_queue: boo
         output_root=root / "outputs",
         gallery_root=root / "gallery",
         source_data_root=root / "source-data",
+        reference_asset_root=root / "inputs" / "reference-assets",
+        reference_file_root=root / "inputs" / "reference-files",
         auth_settings_path=root / "auth-settings.json",
         api_settings_path=root / "api-settings.json",
         network_egress_settings_path=root / "network-egress-settings.json",
         webui_settings_path=root / "webui-settings.json",
+        color_settings_path=root / "color-settings.json",
+        prompt_snippets_path=root / "prompt-snippets.json",
+        prompt_templates_path=root / "prompt-templates.json",
         queue_path=root / "source-data" / "fixture-queue.json",
         auth_checker=lambda: False,
         auto_start_queue=auto_start_queue,
@@ -372,6 +378,33 @@ def build_fixture_app(root: Path, *, host: str, port: int, auto_start_queue: boo
     @app.get("/mock/assets/fixture.png")
     def fixture_asset() -> Response:
         return Response(PNG_BYTES, media_type="image/png")
+
+    @app.get("/mock/openai/v1/models")
+    async def openai_models(request: Request):
+        key = request.headers.get("authorization", "")
+        status = 401 if key == "Bearer fixture-unauthorized-key" else 200
+        record(request, {}, status)
+        if status == 401:
+            return JSONResponse({"error": {"message": "fixture unauthorized"}}, status_code=status)
+        if key == "Bearer fixture-delayed-key":
+            await asyncio.sleep(1)
+        models = [] if key == "Bearer fixture-empty-key" else [
+            {"id": "gpt-image-2"},
+            {"id": "vendor/custom.image:2"},
+            {"id": "gemini-3.1-flash-image"},
+            {"id": "text-model"},
+        ]
+        return {"data": models}
+
+    @app.get("/mock/gemini/v1beta/models")
+    def gemini_models(request: Request):
+        record(request, {}, 200)
+        if request.query_params.get("pageToken") == "fixture-page-2":
+            return {"models": [{"name": "models/gemini-3.1-flash-image"}]}
+        return {
+            "models": [{"name": "models/gemini-3-pro-image"}],
+            "nextPageToken": "fixture-page-2",
+        }
 
     @app.post("/mock/openai/v1/images/generations")
     async def openai_generate(request: Request):

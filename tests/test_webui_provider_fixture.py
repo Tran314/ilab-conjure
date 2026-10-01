@@ -10,6 +10,8 @@ import unittest
 from fastapi.testclient import TestClient
 from PIL import Image
 
+from codex_image.raster_validation import inspect_raster_image
+
 
 SCRIPT_PATH = Path(__file__).parents[1] / "scripts" / "run-webui-provider-fixture.py"
 
@@ -24,11 +26,26 @@ def _fixture_module():
 
 
 class ProviderFixtureTests(unittest.TestCase):
+    def test_fixture_model_lists_cover_openai_gemini_and_empty_results(self) -> None:
+        module = _fixture_module()
+        with tempfile.TemporaryDirectory() as temporary:
+            app, _ = module.build_fixture_app(Path(temporary), host="127.0.0.1", port=8897, auto_start_queue=False)
+            with TestClient(app) as client:
+                openai = client.get("/mock/openai/v1/models")
+                empty = client.get("/mock/openai/v1/models", headers={"Authorization": "Bearer fixture-empty-key"})
+                first_page = client.get("/mock/gemini/v1beta/models")
+                second_page = client.get("/mock/gemini/v1beta/models", params={"pageToken": first_page.json()["nextPageToken"]})
+        self.assertIn({"id": "vendor/custom.image:2"}, openai.json()["data"])
+        self.assertEqual(empty.json()["data"], [])
+        self.assertEqual(second_page.json()["models"], [{"name": "models/gemini-3.1-flash-image"}])
+
     def test_fixture_png_is_fully_decodable_for_thumbnail_generation(self) -> None:
         module = _fixture_module()
         with Image.open(io.BytesIO(module.PNG_BYTES)) as image:
             image.load()
             self.assertEqual((1, 1), image.size)
+        inspection = inspect_raster_image(module.PNG_BYTES)
+        self.assertEqual((inspection.width, inspection.height), (1, 1))
 
     def test_fixture_catalog_has_multi_model_and_protocol_specific_providers(self) -> None:
         module = _fixture_module()

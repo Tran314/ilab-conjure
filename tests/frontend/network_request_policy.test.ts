@@ -59,6 +59,7 @@ test("connection-test payload strips generation request policy", () => {
       custom_proxy_url: "",
       image_request_timeout_seconds: 1800,
       image_request_retry_count: 5,
+      asset_fake_ip_dns_fallback: true,
     }),
     {mode: "direct", custom_proxy_url: ""},
   );

@@ -12,6 +12,40 @@ from fastapi.testclient import TestClient
 
 
 class UserConfigBackupAPITests(unittest.TestCase):
+    def test_settings_backup_restores_enabled_fake_ip_dns_fallback(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            app = self._create_app(Path(tmp))
+            with TestClient(app) as client:
+                client.patch("/api/network-egress", json={"asset_fake_ip_dns_fallback": True})
+                created = client.post("/api/user-config-backups", json={
+                    "sections": ["settings"], "include_api_keys": False,
+                    "client_preferences": {"theme": "light", "notifications": {
+                        "in_app": True, "system": False,
+                    }},
+                })
+                self.assertEqual(created.status_code, 200)
+                job_id = created.json()["job"]["job_id"]
+                self.assertEqual(self._wait_terminal(client, job_id)["status"], "ready")
+                payload = client.get(f"/api/user-config-backups/{job_id}/download").content
+                client.patch("/api/network-egress", json={"asset_fake_ip_dns_fallback": False})
+                uploaded = client.post("/api/user-config-restores", json={
+                    "filename": "settings.zip", "size_bytes": len(payload),
+                })
+                self.assertEqual(uploaded.status_code, 200)
+                session_id = uploaded.json()["session"]["session_id"]
+                client.put(f"/api/user-config-restores/{session_id}/chunks", content=payload, headers={
+                    "x-upload-offset": "0", "x-chunk-sha256": hashlib.sha256(payload).hexdigest(),
+                })
+                validated = client.post(f"/api/user-config-restores/{session_id}/validate")
+                self.assertEqual(validated.status_code, 200)
+                preview = validated.json()["preview"]
+                restored = client.post(f"/api/user-config-restores/{session_id}/restore", json={
+                    "sections": ["settings"], "mode": "replace", "confirm_replace": True,
+                    "archive_sha256": preview["archive_sha256"], "preview_revision": preview["preview_revision"],
+                })
+                self.assertEqual(restored.status_code, 200)
+                self.assertTrue(client.get("/api/network-egress").json()["settings"]["asset_fake_ip_dns_fallback"])
+
     def _archive_bytes(self, root: Path) -> bytes:
         from codex_image.webui.user_config_backup_format import (
             USER_CONFIG_BACKUP_FORMAT,

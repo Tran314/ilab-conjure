@@ -85,9 +85,6 @@ function renderPreview(task: any = null) {
   const visibleSelectedTask = selectedTask && !isTaskArchived(selectedTask.task_id) ? selectedTask : null;
   const selected = task || visibleSelectedTask || state.tasks.find((item: any) => !isTaskArchived(item.task_id)) || selectedTask || state.tasks[0];
   const status = taskPreviewStatus(selected);
-  const sourceLabel = document.getElementById("previewSourceLabel");
-  if (sourceLabel) sourceLabel.textContent = selected ? `${translate(state.selectedTaskId ? "ux.selectedResult" : "ux.previousResult")} · ${selected.title || selected.prompt?.slice(0, 48) || selected.task_id} · ${selected.task_id}` : "";
-  if (sourceLabel) sourceLabel.title = sourceLabel.textContent || "";
   syncGroundingAttribution(els.previewGrid, selected, "preview");
   updatePreviewDownloadActions(selected);
   const nextPreviewKey = previewStructureKey(selected);

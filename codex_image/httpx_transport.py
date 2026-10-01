@@ -12,7 +12,8 @@ from urllib.request import getproxies, proxy_bypass
 
 import httpx
 
-from .asset_urls import resolve_asset_destination
+from .asset_urls import FakeIPAssetURLError, resolve_asset_destination
+from .asset_dns import resolve_fake_ip_hostname
 
 from .http import (
     HTTPResponse,
@@ -122,9 +123,11 @@ class HttpxTransport:
         *,
         timeout: float | None = None,
         proxy_map: Mapping[str, str] | None = None,
+        asset_fake_ip_dns_fallback: bool = False,
     ) -> None:
         self.timeout = _request_timeout_seconds(timeout)
         self.proxy_map = None if proxy_map is None else dict(proxy_map)
+        self.asset_fake_ip_dns_fallback = asset_fake_ip_dns_fallback
 
     def request(
         self,
@@ -272,7 +275,15 @@ class HttpxTransport:
                     request_headers = current_headers
                     extensions = {}
                     if asset_provider_base_url is not None:
-                        destination = await asyncio.to_thread(resolve_asset_destination, current_url, asset_provider_base_url)
+                        try:
+                            destination = await asyncio.to_thread(resolve_asset_destination, current_url, asset_provider_base_url)
+                        except FakeIPAssetURLError as exc:
+                            if not self.asset_fake_ip_dns_fallback:
+                                raise
+                            addresses = await resolve_fake_ip_hostname(exc.hostname, proxy=proxy)
+                            destination = resolve_asset_destination(
+                                current_url, asset_provider_base_url, resolved_addresses=addresses,
+                            )
                         request_urls = destination.urls
                         request_headers = {**current_headers, "Host": destination.host_header}
                         extensions = {"sni_hostname": destination.server_hostname}

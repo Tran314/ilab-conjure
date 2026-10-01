@@ -25,7 +25,7 @@
       document.documentElement.dataset.themePreference = preference;
     })();
   </script>
-  <link rel="stylesheet" href="/static/styles.css?v=runtime-821" />
+    <link rel="stylesheet" href="/static/styles.css?v=runtime-835" />
 </head>
 <body>
   <main class="history-page">
@@ -488,6 +488,12 @@
             <span data-i18n="networkEgress.customProxy">自定义代理地址</span>
             <input id="networkEgressCustomProxy" class="control" type="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="http://127.0.0.1:7890" />
           </label>
+          <label class="web-search-toggle network-fake-ip-toggle">
+            <span id="networkEgressFakeIpDnsLabel" data-i18n="networkEgress.fakeIpDnsFallback">图片下载兼容 Fake-IP DNS</span>
+            <input id="networkEgressFakeIpDnsFallback" type="checkbox" role="switch" aria-labelledby="networkEgressFakeIpDnsLabel" aria-describedby="networkEgressFakeIpDnsHelp" disabled />
+            <span class="web-search-toggle-track" aria-hidden="true"></span>
+          </label>
+          <p id="networkEgressFakeIpDnsHelp" class="network-request-policy-help" data-i18n="networkEgress.fakeIpDnsHelp">遇到 Fake-IP 时，通过 Cloudflare DNS 查询图片域名的真实公网地址。仅影响之后开始的图片下载，不改变局域网 DNS；不会发送密钥、提示词或完整图片链接。</p>
           <p id="networkEgressCurrentRoute" class="network-egress-current-route" data-i18n="networkEgress.currentRoute">当前出口：系统</p>
           <div class="settings-modal-actions network-egress-actions">
             <p id="networkEgressStatus" class="settings-action-status network-egress-feedback" aria-live="polite"></p>
@@ -568,6 +574,6 @@
     </div>
   </div>
   <div id="taskNotificationToastRegion" class="task-notification-toast-region" aria-live="polite"></div>
-  <script src="/static/history.js?v=history-149"></script>
+  <script src="/static/history.js?v=history-156"></script>
 </body>
 </html>

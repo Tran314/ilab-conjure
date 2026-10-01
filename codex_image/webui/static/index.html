@@ -121,7 +121,7 @@
         });
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=runtime-821" />
+    <link rel="stylesheet" href="/static/styles.css?v=runtime-835" />
   </head>
   <body>
     <div class="layout-container">
@@ -543,6 +543,9 @@
                 <div class="prompt-heading-main">
                   <h2 data-i18n="prompt.title">提示词</h2>
                   <span id="charCount" class="prompt-count">0</span>
+                </div>
+                <div class="prompt-heading-actions">
+                  <p id="executionSummary" class="execution-summary" aria-live="polite"></p>
                   <button id="restoreComposerDraft" type="button" class="ghost-button text-sm" hidden data-i18n="ux.restoreDraft">恢复草稿</button>
                 </div>
               </div>
@@ -566,7 +569,6 @@
                   <button id="runButton" class="run-button prompt-run-button" type="button" aria-keyshortcuts="Meta+Enter" title="开始生成（Cmd+Enter）" data-i18n="prompt.run" data-i18n-attr="title:prompt.runTitle">开始生成</button>
                 </div>
               </div>
-              <p id="executionSummary" class="execution-summary" aria-live="polite"></p>
               <p id="promptValidationError" class="field-error" role="alert" hidden></p>
               <div class="prompt-template-row">
                 <div class="prompt-template-recent-cell">
@@ -960,7 +962,6 @@
             <section class="panel preview-panel">
               <div class="panel-heading preview-heading">
                 <h2 data-i18n="preview.title">预览结果</h2>
-                <span id="previewSourceLabel" class="preview-source-label"></span>
                 <div class="preview-heading-actions">
                   <div class="preview-selection-actions hidden" id="previewSelectionActions" aria-live="polite">
                     <span id="previewSelectionCount" class="preview-selection-count" data-i18n="preview.selectedZero">已选 0</span>
@@ -1244,6 +1245,12 @@
             </div>
             <p id="networkRequestPolicyHelp" class="network-request-policy-help" data-i18n="networkEgress.requestPolicyHelp">仅影响之后开始的生图请求；每次自动重试都会重新计算超时时间。</p>
             <p id="networkEgressCompatibilityNotice" class="network-egress-compatibility-notice" aria-live="polite" hidden></p>
+            <label class="web-search-toggle network-fake-ip-toggle">
+              <span id="networkEgressFakeIpDnsLabel" data-i18n="networkEgress.fakeIpDnsFallback">图片下载兼容 Fake-IP DNS</span>
+              <input id="networkEgressFakeIpDnsFallback" type="checkbox" role="switch" aria-labelledby="networkEgressFakeIpDnsLabel" aria-describedby="networkEgressFakeIpDnsHelp" disabled />
+              <span class="web-search-toggle-track" aria-hidden="true"></span>
+            </label>
+            <p id="networkEgressFakeIpDnsHelp" class="network-request-policy-help" data-i18n="networkEgress.fakeIpDnsHelp">遇到 Fake-IP 时，通过 Cloudflare DNS 查询图片域名的真实公网地址。仅影响之后开始的图片下载，不改变局域网 DNS；不会发送密钥、提示词或完整图片链接。</p>
             <p id="networkEgressCurrentRoute" class="network-egress-current-route" data-i18n="networkEgress.currentRoute">当前出口：系统</p>
             <div class="settings-modal-actions network-egress-actions">
               <p id="networkEgressStatus" class="settings-action-status network-egress-feedback" aria-live="polite"></p>
@@ -1653,7 +1660,7 @@
     </div>
 
     <div id="taskNotificationToastRegion" class="task-notification-toast-region" aria-live="polite"></div>
-  <script src="/static/app.js?v=runtime-834"></script>
+  <script src="/static/app.js?v=runtime-850"></script>
     <script>
       (() => {
         document.querySelectorAll(".radio-group").forEach((group) => {

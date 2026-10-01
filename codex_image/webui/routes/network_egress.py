@@ -68,6 +68,7 @@ def _settings_payload(ctx: WebUIContext) -> dict[str, Any]:
                 snapshot.image_request_timeout_seconds
             ),
             "image_request_retry_count": snapshot.image_request_retry_count,
+            "asset_fake_ip_dns_fallback": snapshot.asset_fake_ip_dns_fallback,
             "image_request_timeout_source": (
                 snapshot.image_request_timeout_source
             ),

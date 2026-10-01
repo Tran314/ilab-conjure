@@ -131,6 +131,7 @@ export function createWebUIElements(): WebUIElements {
   networkEgressCustomProxy: document.querySelector("#networkEgressCustomProxy"),
   networkEgressTimeoutMinutes: document.querySelector("#networkEgressTimeoutMinutes"),
   networkEgressRetryCount: document.querySelector("#networkEgressRetryCount"),
+  networkEgressFakeIpDnsFallback: document.querySelector("#networkEgressFakeIpDnsFallback"),
   networkEgressTimeoutError: document.querySelector("#networkEgressTimeoutError"),
   networkEgressRetryError: document.querySelector("#networkEgressRetryError"),
   networkEgressCompatibilityNotice: document.querySelector("#networkEgressCompatibilityNotice"),

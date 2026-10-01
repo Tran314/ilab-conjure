@@ -64,7 +64,6 @@ from .auth_routing import (
 )
 from .cancellation import (
     finalize_task_cancellation,
-    request_task_cancellation,
 )
 from .queue_runtime import (
     _client_for_queue_channel,
@@ -77,6 +76,7 @@ from .queue_runtime import (
     execute_task,
     install_queue_runtime,
     queue_lifespan,
+    request_running_task_cancellation,
 )
 from .recovery import (
     _disk_output_paths,
@@ -523,8 +523,8 @@ def create_app(
             "running_channel_for_task": lambda task_id: _running_channel_for_task(queue_storage, task_id),
             "with_stored_request_payload": lambda task_id, metadata: _with_stored_request_payload(storage, task_id, metadata),
             "set_task_archived": lambda task_id, archived: _set_task_archived(storage, task_id, archived),
-            "request_task_cancellation": lambda task_id: request_task_cancellation(
-                storage,
+            "request_task_cancellation": lambda task_id: request_running_task_cancellation(
+                ctx,
                 task_id,
             ),
             "finalize_task_cancellation": lambda task_id: finalize_task_cancellation(

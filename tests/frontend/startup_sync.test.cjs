@@ -72,6 +72,22 @@ test('startup loads HTTP history even when EventSource opens without a snapshot'
   assert.equal(f.state.realtimeSnapshotNeedsArchiveMigration, false);
 });
 
+test('startup restores the composer before history handoffs and task requests', async () => {
+  const f = fixture();
+  const restored = deferred();
+  const order = [];
+  f.methods.restoreComposerNavigationDraft = () => { order.push('restore'); return restored.promise; };
+  f.methods.restoreHistoryReferenceHandoff = () => order.push('reference');
+  f.methods.restoreHistoryTaskReuseHandoff = () => order.push('reuse');
+  f.load('./boot').bootWebUI(f.state, {}, f.methods);
+  assert.deepEqual(order, ['restore']);
+  assert.equal(f.calls.length, 0);
+  restored.resolve();
+  await flush();
+  assert.deepEqual(order, ['restore', 'reference', 'reuse']);
+  assert.ok(f.calls.includes('queue'));
+});
+
 test('delayed SSE snapshot cannot regress newer HTTP tasks or queue', async () => {
   const f = fixture();
   f.fetchWith(async () => response(page([task()], 2)));

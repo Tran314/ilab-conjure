@@ -112,6 +112,8 @@
     "lanAccess.copyManually": "Address selected. Copy it manually.",
     "ux.restoreDraft": "Restore draft",
     "ux.draftRestored": "Prompt and references restored; generation settings keep the current selection.",
+    "ux.historyDraftSaveFailed": "Could not preserve the draft. You are still on the generation page. Please try again.",
+    "ux.historyDraftRestoreFailed": "Could not restore the draft. The temporary copy is retained. Refresh to try again.",
     "ux.discardEdits": "Discard changes",
     "ux.imageUnsaved": "This image has unsaved changes. Discarding cannot be undone; cancel to keep editing.",
     "ux.addingReference": "Adding reference\u2026",
@@ -122,8 +124,6 @@
     "ux.tasks": "Tasks",
     "ux.addReference": "Add reference",
     "ux.collapseReference": "Collapse",
-    "ux.selectedResult": "Selected task",
-    "ux.previousResult": "Previous task result",
     "ux.recovery.credentials": "Authentication failed. Check the task provider\u2019s API key or local sign-in before generating again.",
     "ux.recovery.quota": "Check the task provider\u2019s quota or account balance.",
     "ux.recovery.input": "Check the prompt, reference files and generation settings for unsupported inputs.",
@@ -168,7 +168,7 @@
     "batch.cancelSelected": "Cancel tasks",
     "batch.noActiveSelected": "The selected tasks are no longer running or waiting",
     "batch.cancelTitle": "Cancel {count} tasks?",
-    "batch.cancelMessage": "Waiting tasks will be cancelled immediately. Running provider calls may continue and may still be billed until they return. History will be kept.",
+    "batch.cancelMessage": "Waiting tasks will be cancelled immediately and local requests for running tasks will be interrupted. Generated images and history will be kept. The provider may still generate and bill for the images.",
     "batch.cancelDetail": "Running {running} \xB7 waiting {waiting}",
     "batch.cancelConfirm": "Cancel tasks",
     "batch.cancelResult": "Cancelled {cancelled}, cancellation requested {requested}, skipped {skipped}, failed {failed}",
@@ -221,9 +221,9 @@
     "queue.queuedDeleted": "Queued task deleted",
     "queue.cancelRunningConfirm": "Cancel task",
     "queue.cancelRunningTitleConfirm": "Cancel running task?",
-    "queue.cancelRunningMessage": "A cancellation request will be sent. The provider call may continue and may still be billed until it returns. History will be kept.",
+    "queue.cancelRunningMessage": "Local requests for this task will be interrupted. Generated images and history will be kept. The provider may still generate and bill for the images.",
     "queue.cancelRunningFailed": "Failed to cancel task",
-    "queue.cancellationPending": "Cancellation requested. This provider call may continue and may still be billed until it returns.",
+    "queue.cancellationPending": "Stopping local requests. The provider may still generate and bill for the images.",
     "queue.runningCancelled": "Task cancelled",
     "queue.reorderFailed": "Failed to reorder queue",
     "queue.realtimeUpdateFailed": "Failed to update live status",
@@ -1179,6 +1179,8 @@
     "networkEgress.timeoutUnit": "min",
     "networkEgress.retryCount": "Retries after failure",
     "networkEgress.retryUnit": "times",
+    "networkEgress.fakeIpDnsFallback": "Fake-IP DNS compatibility for image downloads",
+    "networkEgress.fakeIpDnsHelp": "When image DNS returns a Fake-IP, query Cloudflare DNS for real public addresses. Applies to downloads in requests started later; leaves LAN DNS unchanged. No API keys, prompts, or full image URLs are sent.",
     "networkEgress.requestPolicyHelp": "Applies only to image requests started later. Each automatic retry gets a new timeout window.",
     "networkEgress.timeoutInvalid": "Enter a whole number from 1 to 30 minutes",
     "networkEgress.retryInvalid": "Enter a whole number from 0 to 5 retries",
@@ -1210,6 +1212,21 @@
     "apiSettings.modelBindings": "Model bindings",
     "apiSettings.modelBindingsHint": "One provider can bind multiple models and protocols.",
     "apiSettings.addModelBinding": "Add model binding",
+    "apiSettings.remoteModelName": "Remote model name",
+    "apiSettings.fetchModels": "Get available models",
+    "apiSettings.fetchingModels": "Fetching models\u2026",
+    "apiSettings.selectAvailableModel": "Select an available model",
+    "apiSettings.modelsFetched": "Found {count} models. Choose one that matches this model binding.",
+    "apiSettings.modelsEmpty": "No models returned. You can still enter a model name manually.",
+    "apiSettings.modelsKeyRequired": "Enter an API Key before fetching models.",
+    "apiSettings.modelsOriginMismatch": "The provider address changed. Enter a new API Key or save the provider first.",
+    "apiSettings.modelsInvalidBaseUrl": "Enter a valid HTTP(S) Base URL.",
+    "apiSettings.modelsUnauthorized": "Model access was denied. Check the API Key and its permissions.",
+    "apiSettings.modelsNotSupported": "This provider does not support listing models. Enter the model name manually.",
+    "apiSettings.modelsRateLimited": "Too many requests. Try again later.",
+    "apiSettings.modelsInvalidResponse": "The provider returned an invalid model list. You can enter the name manually.",
+    "apiSettings.modelsTooLarge": "The provider's model list is too large. Enter the model name manually.",
+    "apiSettings.modelsFetchFailed": "Could not fetch models. Check the address and network, then try again.",
     "apiSettings.appendRatioPrompt": "Add ratio prompt",
     "apiSettings.defaultProviderForModel": "Default provider for this model",
     "apiSettings.removeBinding": "Remove binding",
@@ -12516,6 +12533,8 @@
     "lanAccess.copyManually": "\u0110\xE3 ch\u1ECDn \u0111\u1ECBa ch\u1EC9. H\xE3y sao ch\xE9p th\u1EE7 c\xF4ng.",
     "ux.restoreDraft": "Kh\xF4i ph\u1EE5c b\u1EA3n nh\xE1p",
     "ux.draftRestored": "\u0110\xE3 kh\xF4i ph\u1EE5c l\u1EDDi nh\u1EAFc v\xE0 t\xE0i li\u1EC7u tham chi\u1EBFu; gi\u1EEF nguy\xEAn thi\u1EBFt l\u1EADp t\u1EA1o \u1EA3nh hi\u1EC7n t\u1EA1i.",
+    "ux.historyDraftSaveFailed": "Kh\xF4ng th\u1EC3 gi\u1EEF b\u1EA3n nh\xE1p. B\u1EA1n v\u1EABn \u1EDF trang t\u1EA1o \u1EA3nh. Vui l\xF2ng th\u1EED l\u1EA1i.",
+    "ux.historyDraftRestoreFailed": "Kh\xF4ng th\u1EC3 kh\xF4i ph\u1EE5c b\u1EA3n nh\xE1p. B\u1EA3n sao t\u1EA1m v\u1EABn \u0111\u01B0\u1EE3c gi\u1EEF. H\xE3y t\u1EA3i l\u1EA1i \u0111\u1EC3 th\u1EED l\u1EA1i.",
     "ux.discardEdits": "B\u1ECF thay \u0111\u1ED5i",
     "ux.imageUnsaved": "\u1EA2nh c\xF3 thay \u0111\u1ED5i ch\u01B0a l\u01B0u. B\u1ECF thay \u0111\u1ED5i s\u1EBD kh\xF4ng th\u1EC3 kh\xF4i ph\u1EE5c; h\u1EE7y \u0111\u1EC3 ti\u1EBFp t\u1EE5c ch\u1EC9nh s\u1EEDa.",
     "ux.addingReference": "\u0110ang th\xEAm \u1EA3nh tham chi\u1EBFu\u2026",
@@ -12526,8 +12545,6 @@
     "ux.tasks": "T\xE1c v\u1EE5",
     "ux.addReference": "Th\xEAm tham chi\u1EBFu",
     "ux.collapseReference": "Thu g\u1ECDn",
-    "ux.selectedResult": "T\xE1c v\u1EE5 \u0111\xE3 ch\u1ECDn",
-    "ux.previousResult": "K\u1EBFt qu\u1EA3 t\xE1c v\u1EE5 tr\u01B0\u1EDBc",
     "ux.recovery.credentials": "X\xE1c th\u1EF1c th\u1EA5t b\u1EA1i. Ki\u1EC3m tra kh\xF3a API c\u1EE7a nh\xE0 cung c\u1EA5p ho\u1EB7c tr\u1EA1ng th\xE1i \u0111\u0103ng nh\u1EADp tr\u01B0\u1EDBc khi t\u1EA1o l\u1EA1i.",
     "ux.recovery.quota": "Ki\u1EC3m tra h\u1EA1n m\u1EE9c ho\u1EB7c s\u1ED1 d\u01B0 t\xE0i kho\u1EA3n c\u1EE7a nh\xE0 cung c\u1EA5p.",
     "ux.recovery.input": "Ki\u1EC3m tra l\u1EDDi nh\u1EAFc, t\u1EC7p tham chi\u1EBFu v\xE0 th\xF4ng s\u1ED1 t\u1EA1o \u1EA3nh.",
@@ -13583,6 +13600,8 @@
     "networkEgress.timeoutUnit": "ph\xFAt",
     "networkEgress.retryCount": "Th\u1EED l\u1EA1i sau khi l\u1ED7i",
     "networkEgress.retryUnit": "l\u1EA7n",
+    "networkEgress.fakeIpDnsFallback": "T\u01B0\u01A1ng th\xEDch DNS Fake-IP khi t\u1EA3i \u1EA3nh",
+    "networkEgress.fakeIpDnsHelp": "Khi DNS \u1EA3nh tr\u1EA3 v\u1EC1 Fake-IP, truy v\u1EA5n Cloudflare DNS \u0111\u1EC3 l\u1EA5y \u0111\u1ECBa ch\u1EC9 c\xF4ng khai th\u1EADt. Ch\u1EC9 \xE1p d\u1EE5ng cho l\u01B0\u1EE3t t\u1EA3i trong c\xE1c y\xEAu c\u1EA7u b\u1EAFt \u0111\u1EA7u sau \u0111\xF3; kh\xF4ng thay \u0111\u1ED5i DNS m\u1EA1ng LAN. Kh\xF4ng g\u1EEDi API Key, l\u1EDDi nh\u1EAFc ho\u1EB7c URL \u1EA3nh \u0111\u1EA7y \u0111\u1EE7.",
     "networkEgress.requestPolicyHelp": "Ch\u1EC9 \xE1p d\u1EE5ng cho c\xE1c y\xEAu c\u1EA7u \u1EA3nh b\u1EAFt \u0111\u1EA7u sau \u0111\xF3. M\u1ED7i l\u1EA7n t\u1EF1 \u0111\u1ED9ng th\u1EED l\u1EA1i c\xF3 m\u1ED9t kho\u1EA3ng th\u1EDDi gian ch\u1EDD m\u1EDBi.",
     "networkEgress.timeoutInvalid": "Nh\u1EADp s\u1ED1 nguy\xEAn t\u1EEB 1 \u0111\u1EBFn 30 ph\xFAt",
     "networkEgress.retryInvalid": "Nh\u1EADp s\u1ED1 nguy\xEAn t\u1EEB 0 \u0111\u1EBFn 5 l\u1EA7n th\u1EED l\u1EA1i",
@@ -13614,6 +13633,21 @@
     "apiSettings.modelBindings": "Li\xEAn k\u1EBFt m\xF4 h\xECnh",
     "apiSettings.modelBindingsHint": "M\u1ED9t provider c\xF3 th\u1EC3 li\xEAn k\u1EBFt \u0111\u1ED3ng th\u1EDDi nhi\u1EC1u m\xF4 h\xECnh v\xE0 giao th\u1EE9c.",
     "apiSettings.addModelBinding": "Th\xEAm li\xEAn k\u1EBFt m\xF4 h\xECnh",
+    "apiSettings.remoteModelName": "T\xEAn m\xF4 h\xECnh t\u1EEB nh\xE0 cung c\u1EA5p",
+    "apiSettings.fetchModels": "L\u1EA5y m\xF4 h\xECnh kh\u1EA3 d\u1EE5ng",
+    "apiSettings.fetchingModels": "\u0110ang l\u1EA5y m\xF4 h\xECnh\u2026",
+    "apiSettings.selectAvailableModel": "Ch\u1ECDn m\xF4 h\xECnh kh\u1EA3 d\u1EE5ng",
+    "apiSettings.modelsFetched": "T\xECm th\u1EA5y {count} m\xF4 h\xECnh. Ch\u1ECDn m\xF4 h\xECnh ph\xF9 h\u1EE3p v\u1EDBi li\xEAn k\u1EBFt n\xE0y.",
+    "apiSettings.modelsEmpty": "Nh\xE0 cung c\u1EA5p kh\xF4ng tr\u1EA3 v\u1EC1 m\xF4 h\xECnh n\xE0o. B\u1EA1n v\u1EABn c\xF3 th\u1EC3 nh\u1EADp t\xEAn m\xF4 h\xECnh th\u1EE7 c\xF4ng.",
+    "apiSettings.modelsKeyRequired": "Nh\u1EADp API Key tr\u01B0\u1EDBc khi l\u1EA5y danh s\xE1ch m\xF4 h\xECnh.",
+    "apiSettings.modelsOriginMismatch": "\u0110\u1ECBa ch\u1EC9 nh\xE0 cung c\u1EA5p \u0111\xE3 thay \u0111\u1ED5i. Nh\u1EADp API Key m\u1EDBi ho\u1EB7c l\u01B0u nh\xE0 cung c\u1EA5p tr\u01B0\u1EDBc.",
+    "apiSettings.modelsInvalidBaseUrl": "Nh\u1EADp Base URL HTTP(S) h\u1EE3p l\u1EC7.",
+    "apiSettings.modelsUnauthorized": "Quy\u1EC1n truy c\u1EADp m\xF4 h\xECnh b\u1ECB t\u1EEB ch\u1ED1i. Ki\u1EC3m tra API Key v\xE0 quy\u1EC1n c\u1EE7a kh\xF3a.",
+    "apiSettings.modelsNotSupported": "Nh\xE0 cung c\u1EA5p n\xE0y kh\xF4ng h\u1ED7 tr\u1EE3 li\u1EC7t k\xEA m\xF4 h\xECnh. H\xE3y nh\u1EADp t\xEAn m\xF4 h\xECnh th\u1EE7 c\xF4ng.",
+    "apiSettings.modelsRateLimited": "Qu\xE1 nhi\u1EC1u y\xEAu c\u1EA7u. H\xE3y th\u1EED l\u1EA1i sau.",
+    "apiSettings.modelsInvalidResponse": "Nh\xE0 cung c\u1EA5p tr\u1EA3 v\u1EC1 danh s\xE1ch m\xF4 h\xECnh kh\xF4ng h\u1EE3p l\u1EC7. B\u1EA1n c\xF3 th\u1EC3 nh\u1EADp t\xEAn th\u1EE7 c\xF4ng.",
+    "apiSettings.modelsTooLarge": "Danh s\xE1ch m\xF4 h\xECnh c\u1EE7a nh\xE0 cung c\u1EA5p qu\xE1 l\u1EDBn. H\xE3y nh\u1EADp t\xEAn m\xF4 h\xECnh th\u1EE7 c\xF4ng.",
+    "apiSettings.modelsFetchFailed": "Kh\xF4ng th\u1EC3 l\u1EA5y danh s\xE1ch m\xF4 h\xECnh. Ki\u1EC3m tra \u0111\u1ECBa ch\u1EC9 v\xE0 m\u1EA1ng r\u1ED3i th\u1EED l\u1EA1i.",
     "apiSettings.appendRatioPrompt": "Th\xEAm t\u1EF7 l\u1EC7 v\xE0o l\u1EDDi nh\u1EAFc",
     "apiSettings.defaultProviderForModel": "Provider m\u1EB7c \u0111\u1ECBnh",
     "apiSettings.removeBinding": "X\xF3a li\xEAn k\u1EBFt",
@@ -13877,6 +13911,8 @@
     "lanAccess.copyManually": "\u5DF2\u9009\u4E2D\u5730\u5740\uFF0C\u8BF7\u624B\u52A8\u590D\u5236\u3002",
     "ux.restoreDraft": "\u6062\u590D\u8349\u7A3F",
     "ux.draftRestored": "\u5DF2\u6062\u590D\u63D0\u793A\u8BCD\u4E0E\u53C2\u8003\u8F93\u5165\uFF1B\u751F\u6210\u53C2\u6570\u4FDD\u6301\u5F53\u524D\u9009\u62E9\u3002",
+    "ux.historyDraftSaveFailed": "\u672A\u80FD\u4FDD\u7559\u5F53\u524D\u8349\u7A3F\uFF0C\u5DF2\u7559\u5728\u751F\u6210\u9875\u3002\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002",
+    "ux.historyDraftRestoreFailed": "\u8349\u7A3F\u6062\u590D\u5931\u8D25\uFF0C\u5DF2\u4FDD\u7559\u4E34\u65F6\u526F\u672C\u3002\u8BF7\u5237\u65B0\u91CD\u8BD5\u3002",
     "ux.discardEdits": "\u653E\u5F03\u4FEE\u6539",
     "ux.imageUnsaved": "\u56FE\u7247\u8FD8\u6709\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002\u653E\u5F03\u540E\u65E0\u6CD5\u6062\u590D\uFF1B\u53D6\u6D88\u53EF\u7EE7\u7EED\u7F16\u8F91\u3002",
     "ux.addingReference": "\u6B63\u5728\u52A0\u5165\u53C2\u8003\u56FE\u2026",
@@ -13887,8 +13923,6 @@
     "ux.tasks": "\u4EFB\u52A1",
     "ux.addReference": "\u6DFB\u52A0\u53C2\u8003",
     "ux.collapseReference": "\u6536\u8D77",
-    "ux.selectedResult": "\u6240\u9009\u4EFB\u52A1",
-    "ux.previousResult": "\u4E0A\u4E00\u4EFB\u52A1\u7ED3\u679C",
     "ux.recovery.credentials": "\u51ED\u636E\u9A8C\u8BC1\u5931\u8D25\u3002\u8BF7\u6838\u5BF9\u4EFB\u52A1\u4F9B\u5E94\u5546\u7684 API Key \u6216\u672C\u673A\u767B\u5F55\u72B6\u6001\uFF0C\u4FEE\u6B63\u540E\u518D\u751F\u6210\u3002",
     "ux.recovery.quota": "\u989D\u5EA6\u6216\u8D26\u6237\u4F59\u989D\u4E0D\u8DB3\u3002\u8BF7\u68C0\u67E5\u4EFB\u52A1\u4F9B\u5E94\u5546\u7684\u8D26\u6237\u9650\u5236\u3002",
     "ux.recovery.input": "\u8BF7\u6C42\u8F93\u5165\u4E0D\u53D7\u652F\u6301\u3002\u8BF7\u68C0\u67E5\u63D0\u793A\u8BCD\u3001\u53C2\u8003\u6587\u4EF6\u548C\u751F\u6210\u53C2\u6570\u3002",
@@ -13933,7 +13967,7 @@
     "batch.cancelSelected": "\u53D6\u6D88\u4EFB\u52A1",
     "batch.noActiveSelected": "\u9009\u4E2D\u7684\u4EFB\u52A1\u5DF2\u4E0D\u5728\u8FD0\u884C\u6216\u7B49\u5F85\u961F\u5217\u4E2D",
     "batch.cancelTitle": "\u53D6\u6D88 {count} \u4E2A\u4EFB\u52A1\uFF1F",
-    "batch.cancelMessage": "\u7B49\u5F85\u4EFB\u52A1\u4F1A\u7ACB\u5373\u53D6\u6D88\u3002\u8FD0\u884C\u4E2D\u7684\u670D\u52A1\u5546\u8C03\u7528\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u4F1A\u7EE7\u7EED\uFF0C\u4E5F\u53EF\u80FD\u4ECD\u4F1A\u8BA1\u8D39\uFF1B\u5386\u53F2\u8BB0\u5F55\u90FD\u4F1A\u4FDD\u7559\u3002",
+    "batch.cancelMessage": "\u7B49\u5F85\u4EFB\u52A1\u4F1A\u7ACB\u5373\u53D6\u6D88\uFF0C\u8FD0\u884C\u4EFB\u52A1\u7684\u672C\u5730\u8BF7\u6C42\u4F1A\u4E2D\u65AD\uFF1B\u5DF2\u751F\u6210\u56FE\u7247\u548C\u5386\u53F2\u8BB0\u5F55\u90FD\u4F1A\u4FDD\u7559\u3002\u670D\u52A1\u5546\u53EF\u80FD\u4ECD\u7EE7\u7EED\u751F\u6210\u5E76\u8BA1\u8D39\u3002",
     "batch.cancelDetail": "\u8FD0\u884C {running} \u4E2A \xB7 \u7B49\u5F85 {waiting} \u4E2A",
     "batch.cancelConfirm": "\u786E\u8BA4\u53D6\u6D88",
     "batch.cancelResult": "\u5DF2\u53D6\u6D88 {cancelled} \u4E2A\uFF0C\u5DF2\u8BF7\u6C42\u53D6\u6D88 {requested} \u4E2A\uFF0C\u8DF3\u8FC7 {skipped} \u4E2A\uFF0C\u5931\u8D25 {failed} \u4E2A",
@@ -13986,9 +14020,9 @@
     "queue.queuedDeleted": "\u961F\u5217\u4EFB\u52A1\u5DF2\u5220\u9664",
     "queue.cancelRunningConfirm": "\u53D6\u6D88\u4EFB\u52A1",
     "queue.cancelRunningTitleConfirm": "\u53D6\u6D88\u8FD0\u884C\u4EFB\u52A1\uFF1F",
-    "queue.cancelRunningMessage": "\u5C06\u53D1\u9001\u53D6\u6D88\u8BF7\u6C42\u3002\u670D\u52A1\u5546\u8C03\u7528\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u4F1A\u7EE7\u7EED\uFF0C\u4E5F\u53EF\u80FD\u4ECD\u4F1A\u8BA1\u8D39\uFF1B\u5386\u53F2\u8BB0\u5F55\u4F1A\u4FDD\u7559\u3002",
+    "queue.cancelRunningMessage": "\u5C06\u4E2D\u65AD\u6B64\u4EFB\u52A1\u7684\u672C\u5730\u8BF7\u6C42\uFF0C\u4FDD\u7559\u5DF2\u751F\u6210\u56FE\u7247\u548C\u5386\u53F2\u8BB0\u5F55\u3002\u670D\u52A1\u5546\u53EF\u80FD\u4ECD\u7EE7\u7EED\u751F\u6210\u5E76\u8BA1\u8D39\u3002",
     "queue.cancelRunningFailed": "\u53D6\u6D88\u4EFB\u52A1\u5931\u8D25",
-    "queue.cancellationPending": "\u5DF2\u8BF7\u6C42\u53D6\u6D88\u3002\u670D\u52A1\u5546\u8C03\u7528\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u4F1A\u7EE7\u7EED\uFF0C\u4E5F\u53EF\u80FD\u4ECD\u4F1A\u8BA1\u8D39\u3002",
+    "queue.cancellationPending": "\u6B63\u5728\u505C\u6B62\u672C\u5730\u8BF7\u6C42\u3002\u670D\u52A1\u5546\u53EF\u80FD\u4ECD\u7EE7\u7EED\u751F\u6210\u5E76\u8BA1\u8D39\u3002",
     "queue.runningCancelled": "\u4EFB\u52A1\u5DF2\u53D6\u6D88",
     "queue.reorderFailed": "\u961F\u5217\u6392\u5E8F\u5931\u8D25",
     "queue.realtimeUpdateFailed": "\u5B9E\u65F6\u72B6\u6001\u66F4\u65B0\u5931\u8D25",
@@ -14944,6 +14978,8 @@
     "networkEgress.timeoutUnit": "\u5206\u949F",
     "networkEgress.retryCount": "\u5931\u8D25\u540E\u91CD\u8BD5",
     "networkEgress.retryUnit": "\u6B21",
+    "networkEgress.fakeIpDnsFallback": "\u56FE\u7247\u4E0B\u8F7D\u517C\u5BB9 Fake-IP DNS",
+    "networkEgress.fakeIpDnsHelp": "\u9047\u5230 Fake-IP \u65F6\uFF0C\u901A\u8FC7 Cloudflare DNS \u67E5\u8BE2\u56FE\u7247\u57DF\u540D\u7684\u771F\u5B9E\u516C\u7F51\u5730\u5740\u3002\u4EC5\u5F71\u54CD\u4E4B\u540E\u5F00\u59CB\u7684\u56FE\u7247\u4E0B\u8F7D\uFF0C\u4E0D\u6539\u53D8\u5C40\u57DF\u7F51 DNS\uFF1B\u4E0D\u4F1A\u53D1\u9001\u5BC6\u94A5\u3001\u63D0\u793A\u8BCD\u6216\u5B8C\u6574\u56FE\u7247\u94FE\u63A5\u3002",
     "networkEgress.requestPolicyHelp": "\u4EC5\u5F71\u54CD\u4E4B\u540E\u5F00\u59CB\u7684\u751F\u56FE\u8BF7\u6C42\uFF1B\u6BCF\u6B21\u81EA\u52A8\u91CD\u8BD5\u90FD\u4F1A\u91CD\u65B0\u8BA1\u7B97\u8D85\u65F6\u65F6\u95F4\u3002",
     "networkEgress.timeoutInvalid": "\u8BF7\u8F93\u5165 1\u201330 \u7684\u6574\u6570\u5206\u949F",
     "networkEgress.retryInvalid": "\u8BF7\u8F93\u5165 0\u20135 \u7684\u6574\u6570\u6B21\u6570",
@@ -14975,6 +15011,21 @@
     "apiSettings.modelBindings": "\u6A21\u578B\u7ED1\u5B9A",
     "apiSettings.modelBindingsHint": "\u4E00\u4E2A\u4F9B\u5E94\u5546\u53EF\u540C\u65F6\u7ED1\u5B9A\u591A\u4E2A\u578B\u53F7\u548C\u534F\u8BAE\u3002",
     "apiSettings.addModelBinding": "\u6DFB\u52A0\u6A21\u578B\u7ED1\u5B9A",
+    "apiSettings.remoteModelName": "\u4E2D\u8F6C\u7AD9\u6A21\u578B\u540D\u79F0",
+    "apiSettings.fetchModels": "\u83B7\u53D6\u53EF\u7528\u6A21\u578B",
+    "apiSettings.fetchingModels": "\u6B63\u5728\u83B7\u53D6\u2026",
+    "apiSettings.selectAvailableModel": "\u9009\u62E9\u53EF\u7528\u6A21\u578B",
+    "apiSettings.modelsFetched": "\u83B7\u53D6\u5230 {count} \u4E2A\u6A21\u578B\uFF0C\u8BF7\u9009\u62E9\u4E0E\u5F53\u524D\u578B\u53F7\u5339\u914D\u7684\u6A21\u578B\u3002",
+    "apiSettings.modelsEmpty": "\u672A\u8FD4\u56DE\u53EF\u7528\u6A21\u578B\uFF0C\u4ECD\u53EF\u624B\u52A8\u586B\u5199\u6A21\u578B\u540D\u79F0\u3002",
+    "apiSettings.modelsKeyRequired": "\u8BF7\u5148\u586B\u5199 API Key \u518D\u83B7\u53D6\u6A21\u578B\u3002",
+    "apiSettings.modelsOriginMismatch": "\u4F9B\u5E94\u5546\u5730\u5740\u5DF2\u8DE8\u57DF\u66F4\u6539\uFF0C\u8BF7\u586B\u5199\u65B0 API Key\uFF0C\u6216\u5148\u4FDD\u5B58\u4F9B\u5E94\u5546\u3002",
+    "apiSettings.modelsInvalidBaseUrl": "\u8BF7\u586B\u5199\u6709\u6548\u7684 HTTP(S) Base URL\u3002",
+    "apiSettings.modelsUnauthorized": "\u65E0\u6743\u8BFB\u53D6\u6A21\u578B\u5217\u8868\uFF0C\u8BF7\u68C0\u67E5 API Key \u53CA\u5176\u6743\u9650\u3002",
+    "apiSettings.modelsNotSupported": "\u8BE5\u4F9B\u5E94\u5546\u4E0D\u652F\u6301\u83B7\u53D6\u6A21\u578B\u5217\u8868\uFF0C\u8BF7\u624B\u52A8\u586B\u5199\u6A21\u578B\u540D\u79F0\u3002",
+    "apiSettings.modelsRateLimited": "\u8BF7\u6C42\u8FC7\u4E8E\u9891\u7E41\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002",
+    "apiSettings.modelsInvalidResponse": "\u4F9B\u5E94\u5546\u8FD4\u56DE\u7684\u6A21\u578B\u5217\u8868\u683C\u5F0F\u65E0\u6548\uFF0C\u4ECD\u53EF\u624B\u52A8\u586B\u5199\u540D\u79F0\u3002",
+    "apiSettings.modelsTooLarge": "\u4F9B\u5E94\u5546\u6A21\u578B\u5217\u8868\u8FC7\u5927\uFF0C\u8BF7\u624B\u52A8\u586B\u5199\u6A21\u578B\u540D\u79F0\u3002",
+    "apiSettings.modelsFetchFailed": "\u83B7\u53D6\u6A21\u578B\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5\u5730\u5740\u4E0E\u7F51\u7EDC\u540E\u91CD\u8BD5\u3002",
     "apiSettings.appendRatioPrompt": "\u8FFD\u52A0\u6BD4\u4F8B\u63D0\u793A",
     "apiSettings.defaultProviderForModel": "\u8BBE\u4E3A\u8BE5\u578B\u53F7\u9ED8\u8BA4\u4F9B\u5E94\u5546",
     "apiSettings.removeBinding": "\u5220\u9664\u7ED1\u5B9A",
@@ -15210,6 +15261,8 @@
 
   // codex_image/webui/frontend/src/i18n/zh-hk.ts
   var ZH_HK_DICTIONARY = {
+    "ux.historyDraftSaveFailed": "\u672A\u80FD\u4FDD\u7559\u76EE\u524D\u8349\u7A3F\uFF0C\u5DF2\u7559\u5728\u751F\u6210\u9801\u3002\u8ACB\u7A0D\u5F8C\u91CD\u8A66\u3002",
+    "ux.historyDraftRestoreFailed": "\u8349\u7A3F\u9084\u539F\u5931\u6557\uFF0C\u5DF2\u4FDD\u7559\u81E8\u6642\u526F\u672C\u3002\u8ACB\u91CD\u65B0\u6574\u7406\u518D\u8A66\u3002",
     "mobile.taskActions": "\u4EFB\u52D9\u64CD\u4F5C",
     "mobile.photos": "\u76F8\u7247",
     "mobile.files": "\u6A94\u6848",
@@ -15269,7 +15322,7 @@
     "batch.cancelSelected": "\u53D6\u6D88\u4EFB\u52D9",
     "batch.noActiveSelected": "\u6240\u9078\u4EFB\u52D9\u5DF2\u4E0D\u5728\u57F7\u884C\u6216\u7B49\u5019\u4F47\u5217\u4E2D",
     "batch.cancelTitle": "\u53D6\u6D88 {count} \u500B\u4EFB\u52D9\uFF1F",
-    "batch.cancelMessage": "\u7B49\u5019\u4EFB\u52D9\u6703\u7ACB\u5373\u53D6\u6D88\u3002\u57F7\u884C\u4E2D\u7684\u670D\u52D9\u5546\u547C\u53EB\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u6703\u7E7C\u7E8C\uFF0C\u4EA6\u53EF\u80FD\u4ECD\u6703\u8A08\u8CBB\uFF1B\u6B77\u53F2\u8A18\u9304\u90FD\u6703\u4FDD\u7559\u3002",
+    "batch.cancelMessage": "\u7B49\u5019\u4EFB\u52D9\u6703\u7ACB\u5373\u53D6\u6D88\uFF0C\u57F7\u884C\u4EFB\u52D9\u7684\u672C\u6A5F\u8ACB\u6C42\u6703\u4E2D\u65B7\uFF1B\u5DF2\u751F\u6210\u5716\u7247\u53CA\u6B77\u53F2\u8A18\u9304\u90FD\u6703\u4FDD\u7559\u3002\u670D\u52D9\u5546\u53EF\u80FD\u4ECD\u7E7C\u7E8C\u751F\u6210\u4E26\u6536\u8CBB\u3002",
     "batch.cancelDetail": "\u57F7\u884C {running} \u500B \xB7 \u7B49\u5019 {waiting} \u500B",
     "batch.cancelConfirm": "\u78BA\u8A8D\u53D6\u6D88",
     "batch.cancelResult": "\u5DF2\u53D6\u6D88 {cancelled} \u500B\uFF0C\u5DF2\u8981\u6C42\u53D6\u6D88 {requested} \u500B\uFF0C\u7565\u904E {skipped} \u500B\uFF0C\u5931\u6557 {failed} \u500B",
@@ -15322,9 +15375,9 @@
     "queue.queuedDeleted": "\u4F47\u5217\u4EFB\u52D9\u5DF2\u522A\u9664",
     "queue.cancelRunningConfirm": "\u53D6\u6D88\u4EFB\u52D9",
     "queue.cancelRunningTitleConfirm": "\u53D6\u6D88\u57F7\u884C\u4EFB\u52D9\uFF1F",
-    "queue.cancelRunningMessage": "\u5C07\u50B3\u9001\u53D6\u6D88\u8981\u6C42\u3002\u670D\u52D9\u5546\u547C\u53EB\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u6703\u7E7C\u7E8C\uFF0C\u4EA6\u53EF\u80FD\u4ECD\u6703\u8A08\u8CBB\uFF1B\u6B77\u53F2\u8A18\u9304\u6703\u4FDD\u7559\u3002",
+    "queue.cancelRunningMessage": "\u5C07\u4E2D\u65B7\u6B64\u4EFB\u52D9\u7684\u672C\u6A5F\u8ACB\u6C42\uFF0C\u4FDD\u7559\u5DF2\u751F\u6210\u5716\u7247\u53CA\u6B77\u53F2\u8A18\u9304\u3002\u670D\u52D9\u5546\u53EF\u80FD\u4ECD\u7E7C\u7E8C\u751F\u6210\u4E26\u6536\u8CBB\u3002",
     "queue.cancelRunningFailed": "\u53D6\u6D88\u4EFB\u52D9\u5931\u6557",
-    "queue.cancellationPending": "\u5DF2\u8981\u6C42\u53D6\u6D88\u3002\u670D\u52D9\u5546\u547C\u53EB\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u6703\u7E7C\u7E8C\uFF0C\u4EA6\u53EF\u80FD\u4ECD\u6703\u8A08\u8CBB\u3002",
+    "queue.cancellationPending": "\u6B63\u5728\u505C\u6B62\u672C\u6A5F\u8ACB\u6C42\u3002\u670D\u52D9\u5546\u53EF\u80FD\u4ECD\u7E7C\u7E8C\u751F\u6210\u4E26\u6536\u8CBB\u3002",
     "queue.runningCancelled": "\u4EFB\u52D9\u5DF2\u53D6\u6D88",
     "queue.reorderFailed": "\u4F47\u5217\u6392\u5E8F\u5931\u6557",
     "queue.realtimeUpdateFailed": "\u5373\u6642\u72C0\u614B\u66F4\u65B0\u5931\u6557",
@@ -16221,6 +16274,8 @@
     "networkEgress.timeoutUnit": "\u5206\u9418",
     "networkEgress.retryCount": "\u5931\u6557\u5F8C\u91CD\u8A66",
     "networkEgress.retryUnit": "\u6B21",
+    "networkEgress.fakeIpDnsFallback": "\u5716\u7247\u4E0B\u8F09\u517C\u5BB9 Fake-IP DNS",
+    "networkEgress.fakeIpDnsHelp": "\u9047\u5230 Fake-IP \u6642\uFF0C\u900F\u904E Cloudflare DNS \u67E5\u8A62\u5716\u7247\u7DB2\u57DF\u7684\u771F\u5BE6\u516C\u7DB2\u5730\u5740\u3002\u53EA\u5F71\u97FF\u4E4B\u5F8C\u958B\u59CB\u7684\u5716\u7247\u4E0B\u8F09\uFF0C\u4E0D\u6539\u8B8A\u5C40\u57DF\u7DB2 DNS\uFF1B\u4E0D\u6703\u50B3\u9001\u91D1\u9470\u3001\u63D0\u793A\u8A5E\u6216\u5B8C\u6574\u5716\u7247\u9023\u7D50\u3002",
     "networkEgress.requestPolicyHelp": "\u53EA\u5F71\u97FF\u4E4B\u5F8C\u958B\u59CB\u7684\u751F\u5716\u8ACB\u6C42\uFF1B\u6BCF\u6B21\u81EA\u52D5\u91CD\u8A66\u90FD\u6703\u91CD\u65B0\u8A08\u7B97\u903E\u6642\u6642\u9593\u3002",
     "networkEgress.timeoutInvalid": "\u8ACB\u8F38\u5165 1\u201330 \u7684\u6574\u6578\u5206\u9418",
     "networkEgress.retryInvalid": "\u8ACB\u8F38\u5165 0\u20135 \u7684\u6574\u6578\u6B21\u6578",
@@ -16252,6 +16307,21 @@
     "apiSettings.modelBindings": "\u6A21\u578B\u7ED1\u5B9A",
     "apiSettings.modelBindingsHint": "\u4E00\u4E2A\u4F9B\u5E94\u5546\u53EF\u540C\u65F6\u7ED1\u5B9A\u591A\u4E2A\u578B\u53F7\u548C\u534F\u8BAE\u3002",
     "apiSettings.addModelBinding": "\u6DFB\u52A0\u6A21\u578B\u7ED1\u5B9A",
+    "apiSettings.remoteModelName": "\u4E2D\u8F49\u7AD9\u6A21\u578B\u540D\u7A31",
+    "apiSettings.fetchModels": "\u53D6\u5F97\u53EF\u7528\u6A21\u578B",
+    "apiSettings.fetchingModels": "\u6B63\u5728\u53D6\u5F97\u2026",
+    "apiSettings.selectAvailableModel": "\u9078\u64C7\u53EF\u7528\u6A21\u578B",
+    "apiSettings.modelsFetched": "\u53D6\u5F97 {count} \u500B\u6A21\u578B\uFF0C\u8ACB\u9078\u64C7\u8207\u76EE\u524D\u578B\u865F\u76F8\u7B26\u7684\u6A21\u578B\u3002",
+    "apiSettings.modelsEmpty": "\u672A\u50B3\u56DE\u53EF\u7528\u6A21\u578B\uFF0C\u4ECD\u53EF\u624B\u52D5\u586B\u5BEB\u6A21\u578B\u540D\u7A31\u3002",
+    "apiSettings.modelsKeyRequired": "\u8ACB\u5148\u586B\u5BEB API Key \u518D\u53D6\u5F97\u6A21\u578B\u3002",
+    "apiSettings.modelsOriginMismatch": "\u4F9B\u61C9\u5546\u7DB2\u5740\u5DF2\u8DE8\u7DB2\u57DF\u8B8A\u66F4\uFF0C\u8ACB\u586B\u5BEB\u65B0 API Key\uFF0C\u6216\u5148\u5132\u5B58\u4F9B\u61C9\u5546\u3002",
+    "apiSettings.modelsInvalidBaseUrl": "\u8ACB\u586B\u5BEB\u6709\u6548\u7684 HTTP(S) Base URL\u3002",
+    "apiSettings.modelsUnauthorized": "\u7121\u6B0A\u8B80\u53D6\u6A21\u578B\u6E05\u55AE\uFF0C\u8ACB\u6AA2\u67E5 API Key \u53CA\u5176\u6B0A\u9650\u3002",
+    "apiSettings.modelsNotSupported": "\u6B64\u4F9B\u61C9\u5546\u4E0D\u652F\u63F4\u53D6\u5F97\u6A21\u578B\u6E05\u55AE\uFF0C\u8ACB\u624B\u52D5\u586B\u5BEB\u6A21\u578B\u540D\u7A31\u3002",
+    "apiSettings.modelsRateLimited": "\u8ACB\u6C42\u904E\u65BC\u983B\u7E41\uFF0C\u8ACB\u7A0D\u5F8C\u518D\u8A66\u3002",
+    "apiSettings.modelsInvalidResponse": "\u4F9B\u61C9\u5546\u50B3\u56DE\u7684\u6A21\u578B\u6E05\u55AE\u683C\u5F0F\u7121\u6548\uFF0C\u4ECD\u53EF\u624B\u52D5\u586B\u5BEB\u540D\u7A31\u3002",
+    "apiSettings.modelsTooLarge": "\u4F9B\u61C9\u5546\u6A21\u578B\u6E05\u55AE\u904E\u5927\uFF0C\u8ACB\u624B\u52D5\u586B\u5BEB\u6A21\u578B\u540D\u7A31\u3002",
+    "apiSettings.modelsFetchFailed": "\u53D6\u5F97\u6A21\u578B\u5931\u6557\uFF0C\u8ACB\u6AA2\u67E5\u7DB2\u5740\u8207\u7DB2\u8DEF\u5F8C\u91CD\u8A66\u3002",
     "apiSettings.appendRatioPrompt": "\u52A0\u5165\u6BD4\u4F8B\u63D0\u793A",
     "apiSettings.defaultProviderForModel": "\u8A2D\u70BA\u6B64\u578B\u865F\u9810\u8A2D\u4F9B\u61C9\u5546",
     "apiSettings.removeBinding": "\u522A\u9664\u7D81\u5B9A",
@@ -16487,6 +16557,8 @@
 
   // codex_image/webui/frontend/src/i18n/zh-tw.ts
   var ZH_TW_DICTIONARY = {
+    "ux.historyDraftSaveFailed": "\u672A\u80FD\u4FDD\u7559\u76EE\u524D\u8349\u7A3F\uFF0C\u5DF2\u7559\u5728\u751F\u6210\u9801\u3002\u8ACB\u7A0D\u5F8C\u91CD\u8A66\u3002",
+    "ux.historyDraftRestoreFailed": "\u8349\u7A3F\u9084\u539F\u5931\u6557\uFF0C\u5DF2\u4FDD\u7559\u66AB\u5B58\u526F\u672C\u3002\u8ACB\u91CD\u65B0\u6574\u7406\u518D\u8A66\u3002",
     "mobile.taskActions": "\u4EFB\u52D9\u64CD\u4F5C",
     "mobile.photos": "\u7167\u7247",
     "mobile.files": "\u6A94\u6848",
@@ -16546,7 +16618,7 @@
     "batch.cancelSelected": "\u53D6\u6D88\u4EFB\u52D9",
     "batch.noActiveSelected": "\u6240\u9078\u4EFB\u52D9\u5DF2\u4E0D\u5728\u57F7\u884C\u6216\u7B49\u5F85\u4F47\u5217\u4E2D",
     "batch.cancelTitle": "\u53D6\u6D88 {count} \u500B\u4EFB\u52D9\uFF1F",
-    "batch.cancelMessage": "\u7B49\u5F85\u4EFB\u52D9\u6703\u7ACB\u5373\u53D6\u6D88\u3002\u57F7\u884C\u4E2D\u7684\u670D\u52D9\u5546\u547C\u53EB\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u6703\u7E7C\u7E8C\uFF0C\u4E5F\u53EF\u80FD\u4ECD\u6703\u8A08\u8CBB\uFF1B\u6B77\u53F2\u8A18\u9304\u90FD\u6703\u4FDD\u7559\u3002",
+    "batch.cancelMessage": "\u7B49\u5F85\u4EFB\u52D9\u6703\u7ACB\u5373\u53D6\u6D88\uFF0C\u57F7\u884C\u4EFB\u52D9\u7684\u672C\u6A5F\u8ACB\u6C42\u6703\u4E2D\u65B7\uFF1B\u5DF2\u751F\u6210\u5716\u7247\u548C\u6B77\u53F2\u8A18\u9304\u90FD\u6703\u4FDD\u7559\u3002\u670D\u52D9\u5546\u53EF\u80FD\u4ECD\u7E7C\u7E8C\u751F\u6210\u4E26\u8A08\u8CBB\u3002",
     "batch.cancelDetail": "\u57F7\u884C {running} \u500B \xB7 \u7B49\u5F85 {waiting} \u500B",
     "batch.cancelConfirm": "\u78BA\u8A8D\u53D6\u6D88",
     "batch.cancelResult": "\u5DF2\u53D6\u6D88 {cancelled} \u500B\uFF0C\u5DF2\u8981\u6C42\u53D6\u6D88 {requested} \u500B\uFF0C\u7565\u904E {skipped} \u500B\uFF0C\u5931\u6557 {failed} \u500B",
@@ -16599,9 +16671,9 @@
     "queue.queuedDeleted": "\u4F47\u5217\u4EFB\u52D9\u5DF2\u522A\u9664",
     "queue.cancelRunningConfirm": "\u53D6\u6D88\u4EFB\u52D9",
     "queue.cancelRunningTitleConfirm": "\u53D6\u6D88\u57F7\u884C\u4EFB\u52D9\uFF1F",
-    "queue.cancelRunningMessage": "\u5C07\u50B3\u9001\u53D6\u6D88\u8981\u6C42\u3002\u670D\u52D9\u5546\u547C\u53EB\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u6703\u7E7C\u7E8C\uFF0C\u4E5F\u53EF\u80FD\u4ECD\u6703\u8A08\u8CBB\uFF1B\u6B77\u53F2\u8A18\u9304\u6703\u4FDD\u7559\u3002",
+    "queue.cancelRunningMessage": "\u5C07\u4E2D\u65B7\u6B64\u4EFB\u52D9\u7684\u672C\u6A5F\u8ACB\u6C42\uFF0C\u4FDD\u7559\u5DF2\u751F\u6210\u5716\u7247\u548C\u6B77\u53F2\u8A18\u9304\u3002\u670D\u52D9\u5546\u53EF\u80FD\u4ECD\u7E7C\u7E8C\u751F\u6210\u4E26\u8A08\u8CBB\u3002",
     "queue.cancelRunningFailed": "\u53D6\u6D88\u4EFB\u52D9\u5931\u6557",
-    "queue.cancellationPending": "\u5DF2\u8981\u6C42\u53D6\u6D88\u3002\u670D\u52D9\u5546\u547C\u53EB\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u6703\u7E7C\u7E8C\uFF0C\u4E5F\u53EF\u80FD\u4ECD\u6703\u8A08\u8CBB\u3002",
+    "queue.cancellationPending": "\u6B63\u5728\u505C\u6B62\u672C\u6A5F\u8ACB\u6C42\u3002\u670D\u52D9\u5546\u53EF\u80FD\u4ECD\u7E7C\u7E8C\u751F\u6210\u4E26\u8A08\u8CBB\u3002",
     "queue.runningCancelled": "\u4EFB\u52D9\u5DF2\u53D6\u6D88",
     "queue.reorderFailed": "\u4F47\u5217\u6392\u5E8F\u5931\u6557",
     "queue.realtimeUpdateFailed": "\u5373\u6642\u72C0\u614B\u66F4\u65B0\u5931\u6557",
@@ -17498,6 +17570,8 @@
     "networkEgress.timeoutUnit": "\u5206\u9418",
     "networkEgress.retryCount": "\u5931\u6557\u5F8C\u91CD\u8A66",
     "networkEgress.retryUnit": "\u6B21",
+    "networkEgress.fakeIpDnsFallback": "\u5716\u7247\u4E0B\u8F09\u76F8\u5BB9 Fake-IP DNS",
+    "networkEgress.fakeIpDnsHelp": "\u9047\u5230 Fake-IP \u6642\uFF0C\u900F\u904E Cloudflare DNS \u67E5\u8A62\u5716\u7247\u7DB2\u57DF\u7684\u771F\u5BE6\u516C\u7DB2\u4F4D\u5740\u3002\u50C5\u5F71\u97FF\u4E4B\u5F8C\u958B\u59CB\u7684\u5716\u7247\u4E0B\u8F09\uFF0C\u4E0D\u6539\u8B8A\u5340\u57DF\u7DB2\u8DEF DNS\uFF1B\u4E0D\u6703\u50B3\u9001\u91D1\u9470\u3001\u63D0\u793A\u8A5E\u6216\u5B8C\u6574\u5716\u7247\u9023\u7D50\u3002",
     "networkEgress.requestPolicyHelp": "\u50C5\u5F71\u97FF\u4E4B\u5F8C\u958B\u59CB\u7684\u751F\u5716\u8ACB\u6C42\uFF1B\u6BCF\u6B21\u81EA\u52D5\u91CD\u8A66\u90FD\u6703\u91CD\u65B0\u8A08\u7B97\u903E\u6642\u6642\u9593\u3002",
     "networkEgress.timeoutInvalid": "\u8ACB\u8F38\u5165 1\u201330 \u7684\u6574\u6578\u5206\u9418",
     "networkEgress.retryInvalid": "\u8ACB\u8F38\u5165 0\u20135 \u7684\u6574\u6578\u6B21\u6578",
@@ -17529,6 +17603,21 @@
     "apiSettings.modelBindings": "\u6A21\u578B\u7ED1\u5B9A",
     "apiSettings.modelBindingsHint": "\u4E00\u4E2A\u4F9B\u5E94\u5546\u53EF\u540C\u65F6\u7ED1\u5B9A\u591A\u4E2A\u578B\u53F7\u548C\u534F\u8BAE\u3002",
     "apiSettings.addModelBinding": "\u6DFB\u52A0\u6A21\u578B\u7ED1\u5B9A",
+    "apiSettings.remoteModelName": "\u4E2D\u8F49\u7AD9\u6A21\u578B\u540D\u7A31",
+    "apiSettings.fetchModels": "\u53D6\u5F97\u53EF\u7528\u6A21\u578B",
+    "apiSettings.fetchingModels": "\u6B63\u5728\u53D6\u5F97\u2026",
+    "apiSettings.selectAvailableModel": "\u9078\u64C7\u53EF\u7528\u6A21\u578B",
+    "apiSettings.modelsFetched": "\u53D6\u5F97 {count} \u500B\u6A21\u578B\uFF0C\u8ACB\u9078\u64C7\u8207\u76EE\u524D\u578B\u865F\u76F8\u7B26\u7684\u6A21\u578B\u3002",
+    "apiSettings.modelsEmpty": "\u672A\u50B3\u56DE\u53EF\u7528\u6A21\u578B\uFF0C\u4ECD\u53EF\u624B\u52D5\u586B\u5BEB\u6A21\u578B\u540D\u7A31\u3002",
+    "apiSettings.modelsKeyRequired": "\u8ACB\u5148\u586B\u5BEB API Key \u518D\u53D6\u5F97\u6A21\u578B\u3002",
+    "apiSettings.modelsOriginMismatch": "\u4F9B\u61C9\u5546\u7DB2\u5740\u5DF2\u8DE8\u7DB2\u57DF\u8B8A\u66F4\uFF0C\u8ACB\u586B\u5BEB\u65B0 API Key\uFF0C\u6216\u5148\u5132\u5B58\u4F9B\u61C9\u5546\u3002",
+    "apiSettings.modelsInvalidBaseUrl": "\u8ACB\u586B\u5BEB\u6709\u6548\u7684 HTTP(S) Base URL\u3002",
+    "apiSettings.modelsUnauthorized": "\u7121\u6B0A\u8B80\u53D6\u6A21\u578B\u6E05\u55AE\uFF0C\u8ACB\u6AA2\u67E5 API Key \u53CA\u5176\u6B0A\u9650\u3002",
+    "apiSettings.modelsNotSupported": "\u6B64\u4F9B\u61C9\u5546\u4E0D\u652F\u63F4\u53D6\u5F97\u6A21\u578B\u6E05\u55AE\uFF0C\u8ACB\u624B\u52D5\u586B\u5BEB\u6A21\u578B\u540D\u7A31\u3002",
+    "apiSettings.modelsRateLimited": "\u8ACB\u6C42\u904E\u65BC\u983B\u7E41\uFF0C\u8ACB\u7A0D\u5F8C\u518D\u8A66\u3002",
+    "apiSettings.modelsInvalidResponse": "\u4F9B\u61C9\u5546\u50B3\u56DE\u7684\u6A21\u578B\u6E05\u55AE\u683C\u5F0F\u7121\u6548\uFF0C\u4ECD\u53EF\u624B\u52D5\u586B\u5BEB\u540D\u7A31\u3002",
+    "apiSettings.modelsTooLarge": "\u4F9B\u61C9\u5546\u6A21\u578B\u6E05\u55AE\u904E\u5927\uFF0C\u8ACB\u624B\u52D5\u586B\u5BEB\u6A21\u578B\u540D\u7A31\u3002",
+    "apiSettings.modelsFetchFailed": "\u53D6\u5F97\u6A21\u578B\u5931\u6557\uFF0C\u8ACB\u6AA2\u67E5\u7DB2\u5740\u8207\u7DB2\u8DEF\u5F8C\u91CD\u8A66\u3002",
     "apiSettings.appendRatioPrompt": "\u8FFD\u52A0\u6BD4\u4F8B\u63D0\u793A",
     "apiSettings.defaultProviderForModel": "\u8A2D\u70BA\u6B64\u578B\u865F\u9810\u8A2D\u4F9B\u61C9\u5546",
     "apiSettings.removeBinding": "\u522A\u9664\u7D81\u5B9A",
@@ -18578,12 +18667,102 @@
     sync();
   }
 
+  // codex_image/webui/frontend/src/composer-navigation-storage.ts
+  var POINTER = "codex-image-composer-navigation";
+  var DATABASE = "codex-image-composer-navigation";
+  var STORE = "drafts";
+  var MAX_AGE = 7 * 24 * 60 * 60 * 1e3;
+  function openDatabase() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DATABASE, 1);
+      let blocked = false;
+      request.onupgradeneeded = () => {
+        request.result.createObjectStore(STORE).createIndex("savedAt", "savedAt");
+      };
+      request.onsuccess = () => {
+        if (blocked) {
+          request.result.close();
+          return;
+        }
+        request.result.onversionchange = () => request.result.close();
+        resolve(request.result);
+      };
+      request.onerror = () => reject(request.error);
+      request.onblocked = () => {
+        blocked = true;
+        reject(new Error("Draft storage is blocked"));
+      };
+    });
+  }
+  async function transaction(mode, action) {
+    const database = await openDatabase();
+    try {
+      return await new Promise((resolve, reject) => {
+        const tx = database.transaction(STORE, mode);
+        const request = action(tx.objectStore(STORE));
+        tx.oncomplete = () => resolve(request.result);
+        tx.onabort = () => reject(tx.error || request.error || new Error("Draft transaction aborted"));
+        tx.onerror = () => reject(tx.error || request.error);
+      });
+    } finally {
+      database.close();
+    }
+  }
+  function validDraft(value) {
+    return value && typeof value.prompt === "string" && typeof value.mode === "string" && Array.isArray(value.images) && Array.isArray(value.files);
+  }
+  var composerNavigationStore = {
+    hasPending() {
+      try {
+        return Boolean(sessionStorage.getItem(POINTER));
+      } catch {
+        return false;
+      }
+    },
+    async save(snapshot2) {
+      const token = sessionStorage.getItem(POINTER) || globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      await transaction("readwrite", (store) => {
+        const stale = store.index("savedAt").openKeyCursor(IDBKeyRange.upperBound(Date.now() - MAX_AGE));
+        stale.onsuccess = () => {
+          const cursor = stale.result;
+          if (!cursor) return;
+          if (cursor.primaryKey !== token) store.delete(cursor.primaryKey);
+          cursor.continue();
+        };
+        return store.put({ snapshot: snapshot2, savedAt: Date.now() }, token);
+      });
+      try {
+        sessionStorage.setItem(POINTER, token);
+      } catch (error) {
+        await transaction("readwrite", (store) => store.delete(token)).catch(() => {
+        });
+        throw error;
+      }
+    },
+    async load() {
+      const token = sessionStorage.getItem(POINTER);
+      if (!token) return null;
+      const record5 = await transaction("readonly", (store) => store.get(token));
+      const snapshot2 = record5?.snapshot;
+      if (!validDraft(snapshot2?.current) || !Array.isArray(snapshot2?.drafts) || !snapshot2.drafts.every(validDraft) || typeof snapshot2.baseline !== "string") {
+        throw new Error("Invalid navigation draft");
+      }
+      return snapshot2;
+    },
+    async clear() {
+      const token = sessionStorage.getItem(POINTER);
+      if (!token) return;
+      await transaction("readwrite", (store) => store.delete(token));
+      if (sessionStorage.getItem(POINTER) === token) sessionStorage.removeItem(POINTER);
+    }
+  };
+
   // codex_image/webui/frontend/src/composer-draft.ts
   var baseline = "";
   var drafts = [];
   function capture() {
     const { state: state33, methods } = getLegacyBridge();
-    return { prompt: methods.getPromptText?.() || "", images: [...state33.images || []], files: [...state33.referenceFiles || []], mode: state33.mode };
+    return { prompt: methods.getPromptText?.() || "", images: (state33.images || []).map((item) => ({ ...item })), files: (state33.referenceFiles || []).map((item) => ({ ...item })), mode: state33.mode };
   }
   function key(draft) {
     return JSON.stringify([draft.prompt, draft.images.map((item) => [item.id, item.name, item.file ? null : item.previewUrl, item.file?.size, item.file?.lastModified]), draft.files.map((item) => [item.id, item.filename, item.file?.size, item.file?.lastModified]), draft.mode]);
@@ -18622,6 +18801,12 @@
     const draft = drafts.pop();
     if (!draft) return;
     preserveComposerDraft();
+    applyDraft(draft);
+    getLegacyBridge().methods.setStatus?.(translate("ux.draftRestored"), "ok");
+    baseline = "";
+    renderRestoreButton();
+  }
+  function applyDraft(draft) {
     const { state: state33, methods } = getLegacyBridge();
     state33.taskInputRestoreSeq += 1;
     state33.selectedTaskId = null;
@@ -18637,17 +18822,99 @@
     methods.renderPreview?.();
     methods.updatePromptCount?.();
     methods.updateRequestPreview?.();
-    methods.setStatus?.(translate("ux.draftRestored"), "ok");
-    baseline = "";
-    renderRestoreButton();
   }
-  function initComposerDraft() {
+  function hasUnsavedEditor() {
+    const { state: state33, els: els44 } = getLegacyBridge();
+    return Boolean(state33.apiProviderEditingId || els44.imageEditorModal && !els44.imageEditorModal.classList.contains("hidden"));
+  }
+  function snapshot() {
+    return { current: capture(), drafts: [...drafts], baseline };
+  }
+  function navigationKey(value = snapshot()) {
+    return JSON.stringify([key(value.current), value.drafts.map(key), value.baseline]);
+  }
+  function hasHistoryHandoff() {
+    try {
+      return Boolean(localStorage.getItem("codex-image-history-task-reuse-handoff") || localStorage.getItem("codex-image-history-reference-handoff"));
+    } catch {
+      return false;
+    }
+  }
+  function initComposerDraft(store = composerNavigationStore) {
+    drafts = [];
     markComposerBaseline();
+    let savedNavigationKey = null;
+    let saving2 = false;
+    let restoring = null;
+    getLegacyBridge().methods.restoreComposerNavigationDraft = () => {
+      if (!store.hasPending()) return;
+      const initialKey = navigationKey();
+      restoring = (async () => {
+        try {
+          const saved = await store.load();
+          if (!saved) return;
+          const editedWhileLoading = navigationKey() !== initialKey;
+          drafts = [...saved.drafts, ...drafts];
+          if (hasHistoryHandoff() || editedWhileLoading) {
+            if (saved.current.prompt || saved.current.images.length || saved.current.files.length) drafts.push(saved.current);
+          } else {
+            applyDraft(saved.current);
+            baseline = saved.baseline;
+          }
+          renderRestoreButton();
+          await store.clear();
+        } catch {
+          getLegacyBridge().methods.setStatus?.(translate("ux.historyDraftRestoreFailed"), "error");
+        }
+      })().finally(() => {
+        restoring = null;
+      });
+      return restoring;
+    };
     document.getElementById("restoreComposerDraft")?.addEventListener("click", restoreComposerDraft);
+    document.addEventListener?.("click", (event) => {
+      if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      const anchor = event.target?.closest?.("a[href]");
+      if (!anchor || anchor.target && anchor.target !== "_self" || anchor.hasAttribute("download")) return;
+      const url = new URL(anchor.href, window.location.href);
+      if (url.origin !== window.location.origin || url.pathname !== "/history" || hasUnsavedEditor()) return;
+      const current = capture();
+      if (!current.prompt && !current.images.length && !current.files.length && !drafts.length && !store.hasPending()) return;
+      event.preventDefault();
+      if (saving2) return;
+      saving2 = true;
+      anchor.setAttribute("aria-busy", "true");
+      void (async () => {
+        try {
+          if (restoring) await restoring;
+          let saved;
+          do {
+            saved = snapshot();
+            await store.save(saved);
+          } while (navigationKey(saved) !== navigationKey());
+          if (hasUnsavedEditor()) return;
+          savedNavigationKey = navigationKey(saved);
+          window.location.assign(url.href);
+        } catch {
+          savedNavigationKey = null;
+          getLegacyBridge().methods.setStatus?.(translate("ux.historyDraftSaveFailed"), "error");
+        } finally {
+          saving2 = false;
+          anchor.removeAttribute("aria-busy");
+        }
+      })();
+    });
+    window.addEventListener("pageshow", (event) => {
+      if (!event.persisted) return;
+      savedNavigationKey = null;
+      restoring = store.clear().catch(() => {
+      }).finally(() => {
+        restoring = null;
+      });
+    });
     window.addEventListener("beforeunload", (event) => {
-      const { state: state33, els: els44 } = getLegacyBridge();
-      const editingImage = els44.imageEditorModal && !els44.imageEditorModal.classList.contains("hidden");
-      if (!composerHasChanges() && !drafts.length && !state33.apiProviderEditingId && !editingImage) return;
+      if (!hasUnsavedEditor() && savedNavigationKey === navigationKey()) return;
+      if (!composerHasChanges() && !drafts.length && !hasUnsavedEditor() && !store.hasPending()) return;
       event.preventDefault();
       event.returnValue = "";
     });
@@ -18793,6 +19060,14 @@
     call2(methods, "updateSizeFromPreset");
     call2(methods, "updateCustomSize");
     call2(methods, "restoreOutputSettingsLock");
+    const restoringDraft = call2(methods, "restoreComposerNavigationDraft");
+    if (restoringDraft) {
+      void Promise.resolve(restoringDraft).then(() => finishBoot(methods));
+      return;
+    }
+    finishBoot(methods);
+  }
+  function finishBoot(methods) {
     call2(methods, "renderImageStrip");
     call2(methods, "restoreCollectedReferences");
     void call2(methods, "restoreHistoryReferenceHandoff");
@@ -18944,6 +19219,7 @@
       networkEgressCustomProxy: document.querySelector("#networkEgressCustomProxy"),
       networkEgressTimeoutMinutes: document.querySelector("#networkEgressTimeoutMinutes"),
       networkEgressRetryCount: document.querySelector("#networkEgressRetryCount"),
+      networkEgressFakeIpDnsFallback: document.querySelector("#networkEgressFakeIpDnsFallback"),
       networkEgressTimeoutError: document.querySelector("#networkEgressTimeoutError"),
       networkEgressRetryError: document.querySelector("#networkEgressRetryError"),
       networkEgressCompatibilityNotice: document.querySelector("#networkEgressCompatibilityNotice"),
@@ -32564,16 +32840,16 @@ js: import "konva/skia-backend";
   function markImageEditorCanvasChanged(canvas) {
     pixelSnapshots.delete(canvas);
   }
-  function rememberImageEditorCanvasSnapshot(canvas, snapshot) {
-    pixelSnapshots.set(canvas, snapshot);
+  function rememberImageEditorCanvasSnapshot(canvas, snapshot2) {
+    pixelSnapshots.set(canvas, snapshot2);
   }
   function captureImageEditorCanvas(canvas) {
     const previous = pixelSnapshots.get(canvas);
     if (previous && previous.width === canvas.width && previous.height === canvas.height && previous.width > 0) return previous;
-    const snapshot = imageEditorCanvasSnapshot(canvas);
-    if (!snapshot) throw new Error(translate("imageEditor.canvasCreateFailed"));
-    pixelSnapshots.set(canvas, snapshot);
-    return snapshot;
+    const snapshot2 = imageEditorCanvasSnapshot(canvas);
+    if (!snapshot2) throw new Error(translate("imageEditor.canvasCreateFailed"));
+    pixelSnapshots.set(canvas, snapshot2);
+    return snapshot2;
   }
   function editedUploadFilename(name) {
     const sourceName3 = String(name || "input.png");
@@ -32583,13 +32859,13 @@ js: import "konva/skia-backend";
   }
   function imageEditorCanvasSnapshot(canvas) {
     if (!canvas) return null;
-    const snapshot = document.createElement("canvas");
-    snapshot.width = canvas.width;
-    snapshot.height = canvas.height;
-    const ctx = snapshot.getContext("2d");
+    const snapshot2 = document.createElement("canvas");
+    snapshot2.width = canvas.width;
+    snapshot2.height = canvas.height;
+    const ctx = snapshot2.getContext("2d");
     if (!ctx) return null;
     ctx.drawImage(canvas, 0, 0);
-    return snapshot;
+    return snapshot2;
   }
   function imageEditorLayerAttrs(node) {
     return {
@@ -32648,15 +32924,15 @@ js: import "konva/skia-backend";
     if (!canvas) return;
     if (canvas.width === width && canvas.height === height && !offsetX && !offsetY) return;
     markImageEditorCanvasChanged(canvas);
-    const snapshot = imageEditorCanvasSnapshot(canvas);
+    const snapshot2 = imageEditorCanvasSnapshot(canvas);
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
     canvas.width = width;
     canvas.height = height;
     ctx.clearRect(0, 0, width, height);
-    if (snapshot) {
-      ctx.drawImage(snapshot, offsetX, offsetY);
-      snapshot.width = snapshot.height = 0;
+    if (snapshot2) {
+      ctx.drawImage(snapshot2, offsetX, offsetY);
+      snapshot2.width = snapshot2.height = 0;
     }
   }
   function imageEditorExportBlob(canvas) {
@@ -33001,15 +33277,15 @@ js: import "konva/skia-backend";
     const resources = /* @__PURE__ */ new Map();
     let retainedBytes = 0;
     const byteBudget = options.byteBudget ?? 512 * 1024 * 1024;
-    function retain(snapshot) {
-      for (const canvas of new Set(options.resources?.(snapshot) || [])) {
+    function retain(snapshot2) {
+      for (const canvas of new Set(options.resources?.(snapshot2) || [])) {
         const count = resources.get(canvas) || 0;
         if (!count) retainedBytes += canvas.width * canvas.height * 4;
         resources.set(canvas, count + 1);
       }
     }
-    function release(snapshot) {
-      for (const canvas of new Set(options.resources?.(snapshot) || [])) {
+    function release(snapshot2) {
+      for (const canvas of new Set(options.resources?.(snapshot2) || [])) {
         const count = (resources.get(canvas) || 1) - 1;
         if (count) resources.set(canvas, count);
         else {
@@ -33020,11 +33296,11 @@ js: import "konva/skia-backend";
       }
     }
     function pushImageEditorHistory2() {
-      const snapshot = options.capture();
-      if (!snapshot) return;
-      retain(snapshot);
+      const snapshot2 = options.capture();
+      if (!snapshot2) return;
+      retain(snapshot2);
       history.splice(historyIndex + 1).forEach(release);
-      history.push(snapshot);
+      history.push(snapshot2);
       historyIndex = history.length - 1;
       while (history.length > IMAGE_EDITOR_HISTORY_LIMIT || retainedBytes > byteBudget && history.length > 2) {
         release(history.shift());
@@ -33344,16 +33620,16 @@ js: import "konva/skia-backend";
       editorFill.cancel();
       return imageEditorSnapshot();
     },
-    restore: (snapshot) => {
+    restore: (snapshot2) => {
       editorFill.cancel();
-      restoreImageEditorSnapshot(snapshot);
+      restoreImageEditorSnapshot(snapshot2);
     },
     changed: () => updateImageEditorControls(),
-    resources: (snapshot) => [
-      ...snapshot.layers.map((layer) => layer.canvas),
-      snapshot.workCanvas,
-      snapshot.brushBoundaryCanvas,
-      snapshot.brushOverlayCanvas
+    resources: (snapshot2) => [
+      ...snapshot2.layers.map((layer) => layer.canvas),
+      snapshot2.workCanvas,
+      snapshot2.brushBoundaryCanvas,
+      snapshot2.brushOverlayCanvas
     ].filter((canvas) => Boolean(canvas))
   });
   var { pushImageEditorHistory } = editorHistory;
@@ -33490,49 +33766,49 @@ js: import "konva/skia-backend";
       hasInstructionMarks: imageEditorState.hasInstructionMarks
     };
   }
-  function restoreImageEditorCanvas(canvas, snapshot) {
-    if (!canvas || !snapshot) return;
+  function restoreImageEditorCanvas(canvas, snapshot2) {
+    if (!canvas || !snapshot2) return;
     const ctx = imageEditorContext(canvas);
     if (!ctx) return;
-    canvas.width = snapshot.width;
-    canvas.height = snapshot.height;
-    ctx.clearRect(0, 0, snapshot.width, snapshot.height);
-    ctx.drawImage(snapshot, 0, 0);
-    rememberImageEditorCanvasSnapshot(canvas, snapshot);
+    canvas.width = snapshot2.width;
+    canvas.height = snapshot2.height;
+    ctx.clearRect(0, 0, snapshot2.width, snapshot2.height);
+    ctx.drawImage(snapshot2, 0, 0);
+    rememberImageEditorCanvasSnapshot(canvas, snapshot2);
   }
   function rebuildImageEditorLayers(snapshots) {
     const konvaLayer = imageEditorState.konvaLayer;
     if (!konvaLayer) return;
     imageEditorState.layers.forEach((layer) => layer.node?.destroy?.());
     imageEditorState.layers = [];
-    snapshots.forEach((snapshot) => {
-      const canvas = imageEditorCanvasSnapshot(snapshot.canvas);
+    snapshots.forEach((snapshot2) => {
+      const canvas = imageEditorCanvasSnapshot(snapshot2.canvas);
       if (!canvas) throw new Error(translate("imageEditor.canvasCreateFailed"));
-      rememberImageEditorCanvasSnapshot(canvas, snapshot.canvas);
+      rememberImageEditorCanvasSnapshot(canvas, snapshot2.canvas);
       const layer = createImageEditorLayerFromCanvas(canvas, {
-        id: snapshot.id,
+        id: snapshot2.id,
         source: null,
-        sourceIndex: snapshot.sourceIndex,
-        name: snapshot.name,
-        attrs: snapshot.attrs,
-        edited: snapshot.edited,
+        sourceIndex: snapshot2.sourceIndex,
+        name: snapshot2.name,
+        attrs: snapshot2.attrs,
+        edited: snapshot2.edited,
         pushHistory: false
       });
       imageEditorState.layers.push(layer);
     });
     orderImageEditorKonvaNodes();
   }
-  function restoreImageEditorSnapshot(snapshot) {
-    if (!snapshot) return;
-    imageEditorState.canvasScope = snapshot.canvasScope || "base";
-    resizeImageEditorCanvas(snapshot.workCanvas.width, snapshot.workCanvas.height, 0, 0);
-    rebuildImageEditorLayers(snapshot.layers);
-    restoreImageEditorCanvas(imageEditorState.workCanvas, snapshot.workCanvas);
-    imageEditorState.hasInstructionMarks = Boolean(snapshot.hasInstructionMarks);
-    imageEditorState.crop = snapshot.crop ? { ...snapshot.crop } : null;
-    imageEditorState.selectedLayerId = snapshot.selectedLayerId;
+  function restoreImageEditorSnapshot(snapshot2) {
+    if (!snapshot2) return;
+    imageEditorState.canvasScope = snapshot2.canvasScope || "base";
+    resizeImageEditorCanvas(snapshot2.workCanvas.width, snapshot2.workCanvas.height, 0, 0);
+    rebuildImageEditorLayers(snapshot2.layers);
+    restoreImageEditorCanvas(imageEditorState.workCanvas, snapshot2.workCanvas);
+    imageEditorState.hasInstructionMarks = Boolean(snapshot2.hasInstructionMarks);
+    imageEditorState.crop = snapshot2.crop ? { ...snapshot2.crop } : null;
+    imageEditorState.selectedLayerId = snapshot2.selectedLayerId;
     if (imageEditorState.brushBoundaryCanvas) {
-      const boundarySnapshot = snapshot.brushBoundaryCanvas;
+      const boundarySnapshot = snapshot2.brushBoundaryCanvas;
       if (boundarySnapshot) {
         restoreImageEditorCanvas(imageEditorState.brushBoundaryCanvas, boundarySnapshot);
       } else {
@@ -33541,7 +33817,7 @@ js: import "konva/skia-backend";
       }
     }
     if (imageEditorState.brushOverlayCanvas) {
-      const overlaySnapshot = snapshot.brushOverlayCanvas;
+      const overlaySnapshot = snapshot2.brushOverlayCanvas;
       if (overlaySnapshot) {
         restoreImageEditorCanvas(imageEditorState.brushOverlayCanvas, overlaySnapshot);
       } else {
@@ -33549,7 +33825,7 @@ js: import "konva/skia-backend";
         overlayCtx?.clearRect(0, 0, imageEditorState.brushOverlayCanvas.width, imageEditorState.brushOverlayCanvas.height);
       }
     }
-    selectImageEditorLayer(snapshot.selectedLayerId, { updateTool: false });
+    selectImageEditorLayer(snapshot2.selectedLayerId, { updateTool: false });
     renderImageEditor();
   }
   function imageEditorBaseDimensions() {
@@ -38525,6 +38801,174 @@ ${hint}` : hint;
     syncApiAdvancedSettingsSummary();
   }
 
+  // codex_image/webui/frontend/src/provider-model-discovery.ts
+  var ERROR_TRANSLATIONS = {
+    invalid_base_url: "apiSettings.modelsInvalidBaseUrl",
+    api_key_origin_mismatch: "apiSettings.modelsOriginMismatch",
+    model_discovery_key_required: "apiSettings.modelsKeyRequired",
+    model_discovery_unauthorized: "apiSettings.modelsUnauthorized",
+    model_discovery_not_supported: "apiSettings.modelsNotSupported",
+    model_discovery_rate_limited: "apiSettings.modelsRateLimited",
+    model_discovery_invalid_response: "apiSettings.modelsInvalidResponse",
+    model_discovery_too_large: "apiSettings.modelsTooLarge"
+  };
+  async function fetchProviderModels(connection, protocol, signal, request = fetch) {
+    const response = await request("/api/api-settings/models", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...connection, protocol }),
+      signal: signal ?? null
+    });
+    const payload2 = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new Error(ERROR_TRANSLATIONS[payload2?.detail] || "apiSettings.modelsFetchFailed");
+    }
+    if (!Array.isArray(payload2?.models)) throw new Error("apiSettings.modelsInvalidResponse");
+    return [...new Set(payload2.models.map((model) => typeof model?.id === "string" ? model.id.trim() : "").filter(Boolean))];
+  }
+  function createModelDiscoveryField(input, bindingId) {
+    const field = document.createElement("div");
+    field.className = "field provider-binding-remote-model";
+    const heading = document.createElement("div");
+    heading.className = "provider-model-discovery-heading";
+    const label = document.createElement("label");
+    input.id = `provider-binding-${bindingId}-remote-model`;
+    label.htmlFor = input.id;
+    label.dataset.i18n = "apiSettings.remoteModelName";
+    label.textContent = translate("apiSettings.remoteModelName");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ghost-button provider-model-discovery-button";
+    button.dataset.fetchProviderModels = "";
+    button.dataset.i18n = "apiSettings.fetchModels";
+    button.textContent = translate("apiSettings.fetchModels");
+    heading.append(label, button);
+    const results = document.createElement("div");
+    results.className = "provider-model-discovery-results";
+    results.dataset.providerModelsResults = "";
+    results.hidden = true;
+    const select = document.createElement("select");
+    select.className = "control";
+    select.dataset.providerModelsSelect = "";
+    select.setAttribute("aria-label", translate("apiSettings.selectAvailableModel"));
+    results.append(select);
+    const status = document.createElement("p");
+    status.className = "provider-model-discovery-status";
+    status.dataset.providerModelsStatus = "";
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
+    status.hidden = true;
+    field.append(heading, input, results, status);
+    return field;
+  }
+  function initProviderModelDiscovery(context) {
+    const { container } = context;
+    if (!container) return;
+    const requests = /* @__PURE__ */ new WeakMap();
+    const fingerprints = /* @__PURE__ */ new WeakMap();
+    const fingerprint = (card) => JSON.stringify({
+      ...context.getConnection(),
+      protocol: card.querySelector("[data-binding-protocol]")?.value
+    });
+    const setStatus24 = (card, message, error = false) => {
+      const status = card.querySelector("[data-provider-models-status]");
+      if (!status) return;
+      status.textContent = message;
+      status.hidden = !message;
+      status.classList.toggle("error", error);
+    };
+    const setBusy = (button, busy) => {
+      button.disabled = busy;
+      button.setAttribute("aria-busy", String(busy));
+      button.dataset.i18n = busy ? "apiSettings.fetchingModels" : "apiSettings.fetchModels";
+      button.textContent = translate(button.dataset.i18n);
+    };
+    const clear = (card) => {
+      requests.get(card)?.abort();
+      requests.delete(card);
+      fingerprints.delete(card);
+      const results = card.querySelector("[data-provider-models-results]");
+      destroyThemedSelects(results);
+      if (results) results.hidden = true;
+      const button = card.querySelector("[data-fetch-provider-models]");
+      if (button) setBusy(button, false);
+      setStatus24(card, "");
+    };
+    const clearAll = () => container.querySelectorAll("[data-binding-id]").forEach(clear);
+    context.connectionInputs.forEach((input) => {
+      input?.addEventListener("input", clearAll);
+      input?.addEventListener("change", clearAll);
+    });
+    document.addEventListener(LOCALE_CHANGE_EVENT, clearAll);
+    container.addEventListener("click", async (event) => {
+      const button = event.target?.closest("[data-fetch-provider-models]");
+      const card = button?.closest("[data-binding-id]");
+      if (!button || !card || button.disabled) return;
+      clear(card);
+      const controller = new AbortController();
+      const connectionFingerprint = fingerprint(card);
+      requests.set(card, controller);
+      setBusy(button, true);
+      setStatus24(card, translate("apiSettings.fetchingModels"));
+      try {
+        const protocol = card.querySelector("[data-binding-protocol]")?.value || "";
+        const models = await fetchProviderModels(context.getConnection(), protocol, controller.signal);
+        if (!container.contains(card) || requests.get(card) !== controller || fingerprint(card) !== connectionFingerprint) return;
+        const results = card.querySelector("[data-provider-models-results]");
+        const select = card.querySelector("[data-provider-models-select]");
+        if (!select || !results) return;
+        if (!models.length) {
+          setStatus24(card, translate("apiSettings.modelsEmpty"));
+          return;
+        }
+        const placeholder = new Option(translate("apiSettings.selectAvailableModel"), "");
+        placeholder.disabled = true;
+        select.replaceChildren(placeholder, ...models.map((id) => new Option(id, id)));
+        select.value = "";
+        select.setAttribute("aria-label", translate("apiSettings.selectAvailableModel"));
+        results.hidden = false;
+        mountThemedSelect(select);
+        fingerprints.set(card, connectionFingerprint);
+        setStatus24(card, formatTranslation("apiSettings.modelsFetched", { count: models.length }));
+      } catch (error) {
+        if (controller.signal.aborted || !container.contains(card) || requests.get(card) !== controller || fingerprint(card) !== connectionFingerprint) return;
+        const key2 = error instanceof Error && error.message.startsWith("apiSettings.") ? error.message : "apiSettings.modelsFetchFailed";
+        setStatus24(card, translate(key2), true);
+      } finally {
+        if (requests.get(card) === controller) {
+          requests.delete(card);
+          setBusy(button, false);
+        }
+      }
+    });
+    container.addEventListener("input", (event) => {
+      const input = event.target;
+      if (!input?.matches("[data-binding-remote-model]")) return;
+      const select = input.closest("[data-binding-id]")?.querySelector("[data-provider-models-select]");
+      if (!select) return;
+      select.value = [...select.options].some((option2) => option2.value === input.value) ? input.value : "";
+      syncThemedSelect(select);
+    });
+    container.addEventListener("change", (event) => {
+      const target = event.target;
+      const card = target?.closest("[data-binding-id]");
+      if (!target || !card) return;
+      if (target.matches("[data-binding-model], [data-binding-protocol], [data-binding-compatibility]")) {
+        clear(card);
+      } else if (target.matches("[data-provider-models-select]") && target.value) {
+        if (fingerprints.get(card) !== fingerprint(card)) {
+          clear(card);
+          return;
+        }
+        const input = card.querySelector("[data-binding-remote-model]");
+        if (!input) return;
+        input.value = target.value;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    });
+  }
+
   // codex_image/webui/frontend/src/provider-model-bindings.ts
   function remoteModelAfterSelection(current, previousDefault, nextDefault) {
     return !current.trim() || current.trim() === previousDefault ? nextDefault : current;
@@ -38800,9 +39244,6 @@ ${hint}` : hint;
         protocolSelect.append(option(protocol, BINDING_PROTOCOL_LABELS[protocol], protocol === selectedProtocol));
       });
       protocolField.append(protocolLabel, protocolSelect);
-      const remoteField = document.createElement("label");
-      remoteField.className = "field provider-binding-remote-model";
-      remoteField.append(document.createTextNode("\u4E2D\u8F6C\u7AD9\u6A21\u578B\u540D\u79F0"));
       const remoteInput = document.createElement("input");
       remoteInput.className = "control";
       remoteInput.type = "text";
@@ -38810,7 +39251,7 @@ ${hint}` : hint;
       remoteInput.value = binding.remote_model_id;
       remoteInput.dataset.bindingRemoteModel = "";
       remoteInput.placeholder = "\u4F8B\u5982 vendor/model.name:version-1";
-      remoteField.append(remoteInput);
+      const remoteField = createModelDiscoveryField(remoteInput, binding.id);
       const compatibilityField = document.createElement("div");
       compatibilityField.className = "field provider-binding-compatibility";
       const compatibilityLabel = document.createElement("span");
@@ -41004,6 +41445,17 @@ ${hint}` : hint;
   function initApiSettingsFeature() {
     if (apiSettingsFeatureInitialized) return;
     apiSettingsFeatureInitialized = true;
+    const { els: els44, state: state33 } = getLegacyBridge();
+    initProviderModelDiscovery({
+      container: els44.apiProviderBindings,
+      connectionInputs: [els44.apiBaseUrl, els44.apiKey],
+      getConnection: () => ({
+        provider_id: String(state33.apiProviderDraft?.id || ""),
+        api_key_source_provider_id: String(state33.apiProviderDraft?.api_key_source_provider_id || ""),
+        base_url: String(els44.apiBaseUrl?.value || "").trim(),
+        api_key: String(els44.apiKey?.value || "").trim()
+      })
+    });
     document.addEventListener(LOCALE_CHANGE_EVENT, () => {
       const bridge40 = getLegacyBridge();
       renderAuthSource(bridge40.state.authStatus);
@@ -41917,6 +42369,10 @@ ${hint}` : hint;
         payload2.settings?.image_request_retry_count ?? 2
       );
     }
+    if (els44.networkEgressFakeIpDnsFallback) {
+      els44.networkEgressFakeIpDnsFallback.checked = payload2.settings?.asset_fake_ip_dns_fallback === true;
+      els44.networkEgressFakeIpDnsFallback.disabled = false;
+    }
     clearNetworkRequestPolicyError();
     if (els44.networkEgressCompatibilityNotice) {
       const environmentFallback = payload2.resolved?.image_request_timeout_source === "environment";
@@ -41943,6 +42399,13 @@ ${hint}` : hint;
   function networkEgressFormPayload() {
     const { els: els44 } = getLegacyBridge();
     const routePayload = networkEgressRouteFormPayload();
+    const commonPayload = {
+      ...routePayload,
+      asset_fake_ip_dns_fallback: els44.networkEgressFakeIpDnsFallback?.checked === true
+    };
+    if (!els44.networkEgressTimeoutMinutes && !els44.networkEgressRetryCount) {
+      return { ok: true, payload: commonPayload };
+    }
     const policy = parseNetworkRequestPolicy(
       String(els44.networkEgressTimeoutMinutes?.value || ""),
       String(els44.networkEgressRetryCount?.value || "")
@@ -41951,7 +42414,7 @@ ${hint}` : hint;
     return {
       ok: true,
       payload: {
-        ...routePayload,
+        ...commonPayload,
         ...policy.value
       }
     };
@@ -41995,6 +42458,7 @@ ${hint}` : hint;
     }
     clearNetworkRequestPolicyError();
     els44.saveNetworkEgressButton.disabled = true;
+    if (els44.networkEgressFakeIpDnsFallback) els44.networkEgressFakeIpDnsFallback.disabled = true;
     try {
       const response = await fetch("/api/network-egress", {
         method: "PATCH",
@@ -42012,6 +42476,7 @@ ${hint}` : hint;
       );
     } finally {
       els44.saveNetworkEgressButton.disabled = false;
+      if (els44.networkEgressFakeIpDnsFallback) els44.networkEgressFakeIpDnsFallback.disabled = false;
     }
   }
   async function testNetworkEgress() {
@@ -42894,10 +43359,10 @@ ${hint}` : hint;
     const pollRestore = async (token) => {
       if (!restoreSessionId || disposed || token !== generation) return;
       try {
-        const snapshot = await getUserConfigRestore(restoreSessionId, { fetch: fetchFn });
+        const snapshot2 = await getUserConfigRestore(restoreSessionId, { fetch: fetchFn });
         if (disposed || token !== generation) return;
-        options.onRestoreStatus?.(snapshot);
-        if (!RESTORE_TERMINAL.has(snapshot.session.status)) schedule(token, () => pollRestore(token));
+        options.onRestoreStatus?.(snapshot2);
+        if (!RESTORE_TERMINAL.has(snapshot2.session.status)) schedule(token, () => pollRestore(token));
       } catch (error) {
         options.onError?.(stableError(error));
         if (!disposed && token === generation) schedule(token, () => pollRestore(token));
@@ -43098,15 +43563,15 @@ ${hint}` : hint;
   }
   var transferController = createUserConfigTransferController({
     onBackupStatus: renderBackupJob,
-    onRestoreStatus: (snapshot) => {
-      currentRestoreSessionId = snapshot.session.session_id;
-      if (snapshot.result) {
+    onRestoreStatus: (snapshot2) => {
+      currentRestoreSessionId = snapshot2.session.session_id;
+      if (snapshot2.result) {
         transferController.clearRestore();
-        renderRestoreResult(snapshot.result);
-        refreshRestoredSections(snapshot.result);
+        renderRestoreResult(snapshot2.result);
+        refreshRestoredSections(snapshot2.result);
         return;
       }
-      if (snapshot.preview && !currentPreview) renderRestorePreview(snapshot.preview);
+      if (snapshot2.preview && !currentPreview) renderRestorePreview(snapshot2.preview);
     },
     onError: (error) => {
       setStatus11("userConfigBackupStatus", translate(error.code), "error");
@@ -47639,6 +48104,7 @@ ${galleryText}`;
     const size = String(p["canvas.size"] || p["canvas.aspect_ratio"] || "");
     const resolution = String(p["output.resolution"] || p["canvas.resolution"] || "");
     element2.textContent = [translate("ux.execution"), model?.display_name || translate("modelSelection.providerUnavailable"), provider?.name, size, resolution, formatTranslation("ux.imageCount", { count: Number(p["output.count"] || 1) }), p["gpt.background"] === "transparent" ? translate("output.transparentBackground") : ""].filter(Boolean).join(" \xB7 ");
+    element2.title = element2.textContent;
     element2.dataset.modelId = selection.canonicalModelId;
     element2.dataset.providerId = selection.providerId;
     element2.dataset.parameters = JSON.stringify(p);
@@ -48438,6 +48904,20 @@ ${galleryText}`;
     grid.style.transition = "none";
     grid.style.height = "";
     if (customSize) customSize.style.transition = "none";
+    if (isCustom && customSize) {
+      setCustomSizeModeLayout(false);
+      const presetFields = [
+        els26.orientation?.closest(".orientation-field"),
+        els26.resolution?.closest(".resolution-field"),
+        els26.ratio?.closest(".ratio-field")
+      ];
+      const rectangles = presetFields.map((field) => field?.getBoundingClientRect());
+      if (rectangles.every((rectangle) => rectangle && rectangle.height > 0)) {
+        const top = Math.min(...rectangles.map((rectangle) => rectangle.top));
+        const bottom = Math.max(...rectangles.map((rectangle) => rectangle.bottom));
+        customSize.style.setProperty("--custom-size-mode-card-height", `${bottom - top}px`);
+      }
+    }
     setCustomSizeModeLayout(isCustom);
     const height = measuredElementHeight2(grid);
     grid.classList.toggle("custom-size-mode", originalCustomMode);
@@ -48455,7 +48935,7 @@ ${galleryText}`;
     grid.style.transition = originalGridTransition;
     return height;
   }
-  function transitionCustomSizeMode(isCustom) {
+  function transitionCustomSizeMode(isCustom, refreshLayout = false) {
     const grid = els26.settingsGrid;
     const customSize = els26.customSize;
     if (!grid || !customSize) {
@@ -48464,6 +48944,7 @@ ${galleryText}`;
       return;
     }
     if (state17.customSizeMode === null) {
+      if (isCustom) measureCustomSizeModeHeight(true);
       state17.customSizeMode = isCustom;
       grid.style.height = "";
       grid.classList.remove("is-size-transitioning");
@@ -48472,11 +48953,14 @@ ${galleryText}`;
     }
     const pendingTimerId = customSizeTransitionTimers.get(grid);
     if (state17.customSizeMode === isCustom && !pendingTimerId) {
+      if (refreshLayout && isCustom) measureCustomSizeModeHeight(true);
       grid.style.height = "";
       grid.classList.remove("is-size-transitioning");
       setCustomSizeModeLayout(isCustom);
       return;
     }
+    const fromHeight = measuredElementHeight2(grid);
+    const targetHeight = measureCustomSizeModeHeight(isCustom);
     state17.customSizeMode = isCustom;
     state17.customSizeTransitionSeq += 1;
     const transitionSeq = state17.customSizeTransitionSeq;
@@ -48491,8 +48975,6 @@ ${galleryText}`;
       setCustomSizeModeLayout(isCustom);
       return;
     }
-    const fromHeight = measuredElementHeight2(grid);
-    const targetHeight = measureCustomSizeModeHeight(isCustom);
     if (Math.abs(targetHeight - fromHeight) <= CUSTOM_SIZE_HEIGHT_SNAP_TOLERANCE) {
       grid.style.height = "";
       grid.classList.remove("is-size-transitioning");
@@ -48533,6 +49015,26 @@ ${galleryText}`;
       customSizeTransitionTimers.delete(grid);
     }, CUSTOM_SIZE_TRANSITION_MS);
     customSizeTransitionTimers.set(grid, timerId);
+  }
+  function initCustomSizeLayout() {
+    const refresh = () => {
+      const control = els26.sizeModeGroup?.closest(".custom-size-control");
+      if (els26.size?.value === "custom" && control && !control.classList.contains("hidden")) {
+        transitionCustomSizeMode(true, true);
+      }
+    };
+    window.addEventListener("resize", refresh);
+    document.addEventListener(LOCALE_CHANGE_EVENT, refresh);
+    if (typeof ResizeObserver !== "undefined" && els26.settingsGrid) {
+      let previousWidth = -1;
+      const observer = new ResizeObserver((entries) => {
+        const width = entries[0]?.contentRect.width;
+        if (width === void 0 || width === previousWidth) return;
+        previousWidth = width;
+        refresh();
+      });
+      observer.observe(els26.settingsGrid);
+    }
   }
   function updateCustomSize() {
     const isCustom = els26.size?.value === "custom";
@@ -48700,6 +49202,7 @@ ${galleryText}`;
   function initFormControlsFeature() {
     if (formControlsInitialized) return;
     formControlsInitialized = true;
+    initCustomSizeLayout();
     document.addEventListener(LOCALE_CHANGE_EVENT, syncRunButtonLabel2);
     Object.assign(getLegacyBridge().methods, {
       bindFormControlEvents,
@@ -48828,55 +49331,55 @@ ${galleryText}`;
   function usesWideFourGrid(count, ratioValue) {
     return count === 4 && outputCountCardRatio(ratioValue) >= 16 / 9;
   }
-  function buildOutputSettingsSummaryModel(snapshot, context) {
-    const gptImage = isGptImageModel(snapshot.canonical_model_id);
-    const geminiImage = snapshot.canonical_model_id.startsWith("nano-banana");
+  function buildOutputSettingsSummaryModel(snapshot2, context) {
+    const gptImage = isGptImageModel(snapshot2.canonical_model_id);
+    const geminiImage = snapshot2.canonical_model_id.startsWith("nano-banana");
     const details = [];
     if (gptImage) {
       details.push(
-        { label: translate("output.lock.prompt"), value: promptFidelityLabel(snapshot.prompt_fidelity) },
-        { label: translate("output.quality"), value: qualityLabel(snapshot.quality) }
+        { label: translate("output.lock.prompt"), value: promptFidelityLabel(snapshot2.prompt_fidelity) },
+        { label: translate("output.quality"), value: qualityLabel(snapshot2.quality) }
       );
       if (context.responses) {
         details.push({
           label: translate("output.lock.search"),
-          value: translate(snapshot.web_search ? "output.lock.enabled" : "output.lock.disabled")
+          value: translate(snapshot2.web_search ? "output.lock.enabled" : "output.lock.disabled")
         });
       } else {
         details.push({ label: translate("output.lock.call"), value: context.callLabel });
       }
-      details.push({ label: translate("output.moderation"), value: snapshot.moderation });
+      details.push({ label: translate("output.moderation"), value: snapshot2.moderation });
     } else {
-      const safety = geminiSafetyLabel(snapshot.safety_settings, snapshot.has_safety_settings);
+      const safety = geminiSafetyLabel(snapshot2.safety_settings, snapshot2.has_safety_settings);
       if (safety) details.push({ label: translate("gemini.safetySettings"), value: safety });
-      if (snapshot.google_search !== null) {
+      if (snapshot2.google_search !== null) {
         details.push({
           label: translate("gemini.googleSearch"),
-          value: translate(snapshot.google_search ? "output.lock.enabled" : "output.lock.disabled")
+          value: translate(snapshot2.google_search ? "output.lock.enabled" : "output.lock.disabled")
         });
       }
     }
     const thirdCard = gptImage ? {
       kind: "format",
       label: translate("output.lock.output"),
-      value: snapshot.output_format.toUpperCase(),
-      meta: translate(snapshot.background === "transparent" ? "output.transparentBackground" : "output.lock.fileFormat")
+      value: snapshot2.output_format.toUpperCase(),
+      meta: translate(snapshot2.background === "transparent" ? "output.transparentBackground" : "output.lock.fileFormat")
     } : {
       kind: "resolution",
       label: translate("canvas.resolution"),
-      value: snapshot.resolution || "\u2014",
+      value: snapshot2.resolution || "\u2014",
       meta: ""
     };
     return {
       contextLabel: context.task ? translate("output.lock.task") : "",
       showModel: gptImage ? context.responses : context.task || geminiImage,
       modelLabel: gptImage ? translate(context.responses ? "output.mainModel" : "output.lock.imageModel") : "",
-      modelValue: gptImage ? context.responses ? snapshot.main_model || snapshot.model : snapshot.model : snapshot.model_display_name || snapshot.canonical_model_id,
+      modelValue: gptImage ? context.responses ? snapshot2.main_model || snapshot2.model : snapshot2.model : snapshot2.model_display_name || snapshot2.canonical_model_id,
       hint: translate(context.task ? "output.lock.taskHint" : "output.lock.lockedHint"),
-      ratio: snapshot.ratio,
-      pixels: gptImage ? snapshot.size.replace("x", " \xD7 ") : "",
-      count: snapshot.n,
-      format: snapshot.output_format.toUpperCase(),
+      ratio: snapshot2.ratio,
+      pixels: gptImage ? snapshot2.size.replace("x", " \xD7 ") : "",
+      count: snapshot2.n,
+      format: snapshot2.output_format.toUpperCase(),
       thirdCard,
       details
     };
@@ -48973,11 +49476,11 @@ ${galleryText}`;
     if (model.thirdCard.meta) card.append(createElement("span", "output-settings-card-meta", model.thirdCard.meta));
     return card;
   }
-  function renderSummary(snapshot, context) {
+  function renderSummary(snapshot2, context) {
     const els44 = getLegacyBridge().els;
     const root = els44.outputSettingsSummaryContent;
     if (!root) return;
-    const model = buildOutputSettingsSummaryModel(snapshot, context);
+    const model = buildOutputSettingsSummaryModel(snapshot2, context);
     root.replaceChildren();
     els44.outputSettingsLockedSummary?.classList.toggle("is-task-context", context.task);
     const intro = createElement("div", "output-settings-summary-intro");
@@ -49052,8 +49555,8 @@ ${galleryText}`;
       return null;
     }
   }
-  function applySnapshot(snapshot) {
-    legacyMethod30("applyTaskOutputParams", { params: snapshot });
+  function applySnapshot(snapshot2) {
+    legacyMethod30("applyTaskOutputParams", { params: snapshot2 });
   }
   function isOutputSettingsLocked() {
     return locked;
@@ -49122,14 +49625,14 @@ ${galleryText}`;
     else lockOutputSettings();
   }
   function restoreOutputSettingsLock() {
-    const snapshot = readPersistedLockState();
-    if (!snapshot) {
+    const snapshot2 = readPersistedLockState();
+    if (!snapshot2) {
       locked = false;
       setLockedViewVisible(false);
       updateLockButton();
       return;
     }
-    applySnapshot(snapshot);
+    applySnapshot(snapshot2);
     lockedSnapshot = snapshotFromCurrentSelection();
     locked = true;
     renderSummary(lockedSnapshot, currentSummaryContext());
@@ -49413,9 +49916,9 @@ ${galleryText}`;
   }
   function explicitCanonicalModelId(task) {
     const source = record3(task);
-    const snapshot = record3(source.generation_snapshot);
+    const snapshot2 = record3(source.generation_snapshot);
     const request = record3(source.request);
-    return String(snapshot.canonical_model_id || request.canonical_model_id || "").trim();
+    return String(snapshot2.canonical_model_id || request.canonical_model_id || "").trim();
   }
   function taskCanonicalModelId(task) {
     return explicitCanonicalModelId(task) || "gpt-image-2";
@@ -49429,8 +49932,8 @@ ${galleryText}`;
   }
   function taskRequestedParameters(task) {
     const source = record3(task);
-    const snapshot = record3(source.generation_snapshot);
-    const frozen = record3(snapshot.requested_parameters);
+    const snapshot2 = record3(source.generation_snapshot);
+    const frozen = record3(snapshot2.requested_parameters);
     if (Object.keys(frozen).length) return { ...frozen };
     return { ...record3(record3(source.request).parameters) };
   }
@@ -49527,8 +50030,8 @@ ${galleryText}`;
   }
   function taskChannelLabel(task) {
     const source = record3(task);
-    const snapshot = record3(source.generation_snapshot);
-    for (const profile of [source.backend, snapshot.protocol_profile, source.requested_backend]) {
+    const snapshot2 = record3(source.generation_snapshot);
+    for (const profile of [source.backend, snapshot2.protocol_profile, source.requested_backend]) {
       const label = channelLabelForProtocolProfile(profile);
       if (label) return label;
     }
@@ -50348,6 +50851,7 @@ ${galleryText}`;
     const { getState: getState2, els: els44, consumeLatestTaskNavigationScrollAnchor: consumeLatestTaskNavigationScrollAnchor3, expandedTaskGroupHeaderHtml: expandedTaskGroupHeaderHtml2, scheduleLatestTaskNavigationRefresh: scheduleLatestTaskNavigationRefresh3, scheduleSidebarTaskGroupAutoLoad: scheduleSidebarTaskGroupAutoLoad3, taskCardHtml: taskCardHtml2, taskGroupCount: taskGroupCount3, taskGroupLoadMoreHtml: taskGroupLoadMoreHtml2, updateTaskElapsedDisplays: updateTaskElapsedDisplays3, cancelActiveTaskQueueReorder: cancelActiveTaskQueueReorder2, consumeExpansionAnimation } = dependencies;
     let expandedTaskGroupRenderToken = 0;
     let deferredActiveTaskHtml = null;
+    const pendingScrollRestorations = /* @__PURE__ */ new WeakMap();
     const EXPANDED_TASK_GROUP_INITIAL_CARD_COUNT = 24;
     const EXPANDED_TASK_GROUP_CHUNK_SIZE = 48;
     const EXPANDED_TASK_GROUP_ANIMATION_FALLBACK_MS = 320;
@@ -50364,9 +50868,12 @@ ${galleryText}`;
     }
     function captureTaskListScrollAnchor2(scroller, root, { retryMissingTask = false } = {}) {
       if (!scroller || !root) return null;
+      const pending = pendingScrollRestorations.get(scroller)?.anchor;
+      if (pending?.root === root) return pending;
       const scrollerRect = scroller.getBoundingClientRect();
       const cards = Array.from(root.querySelectorAll(".task-card[data-task-id]"));
       const visibleCard = cards.find((card) => {
+        if (card.classList.contains("task-card-removing")) return false;
         const rect2 = card.getBoundingClientRect();
         return rect2.bottom > scrollerRect.top && rect2.top < scrollerRect.bottom;
       });
@@ -50387,15 +50894,22 @@ ${galleryText}`;
     }
     function restoreTaskListScrollAnchor2(anchor) {
       if (!anchor?.scroller) return;
+      const pending = { anchor };
+      pendingScrollRestorations.set(anchor.scroller, pending);
       let attempts = 12;
       const restore = () => {
-        if (!anchor.scroller.isConnected) return;
+        if (pendingScrollRestorations.get(anchor.scroller) !== pending) return;
+        if (!anchor.scroller.isConnected) {
+          pendingScrollRestorations.delete(anchor.scroller);
+          return;
+        }
         if (anchor.taskId) {
           const card = anchor.root.querySelector(`.task-card[data-task-id="${cssEscape(anchor.taskId)}"]`);
           if (card instanceof HTMLElement) {
             const scrollerRect = anchor.scroller.getBoundingClientRect();
             const rect = card.getBoundingClientRect();
             anchor.scroller.scrollTop += rect.top - scrollerRect.top - (anchor.offsetTop || 0);
+            pendingScrollRestorations.delete(anchor.scroller);
             return;
           }
         }
@@ -50405,6 +50919,7 @@ ${galleryText}`;
           return;
         }
         anchor.scroller.scrollTop = anchor.scrollTop;
+        pendingScrollRestorations.delete(anchor.scroller);
       };
       restore();
     }
@@ -51303,12 +51818,12 @@ ${galleryText}`;
     }).filter(Boolean);
   }
   function captureTaskHistoryLayout2() {
-    return taskHistoryLayoutElements().reduce((snapshot, item) => {
-      snapshot[item.key] = {
+    return taskHistoryLayoutElements().reduce((snapshot2, item) => {
+      snapshot2[item.key] = {
         kind: item.kind,
         rect: item.rect
       };
-      return snapshot;
+      return snapshot2;
     }, {});
   }
   function animateTaskHistoryLayout2(previousLayout = {}) {
@@ -52323,7 +52838,7 @@ ${galleryText}`;
     if (!prefersReducedMotion() && removingCards.length) {
       await Promise.all(removingCards.map((card) => waitForTaskCardRemoval(card, action)));
     }
-    commit();
+    commit({ preserveScroll: true });
     animateTaskCardReflow(previousCardLayout);
     animateTaskHistoryLayout3(previousHistoryLayout);
   }
@@ -52953,7 +53468,7 @@ ${galleryText}`;
       stopRunFeedback2();
       setStatus19(translate("taskSubmit.queued"), "ok");
       await window.refreshQueue?.();
-      await refreshRecentAssets2();
+      if (uploads.length || assets.length) await refreshRecentAssets2();
       renderPreview4();
       getLegacyBridge().methods.showMobilePreview?.();
     } catch (error) {
@@ -55809,9 +56324,6 @@ ${galleryText}`;
     const visibleSelectedTask = selectedTask && !isTaskArchived4(selectedTask.task_id) ? selectedTask : null;
     const selected = task || visibleSelectedTask || state29.tasks.find((item) => !isTaskArchived4(item.task_id)) || selectedTask || state29.tasks[0];
     const status = taskPreviewStatus(selected);
-    const sourceLabel2 = document.getElementById("previewSourceLabel");
-    if (sourceLabel2) sourceLabel2.textContent = selected ? `${translate(state29.selectedTaskId ? "ux.selectedResult" : "ux.previousResult")} \xB7 ${selected.title || selected.prompt?.slice(0, 48) || selected.task_id} \xB7 ${selected.task_id}` : "";
-    if (sourceLabel2) sourceLabel2.title = sourceLabel2.textContent || "";
     syncGroundingAttribution(els38.previewGrid, selected, "preview");
     updatePreviewDownloadActions(selected);
     const nextPreviewKey = previewStructureKey(selected);
@@ -56672,12 +57184,33 @@ ${galleryText}`;
   function normalizedTaskSearchResultQuery(query) {
     return String(query || "").trim().toLowerCase();
   }
-  async function refreshTasks({ migrateLegacyArchives = false } = {}) {
+  async function refreshTasks({ migrateLegacyArchives = false, preserveExpandedGroup = true } = {}) {
+    const groupKey = preserveExpandedGroup ? String(state30.expandedTaskGroupKey || "") : "";
+    const loadedCount = Number(state30.taskSidebarGroupLoadedCounts?.[groupKey] || 0);
     const requestSeq = ++state30.tasksRequestSeq;
     const response = await fetch("/api/tasks/sidebar?limit=50");
     const data = await response.json();
     if (requestSeq !== state30.tasksRequestSeq) return false;
     if (!response.ok) throw new Error(data.detail || "Task history loading failed");
+    const group = Array.isArray(data.task_groups) ? data.task_groups.find((item) => String(item?.key || "") === groupKey) : null;
+    if (group && Array.isArray(group.tasks)) {
+      let offset = group.tasks.length;
+      while (offset < Math.min(loadedCount, Number(group.count || 0))) {
+        const limit = Math.min(TASK_SIDEBAR_REVEAL_PAGE_SIZE, loadedCount - offset);
+        const pageResponse = await fetch(
+          `/api/tasks/sidebar/groups/${encodeURIComponent(groupKey)}?offset=${offset}&limit=${limit}`
+        );
+        const page = await pageResponse.json();
+        if (requestSeq !== state30.tasksRequestSeq) return false;
+        if (!pageResponse.ok) throw new Error(page.detail || "Task group loading failed");
+        const incoming = Array.isArray(page.tasks) ? page.tasks : [];
+        group.count = Number(page.count ?? group.count);
+        if (!incoming.length) break;
+        group.tasks = mergeSidebarTasks(group.tasks, incoming);
+        data.tasks = mergeSidebarTasks(data.tasks || [], incoming);
+        offset = Math.max(offset + incoming.length, Number(page.next_offset || 0));
+      }
+    }
     return await applyTasksSnapshot(data.tasks || [], {
       migrateLegacyArchives,
       requestSeq,
@@ -56692,15 +57225,15 @@ ${galleryText}`;
     sync
   } = {}) {
     const incoming = Array.isArray(tasks) ? tasks : [];
-    const snapshot = reconcileTaskSnapshot(
+    const snapshot2 = reconcileTaskSnapshot(
       state30,
       queueSnapshotIsNewer(state30, sync) ? mergeActiveQueueTaskDetails(incoming) : incoming,
       sync
     );
-    if (snapshot === null) return false;
+    if (snapshot2 === null) return false;
     const previousLocalPendingTasks = state30.tasks.filter((task) => task?.local_pending);
     const pendingTask = state30.pendingTaskId ? state30.tasks.find((task) => task.task_id === state30.pendingTaskId) : null;
-    state30.tasks = snapshot;
+    state30.tasks = snapshot2;
     if (Array.isArray(taskGroups)) {
       state30.taskSidebarGroupLoadError = null;
       state30.taskSidebarGroupCounts = Object.fromEntries(
@@ -56910,7 +57443,7 @@ ${galleryText}`;
     return scrollHistoryTaskCardIntoView(taskId);
   }
   async function refreshTasksAfterDeletion3() {
-    await refreshTasks();
+    await refreshTasks({ preserveExpandedGroup: true });
   }
   async function applyTaskUpdate(task) {
     const previousTask = state30.tasks.find((item) => String(item?.task_id || "") === String(task?.task_id || ""));
@@ -59367,10 +59900,10 @@ ${galleryText}`;
       legacy: true
     };
   }
-  function taskParameterInspectorTitle(snapshot, catalog) {
+  function taskParameterInspectorTitle(snapshot2, catalog) {
     const historyLabel = translate("modelParameters.historyConfiguration");
-    const modelName = catalog?.models.find((model) => model.id === snapshot.canonical_model_id)?.display_name || snapshot.canonical_model_id;
-    return [historyLabel, modelName, snapshot.provider_name].filter(Boolean).join(" \xB7 ");
+    const modelName = catalog?.models.find((model) => model.id === snapshot2.canonical_model_id)?.display_name || snapshot2.canonical_model_id;
+    return [historyLabel, modelName, snapshot2.provider_name].filter(Boolean).join(" \xB7 ");
   }
   var TASK_PARAMETER_INSPECTOR_HIDDEN_IDS = /* @__PURE__ */ new Set([
     "gpt.output_compression"
@@ -59384,15 +59917,15 @@ ${galleryText}`;
     "gpt.moderation",
     "gpt.web_search"
   ].map((id, index) => [id, index]));
-  function taskParameterVisibleInInspector(snapshot, parameterId) {
+  function taskParameterVisibleInInspector(snapshot2, parameterId) {
     if (TASK_PARAMETER_INSPECTOR_HIDDEN_IDS.has(parameterId)) return false;
-    if (parameterId === "gpt.web_search" && !snapshot.protocol_profile.endsWith("_responses")) return false;
+    if (parameterId === "gpt.web_search" && !snapshot2.protocol_profile.endsWith("_responses")) return false;
     return true;
   }
-  function taskParameterInspectorModel(snapshot, model) {
+  function taskParameterInspectorModel(snapshot2, model) {
     if (!model) return void 0;
-    const gptImage = isGptImageModel(snapshot.canonical_model_id);
-    const parameters = model.parameters.filter((definition) => taskParameterVisibleInInspector(snapshot, definition.id)).map((definition) => {
+    const gptImage = isGptImageModel(snapshot2.canonical_model_id);
+    const parameters = model.parameters.filter((definition) => taskParameterVisibleInInspector(snapshot2, definition.id)).map((definition) => {
       if (gptImage && definition.id === "gpt.moderation") {
         return { ...definition, group: "generation" };
       }
@@ -59416,9 +59949,9 @@ ${galleryText}`;
       parameters
     };
   }
-  function taskParameterInspectorParameters(snapshot) {
+  function taskParameterInspectorParameters(snapshot2) {
     return Object.fromEntries(
-      Object.entries(snapshot.requested_parameters).filter(([id]) => taskParameterVisibleInInspector(snapshot, id))
+      Object.entries(snapshot2.requested_parameters).filter(([id]) => taskParameterVisibleInInspector(snapshot2, id))
     );
   }
   function taskParameterInspectionAction(task, selectedModelId, outputSettingsLocked) {
@@ -59439,24 +59972,24 @@ ${galleryText}`;
   }
   function renderTaskParameterInspector() {
     const { state: state33, els: els44 } = getLegacyBridge();
-    const snapshot = state33.inspectedGenerationSnapshot;
+    const snapshot2 = state33.inspectedGenerationSnapshot;
     const inspector = els44.taskParameterInspector;
     const stage = els44.outputSettingsStage;
     if (!inspector) return;
-    inspector.classList.toggle("hidden", !snapshot);
-    inspector.setAttribute("aria-hidden", snapshot ? "false" : "true");
-    stage?.classList.toggle("is-inspecting-task", Boolean(snapshot));
-    if (!snapshot) {
+    inspector.classList.toggle("hidden", !snapshot2);
+    inspector.setAttribute("aria-hidden", snapshot2 ? "false" : "true");
+    stage?.classList.toggle("is-inspecting-task", Boolean(snapshot2));
+    if (!snapshot2) {
       els44.taskParameterInspectorHeader?.replaceChildren();
       els44.taskParameterInspectorGrid?.replaceChildren();
       els44.taskParameterInspectorUnknown?.replaceChildren();
       return;
     }
     const title = document.createElement("strong");
-    title.textContent = taskParameterInspectorTitle(snapshot, state33.generationCatalog);
+    title.textContent = taskParameterInspectorTitle(snapshot2, state33.generationCatalog);
     const badge = document.createElement("span");
     badge.className = "task-parameter-history-badge";
-    badge.textContent = snapshot.legacy ? translate("modelParameters.legacyTask") : translate("modelParameters.historyConfiguration");
+    badge.textContent = snapshot2.legacy ? translate("modelParameters.legacyTask") : translate("modelParameters.historyConfiguration");
     const adopt = document.createElement("button");
     adopt.type = "button";
     adopt.className = "ghost-button text-sm task-parameter-adopt";
@@ -59466,9 +59999,9 @@ ${galleryText}`;
       if (task) adoptTaskParameters(task);
     });
     els44.taskParameterInspectorHeader?.replaceChildren(title, badge, adopt);
-    const model = state33.generationCatalog?.models.find((item) => item.id === snapshot.canonical_model_id);
-    const inspectorModel = taskParameterInspectorModel(snapshot, model);
-    const inspectorParameters = taskParameterInspectorParameters(snapshot);
+    const model = state33.generationCatalog?.models.find((item) => item.id === snapshot2.canonical_model_id);
+    const inspectorModel = taskParameterInspectorModel(snapshot2, model);
+    const inspectorParameters = taskParameterInspectorParameters(snapshot2);
     if (inspectorModel && els44.taskParameterInspectorGrid) {
       renderParameterDefinitionsInto(
         els44.taskParameterInspectorGrid,
@@ -59494,23 +60027,23 @@ ${galleryText}`;
   }
   function adoptTaskParameters(task) {
     const { state: state33, methods } = getLegacyBridge();
-    const snapshot = snapshotFromTask2(task);
-    const keepGptBinding = isGptImageModel(state33.selectedModelId) && isGptImageModel(snapshot.canonical_model_id);
-    const targetModelId = keepGptBinding ? state33.selectedModelId : snapshot.canonical_model_id;
+    const snapshot2 = snapshotFromTask2(task);
+    const keepGptBinding = isGptImageModel(state33.selectedModelId) && isGptImageModel(snapshot2.canonical_model_id);
+    const targetModelId = keepGptBinding ? state33.selectedModelId : snapshot2.canonical_model_id;
     const model = state33.generationCatalog?.models.find((item) => item.id === targetModelId);
     if (!model) {
       return {
         values: {},
         defaulted: [],
-        dropped: Object.entries(snapshot.requested_parameters).map(([id, previous]) => ({ id, previous }))
+        dropped: Object.entries(snapshot2.requested_parameters).map(([id, previous]) => ({ id, previous }))
       };
     }
-    const report = migrateParameterValues(model, snapshot.requested_parameters);
+    const report = migrateParameterValues(model, snapshot2.requested_parameters);
     methods.setMode?.(task.mode === "edit" && model.operations.includes("edit") ? "edit" : "generate");
     if (!keepGptBinding) selectConcreteModel(model.id);
     const providers = eligibleProviders(state33.generationCatalog, model.id, state33.mode);
-    if (!keepGptBinding && providers.some((provider) => provider.id === snapshot.provider_id)) {
-      selectGenerationProvider(snapshot.provider_id);
+    if (!keepGptBinding && providers.some((provider) => provider.id === snapshot2.provider_id)) {
+      selectGenerationProvider(snapshot2.provider_id);
     }
     state33.parameterDraftsByModel[model.id] = report.values;
     state33.parameterDraftVersionsByModel[model.id] = model.version;

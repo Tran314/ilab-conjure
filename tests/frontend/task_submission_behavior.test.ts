@@ -101,6 +101,7 @@ function resetSubmissionState(): void {
   state.historyTaskReveal = null;
   state.historyTaskRevealSeq = 0;
   state.images = [];
+  state.mode = "generate";
   state.pendingTaskId = null;
   state.referenceFiles = [];
   state.runFeedbackAction = null;
@@ -252,6 +253,54 @@ test("editing during an in-flight submission remains an unsaved draft", async ()
   pendingFetch.resolveAll();
   await submission;
   assert.equal(composerHasChanges(), true);
+});
+
+test("accepted submissions refresh recent uploads only when their image inputs change the list", async () => {
+  const upload = { name: "fixture.png", file: new Blob(["fixture"], { type: "image/png" }) };
+  const cases = [
+    { name: "text only", mode: "generate", uploads: [], assets: [], galleries: [], files: [], refreshes: 0 },
+    { name: "uploaded image", mode: "generate", uploads: [upload], assets: [], galleries: [], files: [], refreshes: 1 },
+    { name: "recent image", mode: "generate", uploads: [], assets: [{ id: "recent-image" }], galleries: [], files: [], refreshes: 1 },
+    { name: "gallery image", mode: "generate", uploads: [], assets: [], galleries: [{ id: "gallery-image" }], files: [], refreshes: 0 },
+    { name: "reference file", mode: "generate", uploads: [], assets: [], galleries: [], files: [{ filename: "fixture.txt", file: new Blob(["fixture"]) }], refreshes: 0 },
+    { name: "edit uploaded image", mode: "edit", uploads: [upload], assets: [], galleries: [], files: [], refreshes: 1 },
+    { name: "edit recent image", mode: "edit", uploads: [], assets: [{ id: "recent-image" }], galleries: [], files: [], refreshes: 1 },
+    { name: "edit gallery image", mode: "edit", uploads: [], assets: [], galleries: [{ id: "gallery-image" }], files: [], refreshes: 0 },
+  ];
+  for (const scenario of cases) {
+    resetSubmissionState();
+    state.mode = scenario.mode;
+    let refreshes = 0;
+    Object.assign(methods, {
+      uploadInputs: () => scenario.uploads,
+      referenceAssetInputs: () => scenario.assets,
+      galleryInputs: () => scenario.galleries,
+      referenceFileUploads: () => scenario.files,
+      refreshRecentAssets: async () => { refreshes += 1; },
+    });
+    const pendingFetch = deferredFetch();
+    const submission = methods.runTask();
+    pendingFetch.resolveAll();
+    await submission;
+    assert.equal(state.tasks[0].status, "queued", scenario.name);
+    assert.equal(refreshes, scenario.refreshes, scenario.name);
+  }
+});
+
+test("recent upload refresh follows submitted inputs rather than in-flight draft edits", async () => {
+  for (const submittedWithImage of [false, true]) {
+    resetSubmissionState();
+    let assets = submittedWithImage ? [{ id: "recent-image" }] : [];
+    let refreshes = 0;
+    methods.referenceAssetInputs = () => assets;
+    methods.refreshRecentAssets = async () => { refreshes += 1; };
+    const pendingFetch = deferredFetch();
+    const submission = methods.runTask();
+    assets = submittedWithImage ? [] : [{ id: "new-draft-image" }];
+    pendingFetch.resolveAll();
+    await submission;
+    assert.equal(refreshes, Number(submittedWithImage));
+  }
 });
 
 test("submission preview uses the latest task after queue and asset requests", async () => {

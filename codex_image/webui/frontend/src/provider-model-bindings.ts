@@ -6,6 +6,7 @@ import type {
 } from "./types";
 import { translate } from "./i18n";
 import { destroyThemedSelects, mountThemedSelect } from "./themed-select";
+import { createModelDiscoveryField } from "./provider-model-discovery";
 
 export function remoteModelAfterSelection(current: string, previousDefault: string, nextDefault: string): string {
   return !current.trim() || current.trim() === previousDefault ? nextDefault : current;
@@ -406,9 +407,6 @@ export function renderProviderBindingCards(
     });
     protocolField.append(protocolLabel, protocolSelect);
 
-    const remoteField = document.createElement("label");
-    remoteField.className = "field provider-binding-remote-model";
-    remoteField.append(document.createTextNode("中转站模型名称"));
     const remoteInput = document.createElement("input");
     remoteInput.className = "control";
     remoteInput.type = "text";
@@ -416,7 +414,7 @@ export function renderProviderBindingCards(
     remoteInput.value = binding.remote_model_id;
     remoteInput.dataset.bindingRemoteModel = "";
     remoteInput.placeholder = "例如 vendor/model.name:version-1";
-    remoteField.append(remoteInput);
+    const remoteField = createModelDiscoveryField(remoteInput, binding.id);
 
     const compatibilityField = document.createElement("div");
     compatibilityField.className = "field provider-binding-compatibility";

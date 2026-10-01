@@ -71,7 +71,35 @@ def finalize_task_cancellation(
                     record.setdefault("failed_at", cancelled_at)
                     record["updated_at"] = cancelled_at
                 normalized.append(record)
+            params = metadata.get("params")
+            count = _attempt_count(
+                metadata.get("total_count")
+                or (params.get("n") if isinstance(params, dict) else 0)
+            )
+            recorded_indexes = {
+                _attempt_count(item.get("index"))
+                for item in normalized
+                if isinstance(item, dict)
+            }
+            for index in range(1, count + 1):
+                if index not in recorded_indexes:
+                    normalized.append({
+                        "index": index,
+                        "status": "failed",
+                        "error": USER_CANCELLATION_ERROR,
+                        "failed_at": cancelled_at,
+                        "updated_at": cancelled_at,
+                    })
+            normalized.sort(
+                key=lambda item: _attempt_count(item.get("index")) if isinstance(item, dict) else 0
+            )
             metadata["outputs"] = normalized
+            metadata["generated_count"] = sum(
+                isinstance(item, dict) and item.get("status") == "completed" for item in normalized
+            )
+            metadata["failed_count"] = sum(
+                isinstance(item, dict) and item.get("status") == "failed" for item in normalized
+            )
         metadata.pop("request", None)
         storage.write_metadata(task_id, metadata)
         return metadata

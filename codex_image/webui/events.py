@@ -122,17 +122,20 @@ def generation_page_payload(
     current_queue = queue or queue_snapshot(ctx)
     task_groups = ctx.storage.generation_sidebar_groups(limit_per_group=limit_per_group)["groups"]
     tasks = [task for group in task_groups for task in group.get("tasks", [])]
-    task_ids = {str(task.get("task_id") or "") for task in tasks}
+    task_indexes = {str(task.get("task_id") or ""): index for index, task in enumerate(tasks)}
     for active_task in list(current_queue.get("waiting") or []) + list(current_queue.get("running") or []):
         task_id = str(active_task.get("task_id") or "") if isinstance(active_task, dict) else ""
-        if not task_id or task_id in task_ids:
+        if not task_id:
             continue
-        try:
-            task = ctx.storage.task_sidebar_card(task_id)
-        except (FileNotFoundError, ValueError):
-            continue
-        tasks.append(task)
-        task_ids.add(task_id)
+        # Active cards need the authoritative per-output states, including when
+        # a deletion refresh has a newer revision than the client's queue cache.
+        task = {**active_task, "summary_only": False}
+        index = task_indexes.get(task_id)
+        if index is None:
+            task_indexes[task_id] = len(tasks)
+            tasks.append(task)
+        else:
+            tasks[index] = task
     return {"tasks": tasks, "task_groups": task_groups}
 
 
