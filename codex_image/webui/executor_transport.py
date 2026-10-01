@@ -180,10 +180,10 @@ async def _call_image_client_once(
     loop = asyncio.get_running_loop()
     with cancellable_http_request_scope(loop) as cancellation_scope:
         call = asyncio.create_task(asyncio.to_thread(method, **kwargs))
-        if timeout_seconds is None:
-            return await call
         started_at = time.monotonic()
         try:
+            if timeout_seconds is None:
+                return await asyncio.shield(call)
             return await asyncio.wait_for(asyncio.shield(call), timeout=timeout_seconds)
         except TimeoutError as exc:
             if call.done() and not call.cancelled():
@@ -204,13 +204,14 @@ async def _call_image_client_once(
             await cancellation_scope.wait_closed()
             raise timeout_error from exc
         except asyncio.CancelledError:
-            request_was_active = cancellation_scope.cancel()
-            if request_was_active:
-                try:
-                    await asyncio.shield(call)
-                except BaseException:
-                    pass
-                await cancellation_scope.wait_closed()
+            cancellation_scope.cancel()
+            # Keep the provider slot until both the caller and its I/O have stopped.
+            # A custom synchronous transport may need to finish naturally.
+            try:
+                await asyncio.shield(call)
+            except BaseException:
+                pass
+            await cancellation_scope.wait_closed()
             raise
 
 

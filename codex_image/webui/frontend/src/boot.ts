@@ -28,6 +28,15 @@ export function bootWebUI(state: WebUIState, els: WebUIElements, methods: Legacy
   call(methods, "updateSizeFromPreset");
   call(methods, "updateCustomSize");
   call(methods, "restoreOutputSettingsLock");
+  const restoringDraft = call(methods, "restoreComposerNavigationDraft");
+  if (restoringDraft) {
+    void Promise.resolve(restoringDraft).then(() => finishBoot(methods));
+    return;
+  }
+  finishBoot(methods);
+}
+
+function finishBoot(methods: LegacyMethods): void {
   call(methods, "renderImageStrip");
   call(methods, "restoreCollectedReferences");
   void call(methods, "restoreHistoryReferenceHandoff");

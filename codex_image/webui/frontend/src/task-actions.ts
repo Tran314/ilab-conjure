@@ -124,7 +124,7 @@ function waitForTaskCardRemoval(card: HTMLElement, action: TaskCardRemovalAction
 
 async function runTaskCardRemovalTransition(
   taskIds: any[],
-  commit: () => void,
+  commit: (options?: any) => void,
   action: TaskCardRemovalAction = "default",
 ) {
   const removingIds = normalizedTaskIdSet(taskIds);
@@ -138,7 +138,7 @@ async function runTaskCardRemovalTransition(
     await Promise.all(removingCards.map((card) => waitForTaskCardRemoval(card, action)));
   }
 
-  commit();
+  commit({ preserveScroll: true });
   animateTaskCardReflow(previousCardLayout);
   animateTaskHistoryLayout(previousHistoryLayout);
 }

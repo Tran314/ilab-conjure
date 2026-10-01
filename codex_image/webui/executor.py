@@ -412,6 +412,7 @@ async def _execute_stored_task(
                 for task in tasks:
                     if not task.done():
                         task.cancel()
+                await asyncio.gather(*tasks, return_exceptions=True)
             raise
         if fatal_error is not None and (
             not results

@@ -397,6 +397,7 @@ class WebUIRefactorContractTests(unittest.TestCase):
                 ("/api/api-settings", "GET"),
                 ("/api/api-settings", "POST"),
                 ("/api/api-settings", "PATCH"),
+                ("/api/api-settings/models", "POST"),
                 ("/api/tasks", "GET"),
                 ("/api/tasks/recent", "GET"),
                 ("/api/tasks/sidebar", "GET"),

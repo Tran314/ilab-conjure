@@ -34,6 +34,7 @@ import {
   handleCustomDimensionInput,
   handleCustomRatioInput,
   handleSizeModeEvent,
+  initCustomSizeLayout,
   swapCustomSizeDimensions,
   syncSizeControlsFromSize,
   updateCustomSize,
@@ -170,6 +171,7 @@ export function setMode(mode: any): void {
 export function initFormControlsFeature(): void {
   if (formControlsInitialized) return;
   formControlsInitialized = true;
+  initCustomSizeLayout();
   document.addEventListener(LOCALE_CHANGE_EVENT, syncRunButtonLabel);
   Object.assign(getLegacyBridge().methods, {
     bindFormControlEvents,

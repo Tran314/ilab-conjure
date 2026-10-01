@@ -34,6 +34,7 @@ from .auth_routing import (
 )
 from .cancellation import (
     finalize_task_cancellation,
+    request_task_cancellation,
     requeue_task_after_shutdown,
 )
 from .context import QueueWorkerHealth, WebUIContext
@@ -860,6 +861,20 @@ def _structured_task_error(ctx: WebUIContext, metadata: dict[str, Any], exc: Bas
     return error, safe
 
 
+def request_running_task_cancellation(ctx: WebUIContext, task_id: str) -> dict[str, Any]:
+    metadata = request_task_cancellation(ctx.storage, task_id)
+    execution = ctx.running_worker_tasks.get(task_id)
+    if execution is not None:
+
+        def interrupt() -> None:
+            # A repeated stop must not interrupt connection cleanup.
+            if not execution.done() and not execution.cancelling():
+                execution.cancel()
+
+        execution.get_loop().call_soon_threadsafe(interrupt)
+    return metadata
+
+
 async def execute_task(
     ctx: WebUIContext,
     task_id: str,
@@ -871,9 +886,8 @@ async def execute_task(
 ) -> None:
     ctx.active_task_ids.add(task_id)
     current_task = asyncio.current_task()
+    execution_task: asyncio.Task[None] | None = None
     execution_contract: QueueExecutionContract | None = None
-    if current_task is not None:
-        ctx.running_worker_tasks[task_id] = current_task
     try:
         metadata = ctx.storage.read_metadata(task_id)
         attempt_started_at = utc_now()
@@ -904,20 +918,27 @@ async def execute_task(
             )
         ctx.storage.write_metadata(task_id, metadata)
 
-        await _execute_stored_task(
-            storage=ctx.storage,
-            gallery_storage=ctx.gallery_storage,
-            reference_asset_storage=ctx.reference_asset_storage,
-            reference_file_storage=ctx.reference_file_storage,
-            task_id=task_id,
-            client=execution_contract.client,
-            batch_delay_seconds=batch_delay_seconds,
-            request_context=(lambda params: _api_provider_request_context(ctx, params)) if channel.auth_source == "api" else None,
-            image_request_timeout_seconds=(
-                execution_contract.image_request_timeout_seconds
-            ),
-            image_request_retry_count=execution_contract.image_request_retry_count,
+        execution_task = asyncio.create_task(
+            _execute_stored_task(
+                storage=ctx.storage,
+                gallery_storage=ctx.gallery_storage,
+                reference_asset_storage=ctx.reference_asset_storage,
+                reference_file_storage=ctx.reference_file_storage,
+                task_id=task_id,
+                client=execution_contract.client,
+                batch_delay_seconds=batch_delay_seconds,
+                request_context=(lambda params: _api_provider_request_context(ctx, params)) if channel.auth_source == "api" else None,
+                image_request_timeout_seconds=(
+                    execution_contract.image_request_timeout_seconds
+                ),
+                image_request_retry_count=execution_contract.image_request_retry_count,
+            )
         )
+        # Stop the task's requests without cancelling its queue channel worker.
+        ctx.running_worker_tasks[task_id] = execution_task
+        await execution_task
+        if _task_cancel_requested(ctx.storage, task_id):
+            finalize_task_cancellation(ctx.storage, task_id)
     except asyncio.CancelledError:
         externally_cancelled = bool(
             current_task is not None and current_task.cancelling()
@@ -933,6 +954,9 @@ async def execute_task(
             pass
         raise
     except Exception as exc:
+        if _task_cancel_requested(ctx.storage, task_id):
+            finalize_task_cancellation(ctx.storage, task_id)
+            return
         usage_limit_error = _is_usage_limit_error(exc)
         local_usage_limit_error = channel.auth_source != "api" and usage_limit_error
         metadata = ctx.storage.read_metadata(task_id)
@@ -975,7 +999,7 @@ async def execute_task(
         ) from exc
     finally:
         ctx.api_task_slot_reservations.pop(task_id, None)
-        if ctx.running_worker_tasks.get(task_id) is current_task:
+        if ctx.running_worker_tasks.get(task_id) is execution_task:
             ctx.running_worker_tasks.pop(task_id, None)
         ctx.active_task_ids.discard(task_id)
 

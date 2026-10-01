@@ -16,6 +16,7 @@ from codex_image.webui.settings_store import (
 )
 from codex_image.webui.startup_auth import AUTH_SOURCES
 from codex_image.webui.standard_storage import previous_default_storage_paths
+from codex_image.webui.provider_model_discovery import ModelDiscoveryError, discover_provider_models
 
 
 def register_settings_routes(app: FastAPI, ctx: WebUIContext) -> None:
@@ -297,6 +298,15 @@ def register_settings_routes(app: FastAPI, ctx: WebUIContext) -> None:
     @app.get("/api/api-settings")
     def get_api_settings() -> dict[str, Any]:
         return {"settings": ctx.api_settings.public_settings()}
+
+    @app.post("/api/api-settings/models")
+    def get_provider_models(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
+        try:
+            return discover_provider_models(ctx, payload)
+        except ModelDiscoveryError as exc:
+            raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="invalid_base_url") from exc
 
     @app.post("/api/api-settings")
     @app.patch("/api/api-settings")

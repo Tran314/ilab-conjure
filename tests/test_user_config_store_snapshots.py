@@ -59,6 +59,9 @@ class UserConfigStoreSnapshotTests(unittest.TestCase):
                 network_snapshot["values"]["image_request_retry_count"],
                 2,
             )
+            network.write({"asset_fake_ip_dns_fallback": True})
+            self.assertTrue(network.snapshot_payload()["values"]["asset_fake_ip_dns_fallback"])
+            self.assertIn("asset_fake_ip_dns_fallback", network.snapshot_payload()["present_fields"])
 
     def test_json_stores_expose_reentrant_exclusive_contexts(self) -> None:
         from codex_image.webui.color_settings import ColorPaletteSettings

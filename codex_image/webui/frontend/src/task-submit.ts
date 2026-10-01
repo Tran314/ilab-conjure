@@ -368,7 +368,7 @@ async function runTask() {
     stopRunFeedback();
     setStatus(translate("taskSubmit.queued"), "ok");
     await window.refreshQueue?.();
-    await refreshRecentAssets();
+    if (uploads.length || assets.length) await refreshRecentAssets();
     renderPreview();
     getLegacyBridge().methods.showMobilePreview?.();
   } catch (error) {

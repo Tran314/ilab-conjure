@@ -27,6 +27,13 @@ of a user-configured local provider remain supported. Connections use the checke
 IP while retaining the original HTTP Host and TLS hostname. Credentials are only
 retried on the configured provider origin and never follow a cross-origin redirect.
 
+The optional Fake-IP DNS compatibility setting applies only to indirect image
+assets whose system DNS answers are entirely in `198.18.0.0/15`. It queries
+Cloudflare DNS over HTTPS for the hostname only, then applies the same public
+address validation and pinned connections on every redirect. No API credentials,
+prompts, or complete image URLs are sent to the DNS resolver. The setting is off
+by default and does not change system or LAN DNS.
+
 Do not publish OAuth tokens, API keys, account files, `.env` files, input images,
 generated outputs, task metadata, SQLite databases, or debug logs.
 

@@ -3,12 +3,22 @@ from __future__ import annotations
 
 import ipaddress
 import socket
+from collections.abc import Sequence
 from dataclasses import dataclass
 from urllib.parse import urlsplit, urlunsplit
 
 
 class UnsafeAssetURLError(ValueError):
     pass
+
+
+class FakeIPAssetURLError(UnsafeAssetURLError):
+    def __init__(self, hostname: str) -> None:
+        super().__init__("generated asset URL points to a non-public address")
+        self.hostname = hostname
+
+
+_FAKE_IP_RANGE = ipaddress.ip_network("198.18.0.0/15")
 
 
 def _origin(url: str) -> tuple[str, str, int]:
@@ -24,7 +34,9 @@ class AssetDestination:
     server_hostname: str
 
 
-def resolve_asset_destination(url: str, provider_base_url: str) -> AssetDestination:
+def resolve_asset_destination(
+    url: str, provider_base_url: str, *, resolved_addresses: Sequence[str] | None = None,
+) -> AssetDestination:
     try:
         parsed = urlsplit(url)
         hostname = parsed.hostname or ""
@@ -36,11 +48,21 @@ def resolve_asset_destination(url: str, provider_base_url: str) -> AssetDestinat
         # The user explicitly trusts the configured provider origin. Its own
         # assets may be local; a redirect to any other origin gets no exception.
         allow_local = _origin(url) == _origin(provider_base_url)
-        addresses = list(dict.fromkeys(
+        addresses = list(dict.fromkeys(resolved_addresses if resolved_addresses is not None else (
             str(entry[4][0]) for entry in socket.getaddrinfo(hostname, port, type=socket.SOCK_STREAM)
-        ))
+        )))
         if not addresses:
             raise ValueError("no destination")
+        try:
+            ipaddress.ip_address(hostname)
+            domain_name = False
+        except ValueError:
+            domain_name = True
+        if not allow_local and domain_name and all(
+            ipaddress.ip_address(address).version == 4
+            and ipaddress.ip_address(address) in _FAKE_IP_RANGE for address in addresses
+        ):
+            raise FakeIPAssetURLError(hostname)
         for address in addresses:
             ip = ipaddress.ip_address(address)
             mapped = getattr(ip, "ipv4_mapped", None)

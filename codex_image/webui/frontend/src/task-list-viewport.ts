@@ -22,6 +22,7 @@ export function createTaskListViewport(dependencies: TaskListViewportDependencie
   const { getState, els, consumeLatestTaskNavigationScrollAnchor, expandedTaskGroupHeaderHtml, scheduleLatestTaskNavigationRefresh, scheduleSidebarTaskGroupAutoLoad, taskCardHtml, taskGroupCount, taskGroupLoadMoreHtml, updateTaskElapsedDisplays, cancelActiveTaskQueueReorder, consumeExpansionAnimation } = dependencies;
   let expandedTaskGroupRenderToken = 0;
   let deferredActiveTaskHtml: string | null = null;
+  const pendingScrollRestorations = new WeakMap<HTMLElement, { anchor: TaskListScrollAnchor }>();
   const EXPANDED_TASK_GROUP_INITIAL_CARD_COUNT = 24;
   const EXPANDED_TASK_GROUP_CHUNK_SIZE = 48;
   const EXPANDED_TASK_GROUP_ANIMATION_FALLBACK_MS = 320;
@@ -44,9 +45,12 @@ export function createTaskListViewport(dependencies: TaskListViewportDependencie
     { retryMissingTask = false }: { retryMissingTask?: boolean } = {},
   ): TaskListScrollAnchor | null {
     if (!scroller || !root) return null;
+    const pending = pendingScrollRestorations.get(scroller)?.anchor;
+    if (pending?.root === root) return pending;
     const scrollerRect = scroller.getBoundingClientRect();
     const cards = Array.from(root.querySelectorAll(".task-card[data-task-id]")) as HTMLElement[];
     const visibleCard = cards.find((card) => {
+      if (card.classList.contains("task-card-removing")) return false;
       const rect = card.getBoundingClientRect();
       return rect.bottom > scrollerRect.top && rect.top < scrollerRect.bottom;
     });
@@ -69,15 +73,22 @@ export function createTaskListViewport(dependencies: TaskListViewportDependencie
 
   function restoreTaskListScrollAnchor(anchor: TaskListScrollAnchor | null): void {
     if (!anchor?.scroller) return;
+    const pending = { anchor };
+    pendingScrollRestorations.set(anchor.scroller, pending);
     let attempts = 12;
     const restore = () => {
-      if (!anchor.scroller.isConnected) return;
+      if (pendingScrollRestorations.get(anchor.scroller) !== pending) return;
+      if (!anchor.scroller.isConnected) {
+        pendingScrollRestorations.delete(anchor.scroller);
+        return;
+      }
       if (anchor.taskId) {
         const card = anchor.root.querySelector(`.task-card[data-task-id="${cssEscape(anchor.taskId)}"]`);
         if (card instanceof HTMLElement) {
           const scrollerRect = anchor.scroller.getBoundingClientRect();
           const rect = card.getBoundingClientRect();
           anchor.scroller.scrollTop += rect.top - scrollerRect.top - (anchor.offsetTop || 0);
+          pendingScrollRestorations.delete(anchor.scroller);
           return;
         }
       }
@@ -87,6 +98,7 @@ export function createTaskListViewport(dependencies: TaskListViewportDependencie
         return;
       }
       anchor.scroller.scrollTop = anchor.scrollTop;
+      pendingScrollRestorations.delete(anchor.scroller);
     };
     restore();
   }

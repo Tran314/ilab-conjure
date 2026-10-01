@@ -85,12 +85,35 @@ function normalizedTaskSearchResultQuery(query: string): string {
   return String(query || "").trim().toLowerCase();
 }
 
-async function refreshTasks({ migrateLegacyArchives = false }: any = {}) {
+async function refreshTasks({ migrateLegacyArchives = false, preserveExpandedGroup = true }: any = {}) {
+  const groupKey = preserveExpandedGroup ? String(state.expandedTaskGroupKey || "") : "";
+  const loadedCount = Number(state.taskSidebarGroupLoadedCounts?.[groupKey] || 0);
   const requestSeq = ++state.tasksRequestSeq;
   const response = await fetch("/api/tasks/sidebar?limit=50");
   const data = await response.json();
   if (requestSeq !== state.tasksRequestSeq) return false;
   if (!response.ok) throw new Error(data.detail || "Task history loading failed");
+  const group = Array.isArray(data.task_groups)
+    ? data.task_groups.find((item: any) => String(item?.key || "") === groupKey)
+    : null;
+  if (group && Array.isArray(group.tasks)) {
+    let offset = group.tasks.length;
+    while (offset < Math.min(loadedCount, Number(group.count || 0))) {
+      const limit = Math.min(TASK_SIDEBAR_REVEAL_PAGE_SIZE, loadedCount - offset);
+      const pageResponse = await fetch(
+        `/api/tasks/sidebar/groups/${encodeURIComponent(groupKey)}?offset=${offset}&limit=${limit}`,
+      );
+      const page = await pageResponse.json();
+      if (requestSeq !== state.tasksRequestSeq) return false;
+      if (!pageResponse.ok) throw new Error(page.detail || "Task group loading failed");
+      const incoming = Array.isArray(page.tasks) ? page.tasks : [];
+      group.count = Number(page.count ?? group.count);
+      if (!incoming.length) break;
+      group.tasks = mergeSidebarTasks(group.tasks, incoming);
+      data.tasks = mergeSidebarTasks(data.tasks || [], incoming);
+      offset = Math.max(offset + incoming.length, Number(page.next_offset || 0));
+    }
+  }
   return await applyTasksSnapshot(data.tasks || [], {
     migrateLegacyArchives,
     requestSeq,
@@ -339,7 +362,7 @@ async function revealHistoryTaskInSidebar(task: any): Promise<boolean> {
 }
 
 async function refreshTasksAfterDeletion() {
-  await refreshTasks();
+  await refreshTasks({ preserveExpandedGroup: true });
 }
 
 async function applyTaskUpdate(task: any) {

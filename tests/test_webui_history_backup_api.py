@@ -9,6 +9,7 @@ import json
 import time
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
@@ -421,7 +422,12 @@ class WebUIHistoryBackupAPITests(unittest.TestCase):
     def test_real_empty_history_export_url_download_and_external_filename(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             app = self.make_app(Path(tmp))
-            with TestClient(app) as client:
+            # Capacity failures have separate coverage; keep this HTTP workflow
+            # independent of the host filesystem's reserved-space threshold.
+            with TestClient(app) as client, patch.object(
+                app.state.ctx.history_backup_export_service, "_disk_usage",
+                return_value=SimpleNamespace(total=100 * 1024**3, free=50 * 1024**3),
+            ):
                 created = client.post(
                     "/api/task-history/backup-exports", json={"scope": "all"}
                 )
@@ -455,7 +461,10 @@ class WebUIHistoryBackupAPITests(unittest.TestCase):
             app = self.make_app(Path(tmp))
             payload, _ = _full_restore_archive("api-restore")
             digest = hashlib.sha256(payload).hexdigest()
-            with TestClient(app) as client:
+            with TestClient(app) as client, patch.object(
+                app.state.ctx.history_backup_import_service, "_disk_usage",
+                return_value=SimpleNamespace(total=100 * 1024**3, free=50 * 1024**3),
+            ):
                 created = client.post(
                     "/api/task-history/backup-imports",
                     json={"filename": "backup.zip", "size_bytes": len(payload)},

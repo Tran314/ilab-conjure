@@ -5,7 +5,14 @@ export interface NetworkEgressUpdatePayload {
   custom_proxy_url: string;
   image_request_timeout_seconds: number;
   image_request_retry_count: number;
+  asset_fake_ip_dns_fallback: boolean;
 }
+
+export type NetworkEgressSavePayload = Pick<
+  NetworkEgressUpdatePayload, "mode" | "custom_proxy_url" | "asset_fake_ip_dns_fallback"
+> & Partial<Pick<
+  NetworkEgressUpdatePayload, "image_request_timeout_seconds" | "image_request_retry_count"
+>>;
 
 export type NetworkRequestPolicyResult =
   | {
@@ -29,7 +36,7 @@ export type NetworkEgressRouteFields = Pick<
 > & Partial<
   Pick<
     NetworkEgressUpdatePayload,
-    "image_request_timeout_seconds" | "image_request_retry_count"
+    "image_request_timeout_seconds" | "image_request_retry_count" | "asset_fake_ip_dns_fallback"
   >
 >;
 

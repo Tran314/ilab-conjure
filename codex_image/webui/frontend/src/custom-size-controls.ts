@@ -431,6 +431,20 @@ function measureCustomSizeModeHeight(isCustom: any): number {
   grid.style.transition = "none";
   grid.style.height = "";
   if (customSize) customSize.style.transition = "none";
+  if (isCustom && customSize) {
+    setCustomSizeModeLayout(false);
+    const presetFields = [
+      els.orientation?.closest(".orientation-field"),
+      els.resolution?.closest(".resolution-field"),
+      els.ratio?.closest(".ratio-field"),
+    ];
+    const rectangles = presetFields.map(field => field?.getBoundingClientRect());
+    if (rectangles.every(rectangle => rectangle && rectangle.height > 0)) {
+      const top = Math.min(...rectangles.map(rectangle => rectangle.top));
+      const bottom = Math.max(...rectangles.map(rectangle => rectangle.bottom));
+      customSize.style.setProperty("--custom-size-mode-card-height", `${bottom - top}px`);
+    }
+  }
   setCustomSizeModeLayout(isCustom);
   const height = measuredElementHeight(grid);
 
@@ -450,7 +464,7 @@ function measureCustomSizeModeHeight(isCustom: any): number {
   return height;
 }
 
-function transitionCustomSizeMode(isCustom: any): void {
+function transitionCustomSizeMode(isCustom: any, refreshLayout = false): void {
   const grid = els.settingsGrid;
   const customSize = els.customSize;
   if (!grid || !customSize) {
@@ -460,6 +474,7 @@ function transitionCustomSizeMode(isCustom: any): void {
   }
 
   if (state.customSizeMode === null) {
+    if (isCustom) measureCustomSizeModeHeight(true);
     state.customSizeMode = isCustom;
     grid.style.height = "";
     grid.classList.remove("is-size-transitioning");
@@ -469,12 +484,15 @@ function transitionCustomSizeMode(isCustom: any): void {
 
   const pendingTimerId = customSizeTransitionTimers.get(grid);
   if (state.customSizeMode === isCustom && !pendingTimerId) {
+    if (refreshLayout && isCustom) measureCustomSizeModeHeight(true);
     grid.style.height = "";
     grid.classList.remove("is-size-transitioning");
     setCustomSizeModeLayout(isCustom);
     return;
   }
 
+  const fromHeight = measuredElementHeight(grid);
+  const targetHeight = measureCustomSizeModeHeight(isCustom);
   state.customSizeMode = isCustom;
   state.customSizeTransitionSeq += 1;
   const transitionSeq = state.customSizeTransitionSeq;
@@ -491,8 +509,6 @@ function transitionCustomSizeMode(isCustom: any): void {
     return;
   }
 
-  const fromHeight = measuredElementHeight(grid);
-  const targetHeight = measureCustomSizeModeHeight(isCustom);
   if (Math.abs(targetHeight - fromHeight) <= CUSTOM_SIZE_HEIGHT_SNAP_TOLERANCE) {
     grid.style.height = "";
     grid.classList.remove("is-size-transitioning");
@@ -537,6 +553,27 @@ function transitionCustomSizeMode(isCustom: any): void {
     customSizeTransitionTimers.delete(grid);
   }, CUSTOM_SIZE_TRANSITION_MS);
   customSizeTransitionTimers.set(grid, timerId);
+}
+
+export function initCustomSizeLayout(): void {
+  const refresh = () => {
+    const control = els.sizeModeGroup?.closest(".custom-size-control");
+    if (els.size?.value === "custom" && control && !control.classList.contains("hidden")) {
+      transitionCustomSizeMode(true, true);
+    }
+  };
+  window.addEventListener("resize", refresh);
+  document.addEventListener(LOCALE_CHANGE_EVENT, refresh);
+  if (typeof ResizeObserver !== "undefined" && els.settingsGrid) {
+    let previousWidth = -1;
+    const observer = new ResizeObserver(entries => {
+      const width = entries[0]?.contentRect.width;
+      if (width === undefined || width === previousWidth) return;
+      previousWidth = width;
+      refresh();
+    });
+    observer.observe(els.settingsGrid);
+  }
 }
 
 export function updateCustomSize(): void {

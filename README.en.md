@@ -30,6 +30,8 @@
   <img src="assets/UI_en.webp" alt="iLab CONJURE WebUI screenshot" width="960" />
 </p>
 
+If Clash/Mihomo Fake-IP DNS prevents downloading a successfully generated image, enable **Fake-IP DNS compatibility for image downloads** under **Settings → Network**. It is off by default and queries Cloudflare DNS for affected image hostnames only, without changing system or LAN DNS.
+
 ## Overview
 
 > [!IMPORTANT]
@@ -62,6 +64,8 @@ Download standard app packages and portable transition packages from
 
 - GPT Image and Gemini image workflows in one model catalog, including
   text-to-image, supported reference-image generation, and image editing.
+- Stopping a task interrupts its local requests and waiting image slots while
+  keeping generated images and history; the provider may still generate and bill.
 - Codex Image, Codex Responses, and OpenAI-compatible API access, with the API
   path recommended for public or shared use.
 - Concurrent task execution, local queue state, paged history library,
@@ -95,6 +99,9 @@ Download standard app packages and portable transition packages from
 - Centered System Settings with API Settings, Network, Language, and Storage &
   Notifications tabs; Codex Image and Codex Responses are chosen in the
   generation-page provider menu.
+- API model bindings offer “Get available models” using the current Base URL
+  and API Key. Selecting a result fills the remote model name; manual entry
+  remains available. Fetching does not save settings or verify image support.
 - Configuration backup and restore under Storage & Notifications, with
   selectable chips, public gallery, prompt templates, and system settings,
   plus additive restore or separately confirmed replacement restore.
@@ -210,16 +217,16 @@ require a secure context may be unavailable.
 
 ## App packages
 
-Download the current packages from [Downloads / Releases](RELEASES.md), or open
-[GitHub Release v0.9.3](https://github.com/kadevin/ilab-conjure/releases/tag/v0.9.3)
-directly.
+The current version is `v0.9.4`. Published packages are listed in
+[Downloads / Releases](RELEASES.md) and the
+[latest official GitHub release](https://github.com/kadevin/ilab-conjure/releases/latest).
 
 New users should choose the standard packages:
 
-1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.9.3.dmg`
-   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.9.3.dmg`
+1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.9.4.dmg`
+   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.9.4.dmg`
    for Intel, then drag `iLab GPT CONJURE.app` to Applications.
-2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.9.3.zip`,
+2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.9.4.zip`,
    extract it into a normal user directory, and run `iLab GPT CONJURE.exe`.
 
 Standard packages store user data in `~/Library/Application Support/iLab GPT
@@ -313,6 +320,11 @@ commit that already passed CI, the same workflow can also be run manually with
    proxies that ignore size parameters can still receive the intended ratio.
 6. Start generation, track running and queued tasks in the left task list, then
    review, select, retry, download, or archive results from the preview area.
+
+Opening History Library in the same tab temporarily preserves the prompt,
+reference images, and files and restores them on return. When reusing a history
+task or adding references from history, the original input remains available
+through Restore draft.
 
 ### Storage paths and existing data
 

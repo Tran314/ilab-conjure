@@ -18,7 +18,7 @@ from .store_locks import StoreLockMixin, store_locked
 
 NetworkEgressMode = Literal["system", "direct", "custom"]
 NetworkEgressRoute = Literal["system", "direct", "proxy"]
-NetworkEgressSettingValue = str | int
+NetworkEgressSettingValue = str | int | bool
 ImageRequestTimeoutSource = Literal["settings", "environment", "default"]
 
 IMAGE_REQUEST_TIMEOUT_ENV = "CODEX_IMAGE_REQUEST_TIMEOUT_SECONDS"
@@ -34,6 +34,7 @@ _DEFAULT_SETTINGS: dict[str, NetworkEgressSettingValue] = {
     "custom_proxy_url": "",
     "image_request_timeout_seconds": DEFAULT_IMAGE_REQUEST_TIMEOUT_SECONDS,
     "image_request_retry_count": DEFAULT_IMAGE_REQUEST_RETRY_COUNT,
+    "asset_fake_ip_dns_fallback": False,
 }
 _VALID_MODES = frozenset({"system", "direct", "custom"})
 
@@ -162,11 +163,17 @@ def _editable_settings_from_payload(
         **route,
         "image_request_timeout_seconds": timeout_seconds,
         "image_request_retry_count": retry_count,
+        "asset_fake_ip_dns_fallback": payload.get("asset_fake_ip_dns_fallback") is True,
     }
 
 
-def _normalize_settings(payload: Mapping[str, Any]) -> dict[str, str]:
-    return _normalize_route_settings(payload)
+def _normalize_settings(payload: Mapping[str, Any]) -> dict[str, NetworkEgressSettingValue]:
+    clean: dict[str, NetworkEgressSettingValue] = dict(_normalize_route_settings(payload))
+    if "asset_fake_ip_dns_fallback" in payload:
+        if not isinstance(payload["asset_fake_ip_dns_fallback"], bool):
+            raise ValueError("asset_fake_ip_dns_fallback must be a boolean")
+        clean["asset_fake_ip_dns_fallback"] = payload["asset_fake_ip_dns_fallback"]
+    return clean
 
 
 @dataclass(frozen=True)
@@ -177,6 +184,7 @@ class NetworkEgressSnapshot:
     image_request_timeout_seconds: float
     image_request_retry_count: int
     image_request_timeout_source: ImageRequestTimeoutSource
+    asset_fake_ip_dns_fallback: bool = False
 
     def task_metadata(self) -> dict[str, str | int | float]:
         return {
@@ -185,6 +193,7 @@ class NetworkEgressSnapshot:
             "image_request_timeout_seconds": self.image_request_timeout_seconds,
             "image_request_retry_count": self.image_request_retry_count,
             "image_request_timeout_source": self.image_request_timeout_source,
+            "asset_fake_ip_dns_fallback": self.asset_fake_ip_dns_fallback,
         }
 
 
@@ -263,6 +272,13 @@ class NetworkEgressSettings(StoreLockMixin):
         clean: dict[str, NetworkEgressSettingValue] = {
             **_normalize_route_settings(payload, current=current),
         }
+        if "asset_fake_ip_dns_fallback" in payload:
+            value = payload["asset_fake_ip_dns_fallback"]
+            if not isinstance(value, bool):
+                raise ValueError("asset_fake_ip_dns_fallback must be a boolean")
+            clean["asset_fake_ip_dns_fallback"] = value
+        elif "asset_fake_ip_dns_fallback" in current_payload:
+            clean["asset_fake_ip_dns_fallback"] = current["asset_fake_ip_dns_fallback"]
         policy_fields = (
             (
                 "image_request_timeout_seconds",
@@ -328,6 +344,7 @@ class NetworkEgressSettings(StoreLockMixin):
             "custom_proxy_url",
             "image_request_timeout_seconds",
             "image_request_retry_count",
+            "asset_fake_ip_dns_fallback",
         )
         return {
             "values": _editable_settings_from_payload(payload),
@@ -340,9 +357,13 @@ class NetworkEgressManager:
         self.settings = settings or NetworkEgressSettings()
 
     def snapshot(self, payload: Mapping[str, Any] | None = None) -> NetworkEgressSnapshot:
-        clean = self.settings.read() if payload is None else _normalize_settings(payload)
+        saved = self.settings.read()
+        clean = saved if payload is None else _normalize_settings(payload)
         policy = self.settings.request_policy()
         mode = cast(NetworkEgressMode, clean["mode"])
+        fake_ip_fallback = (
+            clean.get("asset_fake_ip_dns_fallback", saved["asset_fake_ip_dns_fallback"]) is True
+        )
         if mode == "system":
             return NetworkEgressSnapshot(
                 mode=mode,
@@ -351,6 +372,7 @@ class NetworkEgressManager:
                 image_request_timeout_seconds=policy.timeout_seconds,
                 image_request_retry_count=policy.retry_count,
                 image_request_timeout_source=policy.timeout_source,
+                asset_fake_ip_dns_fallback=fake_ip_fallback,
             )
         if mode == "direct":
             return NetworkEgressSnapshot(
@@ -360,6 +382,7 @@ class NetworkEgressManager:
                 image_request_timeout_seconds=policy.timeout_seconds,
                 image_request_retry_count=policy.retry_count,
                 image_request_timeout_source=policy.timeout_source,
+                asset_fake_ip_dns_fallback=fake_ip_fallback,
             )
 
         proxy_url = str(clean["custom_proxy_url"])
@@ -370,6 +393,7 @@ class NetworkEgressManager:
             image_request_timeout_seconds=policy.timeout_seconds,
             image_request_retry_count=policy.retry_count,
             image_request_timeout_source=policy.timeout_source,
+            asset_fake_ip_dns_fallback=fake_ip_fallback,
         )
 
     @staticmethod
@@ -385,4 +409,5 @@ class NetworkEgressManager:
                 else timeout_seconds
             ),
             proxy_map=snapshot.proxy_map,
+            asset_fake_ip_dns_fallback=snapshot.asset_fake_ip_dns_fallback,
         )

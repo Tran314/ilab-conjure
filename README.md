@@ -30,6 +30,8 @@
   <img src="assets/UI_cn.webp" alt="iLab CONJURE WebUI 截图" width="960" />
 </p>
 
+如果使用 Clash/Mihomo Fake-IP DNS 导致图片生成成功但下载失败，可在“系统设置 → 网络”开启“图片下载兼容 Fake-IP DNS”。该选项默认关闭，只针对图片域名查询 Cloudflare DNS 的真实公网地址，不改变系统或局域网 DNS。
+
 ## 简介
 
 > [!IMPORTANT]
@@ -59,6 +61,7 @@ API 中转站可分别绑定 GPT Image 2、GPT Image 2.5 Flare 和 Sunburst，�
 - 在同一模型目录中使用 GPT Image 与 Gemini，覆盖文生图及模型支持的参考图生成、图像编辑工作流。
 - 支持 Codex Image、Codex Responses 和 OpenAI 兼容 API 接入；公开或共享使用优先选择 API 模式。
 - 多任务并发、本地队列状态、分页历史库、缩略图和结果归档。
+- 停止任务会中断本地请求及等待中的图片槽位，保留已生成图片和历史记录；服务商可能仍继续生成并计费。
 - 生成页按需加载最近任务和媒体，隐藏图库与模板仅在打开后渲染；响应式工作区由 CSS Grid 与容器查询驱动，刷新和调整窗口尺寸更流畅。
 - 输出参数支持一键锁定并以只读摘要展示，避免连续生成或浏览历史任务时误改设置；切换任务不会覆盖当前锁定参数。
 - 独立 `/history` 页面支持 SQLite 分页、搜索、筛选、网格/列表视图和懒加载详情。
@@ -76,6 +79,7 @@ API 中转站可分别绑定 GPT Image 2、GPT Image 2.5 Flare 和 Sunburst，�
 - 系统设置的“存储与通知”提供配置备份与恢复，可按需迁移 chip、公用图、提示词模板和系统设置，并支持增量恢复或经二次确认的替换恢复。
 - 网络设置明确提供系统、直连和自定义 HTTP(S) 代理三种出口；还可全局设置单次生图请求超时（1–30 分钟，默认 10 分钟）和可重试瞬时失败后的重试次数（0–5 次，默认 2 次）。设置保存在应用数据目录，覆盖所有供应商的生成与编辑，并从后续任务执行开始生效，无需重启；每次重试使用新的完整超时窗口。
 - API 供应商以卡片快速选择，默认只读详情，支持显式编辑、复制、删除确认和多供应商排序；自定义供应商可选一个 emoji 标识以便快速识别。
+- 编辑 API 供应商的模型绑定时，可点击“获取可用模型”查询当前 Base URL 与 API Key 对应的模型列表，选中后填入中转站模型名称；不支持查询的供应商仍可手动填写，获取列表不会自动保存配置或验证生图能力。
 - 标准 macOS DMG 和 Windows App ZIP 提供 Rust 托盘 / 菜单栏启动器、小兔子图标、系统语言跟随、原生关于窗口，并在首次启动时由用户确认复制旧 portable 数据。
 - 包含标准更新助手的 macOS App 支持用户确认后的一键覆盖：helper 校验 signed manifest 与 DMG SHA256，退出当前 App，带回滚保护地替换并重新启动；用户数据仍保存在应用包外。旧版 macOS App 需要手动引导升级一次，Windows 标准 ZIP 仍手动替换。
 - 过渡期 portable 包继续把数据保存在同级 `data/`，并支持用户确认后的自动替换更新；更新器读取带签名的 `latest.json` manifest、校验 Ed25519 签名和 SHA256、保留 `data/`，并把被替换文件备份到 `.backup/`。
@@ -158,15 +162,15 @@ http://127.0.0.1:8787/
 
 ## 应用包下载
 
-当前可用的标准包和一键包见 [下载 / Releases](RELEASES.md)，也可以直接打开
-[GitHub Release v0.9.3](https://github.com/kadevin/ilab-conjure/releases/tag/v0.9.3)。
+当前版本为 `v0.9.4`。正式安装包见
+[下载 / Releases](RELEASES.md) 或 [GitHub 最新正式版](https://github.com/kadevin/ilab-conjure/releases/latest)。
 
 新用户建议优先下载标准包：
 
-1. macOS：Apple Silicon 下载 `iLab-GPT-CONJURE-macos-arm64-0.9.3.dmg`，
-   Intel 下载 `iLab-GPT-CONJURE-macos-x64-0.9.3.dmg`，然后把
+1. macOS：Apple Silicon 下载 `iLab-GPT-CONJURE-macos-arm64-0.9.4.dmg`，
+   Intel 下载 `iLab-GPT-CONJURE-macos-x64-0.9.4.dmg`，然后把
    `iLab GPT CONJURE.app` 拖到 Applications。
-2. Windows：下载 `iLab-GPT-CONJURE-windows-x64_0.9.3.zip`，
+2. Windows：下载 `iLab-GPT-CONJURE-windows-x64_0.9.4.zip`，
    解压到普通用户目录，双击 `iLab GPT CONJURE.exe`。
 
 标准包的用户数据会写入 macOS 的
@@ -239,6 +243,9 @@ GitHub Release。对于已经通过 CI 的 tag，也可以手动运行同一个 
 5. 设置数量、尺寸、方向、质量、输出格式和压缩率。
 6. 点击开始生成后，在左侧任务列表查看运行中和排队任务，在右侧预览区查看、
    精选、重试、下载、打包或归档结果；完整历史在 `/history` 中搜索和筛选。
+
+同标签页进入历史库会临时保留提示词、参考图片和文件，返回生成页后恢复。
+从历史库复用任务或添加参考输入时，原输入可通过“恢复草稿”找回。
 
 ### 存储路径与旧数据
 

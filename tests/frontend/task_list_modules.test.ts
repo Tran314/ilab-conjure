@@ -145,6 +145,55 @@ test("append requires the existing prefix and explicit invalidation stops pendin
   } finally { f.restore(); }
 });
 
+test("consecutive chunked renders retain the pending scroll anchor and cancel obsolete restores", () => {
+  const f = viewportFixture();
+  const previousElement = globalThis.HTMLElement;
+  class ElementFixture {
+    dataset = { taskId: "old-anchor" };
+    removing = false;
+    classList = { contains: () => this.removing };
+    getBoundingClientRect() { return { top: 5550 - scroller.scrollTop, bottom: 5620 - scroller.scrollTop }; }
+  }
+  globalThis.HTMLElement = ElementFixture as any;
+  const card = new ElementFixture();
+  const removingCard = new ElementFixture();
+  removingCard.removing = true;
+  removingCard.dataset.taskId = "deleted-task";
+  let mounted = true;
+  const scroller: any = {
+    scrollTop: 5400, isConnected: true,
+    getBoundingClientRect: () => ({ top: 100, bottom: 500 }),
+  };
+  const root: any = {
+    querySelectorAll: () => mounted ? [removingCard, card] : [],
+    querySelector: () => mounted ? card : null,
+  };
+  try {
+    const initial = f.controller.captureTaskListScrollAnchor(scroller, root, { retryMissingTask: true });
+    assert.equal(initial?.taskId, "old-anchor", "a task being removed must not become the scroll anchor");
+    mounted = false;
+    scroller.scrollTop = 0;
+    f.controller.restoreTaskListScrollAnchor(initial);
+    const next = f.controller.captureTaskListScrollAnchor(scroller, root, { retryMissingTask: true });
+    assert.equal(next?.taskId, "old-anchor", "a temporary empty chunk must not replace the original viewport anchor");
+    assert.equal(next?.scrollTop, 5400);
+    f.controller.restoreTaskListScrollAnchor(next);
+    mounted = true;
+    f.flush();
+    assert.equal(scroller.scrollTop, 5400);
+
+    mounted = false;
+    f.controller.restoreTaskListScrollAnchor(initial);
+    f.controller.restoreTaskListScrollAnchor({ scroller, root, scrollTop: 0 });
+    mounted = true;
+    f.flush();
+    assert.equal(scroller.scrollTop, 0, "an obsolete retry must not undo an explicit navigation to the top");
+  } finally {
+    globalThis.HTMLElement = previousElement;
+    f.restore();
+  }
+});
+
 test("waiting drag defers active DOM replacement and leaving the queue releases the drag", () => {
   const f = viewportFixture();
   try {

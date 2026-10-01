@@ -5,7 +5,7 @@ import {
   parseNetworkRequestPolicy,
   type NetworkEgressMode,
   type NetworkEgressRouteFields,
-  type NetworkEgressUpdatePayload,
+  type NetworkEgressSavePayload,
   type NetworkRequestPolicyResult,
 } from "./network-request-policy";
 import { getLegacyBridge } from "./state";
@@ -16,6 +16,7 @@ interface NetworkEgressPayload {
     custom_proxy_url: string;
     image_request_timeout_seconds: number;
     image_request_retry_count: number;
+    asset_fake_ip_dns_fallback: boolean;
   };
   resolved: {
     mode: NetworkEgressMode;
@@ -120,6 +121,10 @@ function renderNetworkEgress(payload: NetworkEgressPayload): void {
       payload.settings?.image_request_retry_count ?? 2,
     );
   }
+  if (els.networkEgressFakeIpDnsFallback) {
+    els.networkEgressFakeIpDnsFallback.checked = payload.settings?.asset_fake_ip_dns_fallback === true;
+    els.networkEgressFakeIpDnsFallback.disabled = false;
+  }
   clearNetworkRequestPolicyError();
   if (els.networkEgressCompatibilityNotice) {
     const environmentFallback = (
@@ -150,10 +155,17 @@ function networkEgressRouteFormPayload(): NetworkEgressRouteFields {
 }
 
 function networkEgressFormPayload():
-  | {ok: true; payload: NetworkEgressUpdatePayload}
+  | {ok: true; payload: NetworkEgressSavePayload}
   | Exclude<NetworkRequestPolicyResult, {ok: true}> {
   const { els } = getLegacyBridge();
   const routePayload = networkEgressRouteFormPayload();
+  const commonPayload = {
+    ...routePayload,
+    asset_fake_ip_dns_fallback: els.networkEgressFakeIpDnsFallback?.checked === true,
+  };
+  if (!els.networkEgressTimeoutMinutes && !els.networkEgressRetryCount) {
+    return {ok: true, payload: commonPayload};
+  }
   const policy = parseNetworkRequestPolicy(
     String(els.networkEgressTimeoutMinutes?.value || ""),
     String(els.networkEgressRetryCount?.value || ""),
@@ -162,7 +174,7 @@ function networkEgressFormPayload():
   return {
     ok: true,
     payload: {
-      ...routePayload,
+      ...commonPayload,
       ...policy.value,
     },
   };
@@ -219,6 +231,7 @@ async function saveNetworkEgress(): Promise<void> {
   }
   clearNetworkRequestPolicyError();
   els.saveNetworkEgressButton.disabled = true;
+  if (els.networkEgressFakeIpDnsFallback) els.networkEgressFakeIpDnsFallback.disabled = true;
   try {
     const response = await fetch("/api/network-egress", {
       method: "PATCH",
@@ -236,6 +249,7 @@ async function saveNetworkEgress(): Promise<void> {
     );
   } finally {
     els.saveNetworkEgressButton.disabled = false;
+    if (els.networkEgressFakeIpDnsFallback) els.networkEgressFakeIpDnsFallback.disabled = false;
   }
 }
 

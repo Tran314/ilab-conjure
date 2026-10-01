@@ -12,6 +12,7 @@ export function updateExecutionSummary(): void {
   const size = String(p["canvas.size"] || p["canvas.aspect_ratio"] || "");
   const resolution = String(p["output.resolution"] || p["canvas.resolution"] || "");
   element.textContent = [translate("ux.execution"), model?.display_name || translate("modelSelection.providerUnavailable"), provider?.name, size, resolution, formatTranslation("ux.imageCount", { count: Number(p["output.count"] || 1) }), p["gpt.background"] === "transparent" ? translate("output.transparentBackground") : ""].filter(Boolean).join(" · ");
+  element.title = element.textContent;
   element.dataset.modelId = selection.canonicalModelId;
   element.dataset.providerId = selection.providerId;
   element.dataset.parameters = JSON.stringify(p);

@@ -1049,9 +1049,12 @@ raise SystemExit(1)
 
                 deleted = client.delete(f"/api/queue/{first['task_id']}")
                 try:
+                    repeated = client.post("/api/queue/cancel-batch", json={"task_ids": [first["task_id"]]})
+                    self.assertEqual(repeated.status_code, 200)
                     self.assertFalse(fake.second_call_started.wait(timeout=0.2))
                     pending = client.get(f"/api/tasks/{first['task_id']}").json()["task"]
                     pending_queue = client.get("/api/queue").json()
+                    self.assertEqual(app.state.running_worker_tasks[first["task_id"]].cancelling(), 1)
                 finally:
                     fake.release_first_call.set()
                 self.assertTrue(fake.second_call_started.wait(timeout=3))
@@ -1122,6 +1125,71 @@ raise SystemExit(1)
         self.assertTrue(cancelled["cancel_requested"])
         self.assertFalse(any(task["task_id"] == first["task_id"] for task in queue["running"]))
         self.assertIn(next_task["status"], {"running", "completed"})
+    def test_stop_before_execution_registration_does_not_send_image_request(self) -> None:
+        from codex_image.webui.app import create_app
+
+        fake = FakeImageClient()
+        task_id = ""
+
+        def stop_during_client_creation() -> FakeImageClient:
+            if task_id:
+                app.state.ctx.route_helpers["request_task_cancellation"](task_id)
+            return fake
+
+        with tempfile.TemporaryDirectory() as tmp:
+            app = create_app(
+                output_root=Path(tmp),
+                client_factory=stop_during_client_creation,
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+                auto_retry=False,
+            )
+            client = TestClient(app)
+            task_id = client.post("/api/generate", data={
+                "prompt": "stop during startup", "size": "1024x1024",
+            }).json()["task"]["task_id"]
+            asyncio.run(app.state.queue_manager.run_available_once())
+            task = client.get(f"/api/tasks/{task_id}").json()["task"]
+            self.assertTrue(task.get("cancelled_at"))
+            self.assertEqual(task["error"], "Task cancelled by user.")
+            self.assertEqual(fake.generate_calls, [])
+            self.assertEqual(app.state.queue_storage.read_state()["running"], {})
+            self.assertEqual(app.state.running_worker_tasks, {})
+
+    def test_stop_at_execution_completion_does_not_leave_task_cancelling(self) -> None:
+        from codex_image.webui.app import create_app
+        from codex_image.webui.executor import _execute_stored_task
+
+        for failed in (False, True):
+            with self.subTest(failed=failed), tempfile.TemporaryDirectory() as tmp:
+                app = create_app(
+                    output_root=Path(tmp),
+                    client_factory=lambda: FakeImageClient(),
+                    auth_checker=lambda: True,
+                    auto_start_queue=False,
+                    auto_retry=False,
+                )
+                client = TestClient(app)
+                task_id = client.post("/api/generate", data={
+                    "prompt": "stop at completion", "size": "1024x1024",
+                }).json()["task"]["task_id"]
+
+                async def stop_after_result(**kwargs: Any) -> None:
+                    await _execute_stored_task(**kwargs)
+                    app.state.ctx.route_helpers["request_task_cancellation"](kwargs["task_id"])
+                    if failed:
+                        raise RuntimeError("execution failed just as stop was requested")
+
+                with patch("codex_image.webui.queue_runtime._execute_stored_task", stop_after_result):
+                    asyncio.run(app.state.queue_manager.run_available_once())
+                task = client.get(f"/api/tasks/{task_id}").json()["task"]
+                self.assertTrue(task.get("cancelled_at"))
+                self.assertEqual(task["error"], "Task cancelled by user.")
+                self.assertEqual(task["outputs"][0]["status"], "completed")
+                self.assertEqual(task["generated_count"], 1)
+                self.assertEqual(app.state.queue_storage.read_state()["running"], {})
+                self.assertEqual(app.state.running_worker_tasks, {})
+
     def test_queue_worker_does_not_overwrite_cancelled_task_when_request_returns(self) -> None:
         from codex_image.webui.app import create_app
 

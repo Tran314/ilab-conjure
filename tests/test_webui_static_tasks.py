@@ -44,7 +44,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn('id="historyMonthList"', history_html)
         self.assertIn('id="historyTaskList"', history_html)
         self.assertIn('id="historyDetail"', history_html)
-        self.assertIn('/static/history.js?v=history-149', history_html)
+        self.assertIn('/static/history.js?v=history-156', history_html)
         filters = Path("codex_image/webui/frontend/src/history-filters-controller.ts").read_text(encoding="utf-8")
         window = Path("codex_image/webui/frontend/src/history-list-controller.ts").read_text(encoding="utf-8")
         detail = Path("codex_image/webui/frontend/src/history-detail-controller.ts").read_text(encoding="utf-8")
@@ -3552,6 +3552,45 @@ console.log(JSON.stringify({{
         self.assertIn("data-load-more-task-group", card_source)
         self.assertIn("loadMoreSidebarTaskGroup", controls_source)
         self.assertIn("task?.terminal_at || task?.completed_at || task?.created_at", model_source)
+
+    def test_task_card_removal_keeps_sidebar_scroll_position(self) -> None:
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("node is required for frontend behavior checks")
+        harness = "\n".join([
+            """
+            const assert = require('node:assert/strict');
+            let reducedMotion = false;
+            const normalizedTaskIdSet = ids => new Set(ids.map(String));
+            const captureTaskCardLayout = () => ({});
+            const captureTaskHistoryLayout = () => ({});
+            const taskCardElements = () => [{ dataset: { taskId: 'old-task' } }];
+            const prefersReducedMotion = () => reducedMotion;
+            const waitForTaskCardRemoval = async () => {};
+            const animateTaskCardReflow = () => {};
+            const animateTaskHistoryLayout = () => {};
+            """,
+            "async " + self._extract_javascript_function(
+                self._javascript_like_typescript_source(Path("codex_image/webui/frontend/src/task-actions.ts")),
+                "runTaskCardRemovalTransition",
+            ),
+            """
+            (async () => {
+              for (const motion of [false, true]) {
+                reducedMotion = motion;
+                for (const action of ['delete', 'archive', 'default']) {
+                  let scrollTop = 2160;
+                  await runTaskCardRemovalTransition(['old-task'], options => {
+                    if (!options?.preserveScroll) scrollTop = 0;
+                  }, action);
+                  assert.equal(scrollTop, 2160, 'removing an old task must keep the current sidebar position');
+                }
+              }
+            })().catch(error => { console.error(error); process.exitCode = 1; });
+            """,
+        ])
+        result = subprocess.run([node, "-e", harness], check=False, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_task_cards_remove_with_motion_and_keep_a_whole_card_hit_area(self) -> None:
         task_actions_source = self._task_actions_source()

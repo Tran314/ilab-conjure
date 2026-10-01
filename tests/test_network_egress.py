@@ -34,6 +34,24 @@ class _FakeUrlopenResponse:
 
 
 class NetworkEgressSettingsTests(unittest.TestCase):
+    def test_fake_ip_fallback_is_persisted_preserved_and_strictly_boolean(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            settings = NetworkEgressSettings(Path(tmp) / "network.json")
+            self.assertFalse(settings.read()["asset_fake_ip_dns_fallback"])
+            settings.write({"asset_fake_ip_dns_fallback": True})
+            settings.write({"mode": "direct"})
+            self.assertTrue(settings.read()["asset_fake_ip_dns_fallback"])
+            self.assertIn("asset_fake_ip_dns_fallback", settings.snapshot_payload()["present_fields"])
+            snapshot = NetworkEgressManager(settings).snapshot()
+            self.assertTrue(snapshot.asset_fake_ip_dns_fallback)
+            self.assertTrue(NetworkEgressManager.transport(snapshot).asset_fake_ip_dns_fallback)
+            settings.write({"asset_fake_ip_dns_fallback": False})
+            self.assertTrue(snapshot.asset_fake_ip_dns_fallback)
+            self.assertFalse(NetworkEgressManager(settings).snapshot().asset_fake_ip_dns_fallback)
+            for value in (1, "true", None):
+                with self.assertRaises(ValueError):
+                    settings.write({"asset_fake_ip_dns_fallback": value})
+
     def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp_dir.cleanup)
@@ -48,6 +66,7 @@ class NetworkEgressSettingsTests(unittest.TestCase):
                 "custom_proxy_url": "",
                 "image_request_timeout_seconds": 600,
                 "image_request_retry_count": 2,
+                "asset_fake_ip_dns_fallback": False,
             },
         )
 
@@ -59,6 +78,7 @@ class NetworkEgressSettingsTests(unittest.TestCase):
                 "custom_proxy_url": "",
                 "image_request_timeout_seconds": 600,
                 "image_request_retry_count": 2,
+                "asset_fake_ip_dns_fallback": False,
             },
         )
         self.assertEqual(
@@ -73,6 +93,7 @@ class NetworkEgressSettingsTests(unittest.TestCase):
                 "custom_proxy_url": "https://proxy.example.test:8443",
                 "image_request_timeout_seconds": 600,
                 "image_request_retry_count": 2,
+                "asset_fake_ip_dns_fallback": False,
             },
         )
         self.assertEqual(
@@ -82,6 +103,7 @@ class NetworkEgressSettingsTests(unittest.TestCase):
                 "custom_proxy_url": "https://proxy.example.test:8443",
                 "image_request_timeout_seconds": 600,
                 "image_request_retry_count": 2,
+                "asset_fake_ip_dns_fallback": False,
             },
         )
 
@@ -151,6 +173,7 @@ class NetworkEgressSettingsTests(unittest.TestCase):
                 "custom_proxy_url": "https://proxy.example.test:8443",
                 "image_request_timeout_seconds": 600,
                 "image_request_retry_count": 2,
+                "asset_fake_ip_dns_fallback": False,
             },
         )
 
@@ -259,6 +282,7 @@ class NetworkEgressSnapshotTests(unittest.TestCase):
                 "image_request_timeout_seconds": 900,
                 "image_request_retry_count": 4,
                 "image_request_timeout_source": "settings",
+                "asset_fake_ip_dns_fallback": False,
             },
         )
         self.assertNotIn("proxy.example.test", repr(snapshot.task_metadata()))
@@ -506,6 +530,7 @@ class QueueAttemptNetworkEgressTests(unittest.TestCase):
                 "image_request_timeout_seconds": 900,
                 "image_request_retry_count": 4,
                 "image_request_timeout_source": "settings",
+                "asset_fake_ip_dns_fallback": False,
             },
         )
 
@@ -629,12 +654,30 @@ class QueueAttemptNetworkEgressTests(unittest.TestCase):
                 "image_request_timeout_seconds": 1200,
                 "image_request_retry_count": 3,
                 "image_request_timeout_source": "settings",
+                "asset_fake_ip_dns_fallback": False,
             },
         )
         self.assertNotIn("proxy.example.test", repr(metadata))
 
 
 class NetworkEgressApiTests(unittest.TestCase):
+    def test_api_applies_fake_ip_dns_fallback_without_restart(self) -> None:
+        from fastapi.testclient import TestClient
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            app = create_app(output_root=root, network_egress_settings_path=root / "network.json",
+                             auth_checker=lambda: True, auto_start_queue=False)
+            client = TestClient(app)
+            for enabled in (True, False):
+                saved = client.patch("/api/network-egress", json={"asset_fake_ip_dns_fallback": enabled})
+                self.assertEqual(saved.status_code, 200)
+                self.assertEqual(saved.json()["settings"]["asset_fake_ip_dns_fallback"], enabled)
+                self.assertEqual(saved.json()["resolved"]["asset_fake_ip_dns_fallback"], enabled)
+                self.assertFalse(saved.json()["restart_required"])
+            self.assertEqual(client.patch("/api/network-egress", json={"asset_fake_ip_dns_fallback": "true"}).status_code, 400)
+
     def test_network_api_reads_and_saves_without_restart(self) -> None:
         from fastapi.testclient import TestClient
 
@@ -670,6 +713,7 @@ class NetworkEgressApiTests(unittest.TestCase):
                     "custom_proxy_url": "",
                     "image_request_timeout_seconds": 600,
                     "image_request_retry_count": 2,
+                    "asset_fake_ip_dns_fallback": False,
                 },
                 "resolved": {
                     "mode": "system",
@@ -677,6 +721,7 @@ class NetworkEgressApiTests(unittest.TestCase):
                     "image_request_timeout_seconds": 600,
                     "image_request_retry_count": 2,
                     "image_request_timeout_source": "default",
+                    "asset_fake_ip_dns_fallback": False,
                 },
                 "restart_required": False,
             },
@@ -690,6 +735,7 @@ class NetworkEgressApiTests(unittest.TestCase):
                 "image_request_timeout_seconds": 1800,
                 "image_request_retry_count": 5,
                 "image_request_timeout_source": "settings",
+                "asset_fake_ip_dns_fallback": False,
             },
         )
         self.assertFalse(saved.json()["restart_required"])

@@ -201,7 +201,7 @@ button:disabled {
   .controls-col .output-settings-header {
     display: flex;
     align-items: center;
-    min-height: 18px;
+    min-height: clamp(24px, calc(1.29dvh + 14.1px), 32px);
     justify-content: space-between;
     margin-bottom: clamp(2px, calc(2.25dvh - 15.3px), 16px);
   }
@@ -216,7 +216,7 @@ button:disabled {
   }
 
   .controls-col .prompt-heading-main {
-    justify-content: space-between;
+    justify-content: flex-start;
   }
 
   .image-input-workspace {
@@ -340,8 +340,7 @@ button:disabled {
     align-items: stretch;
   }
 
-  .controls-col .prompt-editor-wrap,
-  .controls-col .prompt-run-wrap {
+  .controls-col .prompt-editor-wrap {
     display: flex;
     min-height: 0;
   }
@@ -379,7 +378,7 @@ button:disabled {
     --prompt-secondary-chip-height: clamp(
       26px,
       calc(0.96dvh + 18.6px - var(--compact-action-shell-adjustment, 0px)),
-      32px
+      28px
     );
   }
 
@@ -549,9 +548,9 @@ button:disabled {
   }
 
   .custom-ratio-field {
-    padding-top: 6px;
+    padding-top: 0;
     padding-left: 0;
-    border-top: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+    border-top: 0;
     border-left: 0;
     gap: 4px;
   }
@@ -582,6 +581,57 @@ button:disabled {
     display: none;
   }
 
+}
+
+@container output-settings (max-width: 650px) {
+  .settings-grid.custom-size-mode .custom-size {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding: 6px 10px;
+    align-content: center;
+  }
+
+  .custom-size-main {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px;
+  }
+
+  .custom-size-header,
+  .custom-size-row {
+    grid-column: 1 / -1;
+  }
+
+  .custom-size-hint {
+    grid-column: 1;
+  }
+
+  #customSizeSuggestion {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: center;
+  }
+
+  .settings-grid.custom-size-mode .custom-ratio-field {
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    border: 0;
+  }
+
+  .custom-ratio-header {
+    display: flex;
+  }
+
+  .custom-ratio-hint {
+    display: none;
+  }
+}
+
+@container output-settings (max-width: 360px) {
+  .settings-grid.custom-size-mode .custom-ratio-field {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-height: 1100px) and (min-width: 900px) {
@@ -1058,9 +1108,8 @@ button:disabled {
 
 /* UX audit: preserve task access and make the next request explicit. */
 .compact-only, .compact-reference-toggle { display: none; }
-.execution-summary, .preview-source-label { color: var(--text-secondary); font-size: 12px; overflow-wrap: anywhere; }
+.execution-summary { color: var(--text-secondary); font-size: 12px; overflow-wrap: anywhere; }
 .execution-summary { margin: 6px 0; flex: 0 0 auto; }
-.preview-source-label { display: block; max-width: 100%; }
 .field-error, .history-recovery { color: var(--danger); font-size: 12px; overflow-wrap: anywhere; }
 .recovery-guidance { flex-basis: 100%; margin: 0; }
 .resource-manage-button { background: var(--surface-soft); color: var(--text-secondary); border: 1px solid var(--line); }
@@ -1083,7 +1132,6 @@ button:disabled {
   .status-text.error { white-space: normal; overflow-wrap: anywhere; }
 }
 #compactReferencesButton[hidden], #restoreComposerDraft[hidden], #promptValidationError[hidden], #customSizeSuggestion[hidden] { display: none !important; }
-.controls-col .prompt-panel { min-height: calc(var(--compact-prompt-panel-height, 260px) + 60px); }
 .prompt-heading, .prompt-template-row { flex-shrink: 0; }
 .compact-task-drawer .task-history-batch-button:not(.hidden) { display: inline-flex; }
 .compact-task-drawer .task-history-tools .status-text { width: auto; max-width: none; text-align: left; flex: 1; }
@@ -1093,26 +1141,21 @@ button:disabled {
 }
 @media (max-width: 600px) {
   .brand-title { display: none; }
-  .prompt-heading { grid-template-columns: minmax(0, 1fr); }
 }
 .preview-heading { flex-wrap: wrap; }
 .preview-heading h2 { flex-shrink: 0; }
-.preview-source-label { order: 3; flex-basis: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .reference-add-feedback { font-size: 12px; color: var(--text-secondary); overflow-wrap: anywhere; }
 
-/* Content minima take precedence over fitting every form into one viewport. */
+/* Keep the editor usable while the desktop panels follow the density scale. */
 @container workspace (min-width: 900px) {
   .dashboard { grid-auto-rows: minmax(min-content, auto); }
   .controls-col, .preview-col { height: auto; }
-  .controls-col .image-panel { flex: 0 0 auto; min-height: 220px; }
-  .controls-col .image-input-workspace { --image-input-main-height: 132px; min-height: 176px; }
-  .controls-col .image-input-main { min-height: 132px; }
-  .controls-col .image-input-left, .controls-col .image-gallery-column { height: auto; min-height: 176px; }
-  .controls-col .image-gallery-column { grid-template-rows: minmax(132px, 1fr) var(--image-input-action-height); }
-  .controls-col .quick-gallery-dock, .controls-col .quick-gallery-list, .controls-col .quick-gallery-rail { min-height: 132px; }
-  .controls-col .prompt-panel { min-height: 300px; }
+  .controls-col .prompt-panel { min-height: min-content; }
   .controls-col .prompt-compose { min-height: 140px; }
   .controls-col .prompt-box { min-height: 140px; }
+  .controls-col #promptFidelityField { flex-direction: row; align-items: center; }
+  .controls-col .prompt-fidelity-label { align-self: center; flex: 0 0 auto; }
+  .controls-col #promptFidelityGroup { flex: 1; min-width: 0; }
   .controls-col .upload-title { font-size: 13px; line-height: 1.4; }
   .controls-col .upload-subtitle { font-size: 12px; line-height: 1.4; }
 }
