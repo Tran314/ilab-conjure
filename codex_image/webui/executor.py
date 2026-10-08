@@ -6,8 +6,11 @@ import time
 from typing import Any, AsyncContextManager, Callable
 
 from codex_image.client import DEFAULT_MAIN_MODEL, CodexImagesImageClient, ImageResult, OpenAIImagesImageClient
+from codex_image.generation.errors import sanitize_generation_error_text
+from codex_image.http_connection import HTTPTransportFailure, transport_failure
 from codex_image.prompt_guard import build_prompt_guard_instructions
 
+from .reference_image_order import ordered_reference_data_urls
 from .executor_inputs import (
     _file_to_data_url,
     _image_mime_type,
@@ -20,6 +23,7 @@ from .executor_inputs import (
     _task_cancel_requested,
 )
 from .executor_progress import _restore_completed_output_progress
+from .execution_plan_client import ExecutionPlanImageClient
 from .executor_transport import (
     DEFAULT_API_IMAGES_CONCURRENCY,
     DEFAULT_API_MODE,
@@ -67,8 +71,11 @@ def _elapsed_seconds(started_at: float) -> float:
     return round(max(0.0, time.monotonic() - started_at), 3)
 
 
-def _output_error_message(exc: Exception, *, elapsed_seconds: float, timeout_seconds: float | None) -> str:
-    message = str(exc)
+def _output_error_message(
+    exc: Exception, *, elapsed_seconds: float, timeout_seconds: float | None,
+    error_sanitizer: Callable[[BaseException], str] = sanitize_generation_error_text,
+) -> str:
+    message = error_sanitizer(exc)
     if timeout_seconds is None:
         return message
     legacy_timeout = f"Image request timed out after {timeout_seconds:g}s"
@@ -90,6 +97,7 @@ async def _execute_stored_task(
     request_context: Callable[[dict[str, Any]], AsyncContextManager[None]] | None = None,
     image_request_timeout_seconds: float | None = None,
     image_request_retry_count: int = DEFAULT_IMAGE_REQUEST_RETRY_COUNT,
+    error_sanitizer: Callable[[BaseException], str] = sanitize_generation_error_text,
 ) -> dict[str, Any]:
     metadata = storage.read_metadata(task_id)
     request = json.loads(storage.request_path(task_id).read_text(encoding="utf-8"))
@@ -175,7 +183,10 @@ async def _execute_stored_task(
         gallery_storage,
         [str(ref.get("id")) for ref in metadata.get("gallery_refs", []) if isinstance(ref, dict)],
     )
-    data_urls = [_file_to_data_url(path) for path in input_paths if path.exists()] + reference_asset_data_urls + gallery_data_urls
+    data_urls = [_file_to_data_url(path) for path in input_paths if path.exists()] + ordered_reference_data_urls(
+        reference_assets, reference_asset_data_urls, gallery_refs, gallery_data_urls,
+        metadata.get("reference_image_order"),
+    )
     count = int(params.get("n") or 1)
     debug_sse_path = _debug_sse_path(storage, task_id)
     effective_image_request_timeout_seconds = (
@@ -184,6 +195,7 @@ async def _execute_stored_task(
         else image_request_timeout_seconds
     )
     results, output_paths, output_records = _restore_completed_output_progress(storage, metadata, params, count)
+    transport_failures: list[HTTPTransportFailure] = []
     completed_output_numbers = {
         int(record["index"])
         for record in output_records
@@ -224,6 +236,14 @@ async def _execute_stored_task(
 
     candidate_output_numbers = retrying_failed_slots or list(range(1, count + 1))
     remaining_output_numbers = [index for index in candidate_output_numbers if index not in completed_output_numbers]
+    if isinstance(client, ExecutionPlanImageClient):
+        client.prepare_output_count(len(remaining_output_numbers))
+
+    async def call_image_client(*args: Any, **kwargs: Any) -> ImageResult:
+        if isinstance(client, ExecutionPlanImageClient):
+            return await client.call_output(lambda: _call_image_client(*args, **kwargs))
+        return await _call_image_client(*args, **kwargs)
+
     if _direct_images_concurrent_enabled(client, assigned_auth_source, effective_api_mode) and remaining_output_numbers:
         concurrency_limit = _normalize_api_images_concurrency(params.get("api_images_concurrency"))
         semaphore = asyncio.Semaphore(concurrency_limit)
@@ -254,6 +274,9 @@ async def _execute_stored_task(
 
             def failed_output(exc: Exception) -> dict[str, Any]:
                 _raise_if_task_cancelled(storage, task_id)
+                failure = transport_failure(exc)
+                if failure is not None:
+                    transport_failures.append(failure)
                 elapsed_seconds = _elapsed_seconds(slot_started_monotonic)
                 failed_at = utc_now()
                 failed_record = {
@@ -263,6 +286,7 @@ async def _execute_stored_task(
                         exc,
                         elapsed_seconds=elapsed_seconds,
                         timeout_seconds=effective_image_request_timeout_seconds,
+                        error_sanitizer=error_sanitizer,
                     ),
                     "attempts": _image_request_attempts(exc),
                     "started_at": slot_started_at,
@@ -300,7 +324,7 @@ async def _execute_stored_task(
                                     )
                                     response_file_kwargs["reference_files"] = response_input_files
                                 if mode == "edit":
-                                    result = await _call_image_client(
+                                    result = await call_image_client(
                                         None,
                                         params,
                                         client.edit_image,
@@ -323,7 +347,7 @@ async def _execute_stored_task(
                                         debug_sse_path=debug_sse_path,
                                     )
                                 else:
-                                    result = await _call_image_client(
+                                    result = await call_image_client(
                                         None,
                                         params,
                                         client.generate_image,
@@ -446,7 +470,7 @@ async def _execute_stored_task(
                             )
                             response_file_kwargs["reference_files"] = response_input_files
                         if mode == "edit":
-                            result = await _call_image_client(
+                            result = await call_image_client(
                                 request_context,
                                 params,
                                 client.edit_image,
@@ -469,7 +493,7 @@ async def _execute_stored_task(
                                 debug_sse_path=debug_sse_path,
                             )
                         else:
-                            result = await _call_image_client(
+                            result = await call_image_client(
                                 request_context,
                                 params,
                                 client.generate_image,
@@ -495,6 +519,9 @@ async def _execute_stored_task(
                     break
                 except Exception as exc:
                     _raise_if_task_cancelled(storage, task_id)
+                    failure = transport_failure(exc)
+                    if failure is not None:
+                        transport_failures.append(failure)
                     if is_explicit_file_input_rejection(exc) or _is_reference_file_missing_error(exc):
                         raise
                     if _is_non_retryable_error(exc):
@@ -512,6 +539,7 @@ async def _execute_stored_task(
                                     exc,
                                     elapsed_seconds=elapsed_seconds,
                                     timeout_seconds=effective_image_request_timeout_seconds,
+                                    error_sanitizer=error_sanitizer,
                                 ),
                                 "attempts": _image_request_attempts(exc, attempt),
                                 "started_at": slot_started_at,
@@ -600,7 +628,12 @@ async def _execute_stored_task(
 
     if not results and any(record.get("status") == "failed" for record in output_records):
         failure_messages = [str(record.get("error") or "") for record in output_records if record.get("status") == "failed"]
-        raise RuntimeError("; ".join(message for message in failure_messages if message) or "All outputs failed")
+        error = RuntimeError("; ".join(message for message in failure_messages if message) or "All outputs failed")
+        if transport_failures:
+            # Keep the retry boundary through output aggregation; the queue must
+            # not replay a generation whose HTTP retries were already exhausted.
+            raise error from transport_failures[0]
+        raise error
 
     return _finalize_generated_task(
         storage,

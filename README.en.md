@@ -109,7 +109,10 @@ Download standard app packages and portable transition packages from
   per-request image timeouts (1–30 minutes, default 10) and retries after
   retryable transient failures (0–5, default 2). The settings are persisted in
   the app data directory, apply to generation and editing across every
-  provider, and affect later task executions without restart; each retry gets a
+  provider, and affect later task executions without restart. Connection failures
+  retry the current HTTP request within the active image operation's timeout;
+  retries for image downloads or independent DNS lookups do not resubmit generation.
+  Other supported transient failures that retry the whole operation still get a
   fresh full timeout window.
 - API provider cards for fast selection, read-only details by default, explicit
   editing, provider copy, delete confirmation, multi-provider sorting, and an
@@ -217,16 +220,16 @@ require a secure context may be unavailable.
 
 ## App packages
 
-The current version is `v0.9.5`. Published packages are listed in
+The current version is `v0.9.6`. Published packages are listed in
 [Downloads / Releases](RELEASES.md) and the
 [latest official GitHub release](https://github.com/kadevin/ilab-conjure/releases/latest).
 
 New users should choose the standard packages:
 
-1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.9.5.dmg`
-   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.9.5.dmg`
+1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.9.6.dmg`
+   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.9.6.dmg`
    for Intel, then drag `iLab GPT CONJURE.app` to Applications.
-2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.9.5.zip`,
+2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.9.6.zip`,
    extract it into a normal user directory, and run `iLab GPT CONJURE.exe`.
 
 Standard packages store user data in `~/Library/Application Support/iLab GPT

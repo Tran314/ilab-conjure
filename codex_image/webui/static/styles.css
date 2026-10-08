@@ -3496,14 +3496,12 @@ select.themed-select-native {
 }
 
 .themed-select-trigger:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--primary) 42%, var(--line));
   background: color-mix(in srgb, var(--surface) 92%, var(--primary-light));
 }
 
 .themed-select-trigger:focus-visible {
-  border-color: var(--primary);
-  outline: 2px solid color-mix(in srgb, var(--primary) 30%, transparent);
-  outline-offset: 2px;
+  background: var(--surface-soft);
+  outline: none;
 }
 
 .themed-select-trigger:disabled {
@@ -4172,30 +4170,30 @@ select.themed-select-native {
 }
 
 .reference-file-requirement {
-  position: absolute;
-  z-index: 18;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   min-width: 0;
+  margin-top: 8px;
   padding: 8px 10px;
   border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
   border-radius: 8px;
   background: color-mix(in srgb, var(--surface) 94%, transparent);
-  box-shadow: var(--shadow-popover);
   color: var(--text-secondary);
   font-size: 12px;
 }
 
 .reference-file-requirement > span {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  flex: 1 1 180px;
+}
+
+.reference-file-provider {
+  width: auto;
+  max-width: 100%;
+  flex: 1 1 200px;
 }
 
 .image-input-actions .ghost-button,
@@ -7168,9 +7166,24 @@ select.themed-select-native {
 }
 
 .task-parameter-inspector {
-  display: grid;
-  gap: 14px;
   min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+}
+
+.task-parameter-inspector > summary {
+  cursor: pointer;
+}
+
+.task-parameter-inspector > * + * {
+  margin-top: 14px;
+}
+
+.task-parameter-inspector-hint {
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 
 .task-parameter-inspector-header {
@@ -7218,11 +7231,6 @@ select.themed-select-native {
 
 .task-parameter-unknown-list dt {
   color: var(--text-muted);
-}
-
-.output-settings-stage.is-inspecting-task > #settingsGrid,
-.output-settings-stage.is-inspecting-task > .output-settings-locked-summary {
-  display: none;
 }
 
 .output-panel.is-locked-view .settings-grid {
@@ -7714,19 +7722,9 @@ select.themed-select-native {
   border-color: var(--line);
 }
 
-@media (hover: hover) {
-  .main-model-field .model-combobox:hover .model-combobox-input {
-    border-color: var(--control-border);
-  }
-}
-
-.main-model-field .model-combobox:focus-within .model-combobox-input {
-  border-color: var(--primary);
-}
-
 .main-model-field .model-combobox-input:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  background: var(--surface-soft);
+  outline: none;
 }
 
 .generation-output-options {
@@ -14618,10 +14616,13 @@ button:disabled {
 /* Keep parameter labels and targets readable on short desktop viewports. */
 .output-panel .settings-grid { gap: 16px; }
 .output-panel .field { gap: 6px; min-width: 0; }
-.output-panel .mode-specific-settings { gap: 16px; }
-.output-panel .model-tool-row { display: block; }
+.output-panel .mode-specific-settings { --mode-settings-segment-height: 30px; gap: 16px; }
+.output-panel .model-tool-row { display: grid; grid-template-columns: minmax(0, 1fr); align-items: end; }
 .output-panel .mode-settings-slot:not(:has(> .mode-collapsed)) { padding-bottom: 16px; border-bottom: 1px solid var(--line); }
 .output-panel .main-model-field .model-combobox { width: 100%; }
+/* Match the segmented control's button, padding, and two border edges. */
+.output-panel .main-model-field .control { height: calc(var(--mode-settings-segment-height) + 8px); }
+.output-panel #promptFidelityGroup { --segmented-control-height: var(--mode-settings-segment-height); }
 .output-panel .prompt-fidelity-label { align-self: stretch; justify-content: space-between; min-height: 24px; }
 .output-panel .output-field-heading .web-search-toggle { min-height: 24px; padding: 0; font-size: 12px; gap: 7px; }
 .output-panel .output-field-heading .generation-option-label { font-size: 12px; }
@@ -14635,7 +14636,7 @@ button:disabled {
 .output-panel .moderation-field > span { min-height: 24px; display: flex; align-items: center; }
 .output-panel .size-editors > .custom-size { min-height: 0; max-height: none; }
 .output-panel .custom-size-hint { font-size: 12px; }
-.output-panel .api-direct-settings-notice { min-height: 66px; align-items: center; }
+.output-panel .api-direct-settings-notice { min-height: calc(var(--mode-settings-segment-height) + 8px); align-items: center; padding-inline-start: var(--control-label-optical-inset); }
 @container output-settings (max-width: 430px) {
   .output-panel .mode-specific-settings { grid-template-columns: minmax(0, 1fr); }
 }
@@ -16108,6 +16109,10 @@ button:disabled {
 
   .history-detail-actions-management {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .history-detail-actions-management:has([data-history-delete-unselected]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .history-detail-actions-result > *,
@@ -18083,6 +18088,7 @@ body.history-lightbox-open {
 .mobile-ui .history-detail-actions-result { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .mobile-ui .history-detail-actions-result > :only-child { grid-column: 1 / -1; }
 .mobile-ui .history-detail-actions-management { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mobile-ui .history-detail-actions-management:has([data-history-delete-unselected]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .mobile-ui .history-detail-actions .ghost-button, .mobile-ui .history-detail-organization > .ghost-button {
   width: 100%; min-width: 0; height: 44px; padding: 0 8px; border-radius: 8px;
   font-size: 13px; line-height: 1.2; justify-content: center;
@@ -18280,6 +18286,7 @@ body.history-lightbox-open {
 }
 
 /* The mobile parameter sheet reuses the same controls and shared size footprint. */
+#mobileParameters .mode-specific-settings { --mode-settings-segment-height: 44px; }
 #mobileParameters .output-file-settings, #mobileParameters .preset-size-fields { grid-template-columns: minmax(0, 1fr); gap: 16px; }
 #mobileParameters .output-field-heading, #mobileParameters .prompt-fidelity-label { min-height: 44px; }
 #mobileParameters .output-field-heading .web-search-toggle { min-height: 44px; }

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import asyncio
 from collections import deque
+from dataclasses import replace
 from threading import Condition
-from typing import Any
+from typing import Any, Awaitable, Callable
 
 from codex_image.client import ImageResult
 from codex_image.generation.service import GenerationService
@@ -99,8 +101,9 @@ class ExecutionPlanImageClient:
         self._condition = Condition()
         self._pending_results: deque[ImageResult] = deque()
         self._request_in_flight = False
-        self._failure: Exception | None = None
-        self._failure_remaining = 0
+        self._batch_lock = asyncio.Lock()
+        self._batch_failure: Exception | None = None
+        self._delivered_outputs = 0
         try:
             self._expected_outputs = max(
                 1, int(plan.command.parameters.get("output.count") or 1)
@@ -118,6 +121,45 @@ class ExecutionPlanImageClient:
     def edit_image(self, **kwargs: Any) -> ImageResult:
         return self._execute("edit", kwargs)
 
+    def prepare_output_count(self, count: int) -> None:
+        """Set the pending slots before execution without changing the snapshot."""
+        self._expected_outputs = count
+
+    async def call_output(self, request: Callable[[], Awaitable[ImageResult]]) -> ImageResult:
+        if self._uses_legacy_client_adapter:
+            return await request()
+        # Apply transport retries to the batch before distributing its outcome.
+        # A cached terminal failure must not enter each slot's retry loop.
+        async with self._batch_lock:
+            if self._batch_failure is not None:
+                raise self._batch_failure
+            with self._condition:
+                if self._pending_results:
+                    self._delivered_outputs += 1
+                    return self._pending_results.popleft()
+            try:
+                result = await request()
+            except Exception as exc:
+                self._batch_failure = exc
+                raise
+            attempts = getattr(result, "_image_request_attempts", 1)
+            with self._condition:
+                for pending in self._pending_results:
+                    setattr(pending, "_image_request_attempts", attempts)
+            return result
+
+    def _plan_for_remaining_outputs(self) -> ExecutionPlan:
+        count = max(1, self._expected_outputs - self._delivered_outputs)
+        if self._plan.command.parameters.get("output.count") == count:
+            return self._plan
+        command = replace(self._plan.command, parameters={
+            **self._plan.command.parameters, "output.count": count,
+        })
+        request = self._registry.codec(self._plan.binding.parameter_codec).encode(
+            command, self._plan.model, self._plan.binding,
+        )
+        return replace(self._plan, command=command, protocol_request=request)
+
     def _execute(self, operation: str, kwargs: dict[str, Any]) -> ImageResult:
         if operation != self._plan.command.operation:
             raise RuntimeError("Execution operation differs from the frozen generation plan.")
@@ -127,34 +169,28 @@ class ExecutionPlanImageClient:
                 raise RuntimeError("The provider returned no image asset.")
             return self._image_result(result, result.assets[0], kwargs)
         # The executor kwargs are legacy compatibility plumbing. The restored
-        # snapshot plan is authoritative for all request choices and inputs.
+        # snapshot plan keeps request choices and inputs; batch size is reduced
+        # to the slots still needed by this execution.
         while True:
             with self._condition:
                 if self._pending_results:
+                    self._delivered_outputs += 1
                     return self._pending_results.popleft()
-                if self._failure is not None and self._failure_remaining > 0:
-                    failure = self._failure
-                    self._failure_remaining -= 1
-                    if self._failure_remaining == 0:
-                        self._failure = None
-                    raise failure
                 if not self._request_in_flight:
                     self._request_in_flight = True
                     break
                 self._condition.wait()
 
         try:
-            result = self._service.execute_plan_once(self._plan)
+            result = self._service.execute_plan_once(self._plan_for_remaining_outputs())
             if not result.assets:
                 raise RuntimeError("The provider returned no image asset.")
             converted = [
                 self._image_result(result, asset, kwargs) for asset in result.assets
             ]
-        except Exception as exc:
+        except BaseException:
             with self._condition:
                 self._request_in_flight = False
-                self._failure = exc
-                self._failure_remaining = max(0, self._expected_outputs - 1)
                 self._condition.notify_all()
             raise
 
@@ -162,6 +198,7 @@ class ExecutionPlanImageClient:
             self._pending_results.extend(converted)
             self._request_in_flight = False
             image_result = self._pending_results.popleft()
+            self._delivered_outputs += 1
             self._condition.notify_all()
             return image_result
 

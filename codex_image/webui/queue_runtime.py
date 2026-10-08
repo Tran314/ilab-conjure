@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import logging
 from typing import Any, AsyncContextManager, Awaitable, Callable
 
@@ -18,9 +18,11 @@ from codex_image.generation.errors import (
 )
 from codex_image.generation.snapshot import execution_plan_from_snapshot
 from codex_image.generation.types import GenerationCommand, ImageInput
+from codex_image.http_connection import transport_failure
 from codex_image.prompt_guard import build_prompt_guard_instructions
 from codex_image.providers.registry import ProviderRegistry, default_registry
 
+from .reference_image_order import ordered_reference_data_urls
 from .auth_routing import (
     DEFAULT_API_PROVIDER_ID,
     _apply_api_execution_snapshot,
@@ -93,6 +95,8 @@ class QueueExecutionContract:
     reference_file_capability_key: CapabilityKey
     image_request_timeout_seconds: float
     image_request_retry_count: int
+    # Keep the actual request credentials in memory even if settings rotate.
+    sensitive_values: tuple[str, ...] = field(default=(), repr=False)
 
 
 def _queue_channel_by_id(app_instance: FastAPI, channel_id: str) -> QueueChannel | None:
@@ -507,10 +511,10 @@ def _validated_snapshot_plan(
         str(item.get("id"))
         for item in raw_assets if isinstance(item, dict) and item.get("id")
     ] if isinstance(raw_assets, list) else []
-    _, asset_data_urls = _resolve_reference_assets(
+    reference_assets, asset_data_urls = _resolve_reference_assets(
         ctx.reference_asset_storage, asset_ids, touch=False
     )
-    _, gallery_data_urls = _resolve_gallery_refs(
+    gallery_refs, gallery_data_urls = _resolve_gallery_refs(
         ctx.gallery_storage,
         [
             str(item.get("id"))
@@ -520,7 +524,10 @@ def _validated_snapshot_plan(
     )
     image_data_urls = [
         _file_to_data_url(path) for path in input_paths if path.exists()
-    ] + asset_data_urls + gallery_data_urls
+    ] + ordered_reference_data_urls(
+        reference_assets, asset_data_urls, gallery_refs, gallery_data_urls,
+        metadata.get("reference_image_order"),
+    )
     mask_data_url = None
     mask_name = metadata.get("mask_file")
     if isinstance(mask_name, str) and mask_name:
@@ -648,6 +655,7 @@ def _queue_execution_contract(
                 network_snapshot.image_request_timeout_seconds
             ),
             image_request_retry_count=network_snapshot.image_request_retry_count,
+            sensitive_values=(snapshot_plan.provider.api_key,),
         )
     if channel.auth_source == "api":
         settings_payload = ctx.api_settings.read()
@@ -679,6 +687,7 @@ def _queue_execution_contract(
                 network_snapshot.image_request_timeout_seconds
             ),
             image_request_retry_count=network_snapshot.image_request_retry_count,
+            sensitive_values=(str(provider_settings.get("api_key") or ""),),
         )
     codex_mode = _codex_mode_for_task_metadata(metadata, ctx.api_settings)
     backend = _backend_for_codex_mode(codex_mode)
@@ -822,7 +831,10 @@ def _task_channel_matches(ctx: WebUIContext, task_id: str, channel: QueueChannel
     return channel.slot_index < concurrency
 
 
-def _structured_task_error(ctx: WebUIContext, metadata: dict[str, Any], exc: BaseException):
+def _structured_task_error(
+    ctx: WebUIContext, metadata: dict[str, Any], exc: BaseException,
+    *, sensitive_values: tuple[str, ...] = (),
+):
     snapshot = metadata.get("generation_snapshot")
     if isinstance(snapshot, dict) and isinstance(exc, GenerationProviderError):
         error: GenerationProviderError | None = exc
@@ -835,7 +847,7 @@ def _structured_task_error(ctx: WebUIContext, metadata: dict[str, Any], exc: Bas
         )
     else:
         error = None
-    credentials: list[str] = []
+    credentials = list(sensitive_values)
     try:
         for provider in ctx.api_settings.read_connections():
             if provider.api_key:
@@ -854,7 +866,7 @@ def _structured_task_error(ctx: WebUIContext, metadata: dict[str, Any], exc: Bas
         if isinstance(item, str) and item
     )
     safe = sanitize_generation_error_text(
-        exc,
+        transport_failure(exc) or exc,
         sensitive_values=tuple(credentials),
         prompt_values=prompts,
     )
@@ -932,6 +944,9 @@ async def execute_task(
                     execution_contract.image_request_timeout_seconds
                 ),
                 image_request_retry_count=execution_contract.image_request_retry_count,
+                error_sanitizer=lambda exc: _structured_task_error(
+                    ctx, metadata, exc, sensitive_values=execution_contract.sensitive_values,
+                )[1],
             )
         )
         # Stop the task's requests without cancelling its queue channel worker.
@@ -971,14 +986,21 @@ async def execute_task(
         elif explicit_file_rejection:
             ctx.responses_file_unsupported_keys.add(execution_contract.reference_file_capability_key)
             exc = RuntimeError("provider_reference_files_unsupported")
-        structured_error, safe_error = _structured_task_error(ctx, metadata, exc)
+        structured_error, safe_error = _structured_task_error(
+            ctx, metadata, exc,
+            sensitive_values=execution_contract.sensitive_values if execution_contract is not None else (),
+        )
         error_code = (
             structured_error.detail.code
             if structured_error is not None
             else "task_execution_failed"
         )
         provider_non_retryable = isinstance(exc, GenerationProviderError) and not exc.detail.retryable
-        non_retryable = reference_file_missing or explicit_file_rejection or provider_non_retryable or _is_non_retryable_error(exc) or local_usage_limit_error
+        non_retryable = (
+            reference_file_missing or explicit_file_rejection or provider_non_retryable
+            or _is_non_retryable_error(exc) or local_usage_limit_error
+            or transport_failure(exc) is not None
+        )
         metadata["status"] = "failed" if is_final_attempt or non_retryable else "queued"
         metadata["updated_at"] = utc_now()
         metadata["last_error"] = safe_error

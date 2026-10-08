@@ -4,14 +4,16 @@
   var __publicField = (obj, key2, value) => __defNormalProp(obj, typeof key2 !== "symbol" ? key2 + "" : key2, value);
 
   // codex_image/webui/frontend/src/overlay-focus.ts
-  var layerSelector = ".modal-overlay, .resource-sheet, .confirm-popover, .history-lightbox, .task-context-menu, .mobile-sheet, #compactTaskDrawer";
+  var layerSelector = ".modal-overlay, .resource-sheet, .confirm-popover, .history-lightbox, .history-export-picker, .history-tag-picker, .history-organize-picker, .task-context-menu, .mobile-sheet, #compactTaskDrawer, #historyDetail";
   var focusSelector = 'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"]), [contenteditable="true"]';
   function initOverlayFocus() {
     const stack = [];
     let previousFocus = document.activeElement;
     let syncing = false;
     const triggers = /* @__PURE__ */ new WeakMap();
-    const visible = (element2) => !element2.classList.contains("hidden") && !element2.hidden && (!element2.matches(".resource-sheet") || element2.classList.contains("open"));
+    const narrowHistory = window.matchMedia("(max-width: 1100px)");
+    const historyBackground = /* @__PURE__ */ new Map();
+    const visible = (element2) => element2.id === "historyDetail" ? narrowHistory.matches && Boolean(element2.closest(".history-detail-open")) : !element2.classList.contains("hidden") && !element2.hidden && (!element2.matches(".resource-sheet") || element2.classList.contains("open"));
     const ownedPopovers = (root) => Array.from(root.querySelectorAll('[aria-controls][aria-expanded="true"]')).flatMap((trigger) => (trigger.getAttribute("aria-controls") || "").split(/\s+/).map((id) => document.getElementById(id))).filter((popover) => Boolean(popover && !root.contains(popover) && visible(popover) && popover.getClientRects().length));
     const containsFocus = (root, target) => root.contains(target) || ownedPopovers(root).some((popover) => popover.contains(target));
     const focusables = (root) => [root, ...ownedPopovers(root)].flatMap((layer) => Array.from(layer.querySelectorAll(focusSelector))).filter((item) => !item.closest('[inert], [hidden], .hidden, [aria-hidden="true"]') && item.getClientRects().length > 0);
@@ -24,6 +26,12 @@
       syncing = true;
       document.querySelectorAll(layerSelector).forEach((layer) => {
         const open = visible(layer);
+        if (layer.id === "historyDetail" && !narrowHistory.matches) {
+          layer.inert = false;
+          layer.removeAttribute("role");
+          layer.removeAttribute("aria-modal");
+          return;
+        }
         layer.inert = !open;
         if (open && !stack.includes(layer)) {
           if (document.activeElement instanceof HTMLElement) triggers.set(layer, layer.contains(document.activeElement) ? previousFocus : document.activeElement);
@@ -37,6 +45,27 @@
       document.querySelectorAll(".layout-container, .history-page").forEach((root) => {
         root.inert = Boolean(topVisible && !root.contains(topVisible));
       });
+      const history = document.getElementById("historyDetail");
+      if (history && visible(history)) {
+        Array.from(history.parentElement?.children || []).forEach((sibling) => {
+          if (!(sibling instanceof HTMLElement) || sibling === history) return;
+          if (!historyBackground.has(sibling)) {
+            if (sibling.inert) return;
+            historyBackground.set(sibling, false);
+          }
+          sibling.inert = true;
+        });
+        const heading = history.querySelector(".history-detail-title");
+        if (heading) {
+          heading.id = "historyDetailHeading";
+          history.setAttribute("aria-labelledby", heading.id);
+        }
+      } else {
+        historyBackground.forEach((inert, sibling) => {
+          sibling.inert = inert;
+        });
+        historyBackground.clear();
+      }
       for (let index = stack.length - 1; index >= 0; index--) {
         const layer = stack[index];
         if (layer.isConnected && visible(layer)) continue;
@@ -48,9 +77,11 @@
           else if (stack.length) focusFirst(stack[stack.length - 1]);
         }
       }
+      if (topVisible?.id === "historyDetail" && !containsFocus(topVisible, document.activeElement)) focusFirst(topVisible);
       syncing = false;
     };
     new MutationObserver(sync).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "hidden"] });
+    narrowHistory.addEventListener("change", sync);
     sync();
     document.addEventListener("focusin", (event) => {
       sync();
@@ -110,7 +141,9 @@
     "lanAccess.copyAddress": "Copy {address}",
     "lanAccess.copied": "Address copied.",
     "lanAccess.copyManually": "Address selected. Copy it manually.",
-    "ux.restoreDraft": "Restore draft",
+    "ux.restoreDraft": "Restore inputs",
+    "ux.restoreInputsHint": "Restore only the prompt and references; keep current generation settings.",
+    "ux.historyParametersHint": "These are the selected task\u2019s historical parameters. Output settings control the next generation.",
     "ux.draftRestored": "Prompt and references restored; generation settings keep the current selection.",
     "ux.historyDraftSaveFailed": "Could not preserve the draft. You are still on the generation page. Please try again.",
     "ux.historyDraftRestoreFailed": "Could not restore the draft. The temporary copy is retained. Refresh to try again.",
@@ -130,6 +163,7 @@
     "ux.recovery.temporary": "Generation did not complete. Successful images are retained; retry failed images when available.",
     "ux.checkProvider": "Check provider settings",
     "ux.acceptDetail": "Keep successful images and finish the task without filling the failed slots.",
+    "ux.editInputs": "Edit inputs and settings",
     "ux.errorDetails": "Error details",
     "ux.openRecovery": "Resolve on generation page",
     "ux.useSize": "Use {width} \xD7 {height}",
@@ -1406,6 +1440,7 @@
     "referenceFiles.switchTitle": "Remove reference files?",
     "referenceFiles.switchMessage": "Reference files work only with Responses. Remove the selected files before switching to Images.",
     "referenceFiles.removeAndSwitch": "Remove files and switch",
+    "referenceFiles.chooseResponses": "Choose a Responses channel",
     "referenceFiles.requiresResponses": "Reference files require Responses",
     "referenceFiles.switchToResponses": "Switch to Responses",
     "referenceFiles.openApiSettings": "Open API settings",
@@ -12532,7 +12567,9 @@
     "lanAccess.copyAddress": "Sao ch\xE9p {address}",
     "lanAccess.copied": "\u0110\xE3 sao ch\xE9p \u0111\u1ECBa ch\u1EC9.",
     "lanAccess.copyManually": "\u0110\xE3 ch\u1ECDn \u0111\u1ECBa ch\u1EC9. H\xE3y sao ch\xE9p th\u1EE7 c\xF4ng.",
-    "ux.restoreDraft": "Kh\xF4i ph\u1EE5c b\u1EA3n nh\xE1p",
+    "ux.restoreDraft": "Kh\xF4i ph\u1EE5c \u0111\u1EA7u v\xE0o",
+    "ux.restoreInputsHint": "Ch\u1EC9 kh\xF4i ph\u1EE5c l\u1EDDi nh\u1EAFc v\xE0 t\xE0i li\u1EC7u tham chi\u1EBFu; gi\u1EEF thi\u1EBFt l\u1EADp t\u1EA1o \u1EA3nh hi\u1EC7n t\u1EA1i.",
+    "ux.historyParametersHint": "\u0110\xE2y l\xE0 tham s\u1ED1 c\u1EE7a t\xE1c v\u1EE5 \u0111\xE3 ch\u1ECDn. Thi\u1EBFt l\u1EADp \u0111\u1EA7u ra \xE1p d\u1EE5ng cho l\u1EA7n t\u1EA1o \u1EA3nh ti\u1EBFp theo.",
     "ux.draftRestored": "\u0110\xE3 kh\xF4i ph\u1EE5c l\u1EDDi nh\u1EAFc v\xE0 t\xE0i li\u1EC7u tham chi\u1EBFu; gi\u1EEF nguy\xEAn thi\u1EBFt l\u1EADp t\u1EA1o \u1EA3nh hi\u1EC7n t\u1EA1i.",
     "ux.historyDraftSaveFailed": "Kh\xF4ng th\u1EC3 gi\u1EEF b\u1EA3n nh\xE1p. B\u1EA1n v\u1EABn \u1EDF trang t\u1EA1o \u1EA3nh. Vui l\xF2ng th\u1EED l\u1EA1i.",
     "ux.historyDraftRestoreFailed": "Kh\xF4ng th\u1EC3 kh\xF4i ph\u1EE5c b\u1EA3n nh\xE1p. B\u1EA3n sao t\u1EA1m v\u1EABn \u0111\u01B0\u1EE3c gi\u1EEF. H\xE3y t\u1EA3i l\u1EA1i \u0111\u1EC3 th\u1EED l\u1EA1i.",
@@ -12552,6 +12589,7 @@
     "ux.recovery.temporary": "T\u1EA1o \u1EA3nh ch\u01B0a ho\xE0n t\u1EA5t. \u1EA2nh th\xE0nh c\xF4ng \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i; c\xF3 th\u1EC3 th\u1EED l\u1EA1i \u1EA3nh th\u1EA5t b\u1EA1i.",
     "ux.checkProvider": "Ki\u1EC3m tra nh\xE0 cung c\u1EA5p",
     "ux.acceptDetail": "Gi\u1EEF \u1EA3nh th\xE0nh c\xF4ng v\xE0 k\u1EBFt th\xFAc t\xE1c v\u1EE5 m\xE0 kh\xF4ng t\u1EA1o l\u1EA1i \u1EA3nh th\u1EA5t b\u1EA1i.",
+    "ux.editInputs": "S\u1EEDa \u0111\u1EA7u v\xE0o v\xE0 thi\u1EBFt l\u1EADp",
     "ux.errorDetails": "Chi ti\u1EBFt l\u1ED7i",
     "ux.openRecovery": "X\u1EED l\xFD tr\xEAn trang t\u1EA1o \u1EA3nh",
     "ux.useSize": "D\xF9ng {width} \xD7 {height}",
@@ -13828,6 +13866,7 @@
     "referenceFiles.switchTitle": "X\xF3a t\u1EC7p tham chi\u1EBFu?",
     "referenceFiles.switchMessage": "T\u1EC7p tham chi\u1EBFu ch\u1EC9 ho\u1EA1t \u0111\u1ED9ng v\u1EDBi Responses. H\xE3y x\xF3a c\xE1c t\u1EC7p \u0111\xE3 ch\u1ECDn tr\u01B0\u1EDBc khi chuy\u1EC3n sang Images.",
     "referenceFiles.removeAndSwitch": "X\xF3a t\u1EC7p v\xE0 chuy\u1EC3n",
+    "referenceFiles.chooseResponses": "Ch\u1ECDn k\xEAnh Responses",
     "referenceFiles.requiresResponses": "T\u1EC7p tham chi\u1EBFu ch\u1EC9 h\u1ED7 tr\u1EE3 Responses",
     "referenceFiles.switchToResponses": "Chuy\u1EC3n sang Responses",
     "referenceFiles.openApiSettings": "M\u1EDF c\xE0i \u0111\u1EB7t API",
@@ -13911,7 +13950,9 @@
     "lanAccess.copyAddress": "\u590D\u5236 {address}",
     "lanAccess.copied": "\u5730\u5740\u5DF2\u590D\u5236\u3002",
     "lanAccess.copyManually": "\u5DF2\u9009\u4E2D\u5730\u5740\uFF0C\u8BF7\u624B\u52A8\u590D\u5236\u3002",
-    "ux.restoreDraft": "\u6062\u590D\u8349\u7A3F",
+    "ux.restoreDraft": "\u6062\u590D\u8F93\u5165",
+    "ux.restoreInputsHint": "\u4EC5\u6062\u590D\u63D0\u793A\u8BCD\u548C\u53C2\u8003\u8F93\u5165\uFF0C\u751F\u6210\u53C2\u6570\u4FDD\u6301\u5F53\u524D\u9009\u62E9\u3002",
+    "ux.historyParametersHint": "\u4EE5\u4E0B\u662F\u6240\u9009\u4EFB\u52A1\u7684\u5386\u53F2\u53C2\u6570\u3002\u672C\u6B21\u751F\u6210\u4EE5\u201C\u8F93\u51FA\u8BBE\u7F6E\u201D\u4E3A\u51C6\u3002",
     "ux.draftRestored": "\u5DF2\u6062\u590D\u63D0\u793A\u8BCD\u4E0E\u53C2\u8003\u8F93\u5165\uFF1B\u751F\u6210\u53C2\u6570\u4FDD\u6301\u5F53\u524D\u9009\u62E9\u3002",
     "ux.historyDraftSaveFailed": "\u672A\u80FD\u4FDD\u7559\u5F53\u524D\u8349\u7A3F\uFF0C\u5DF2\u7559\u5728\u751F\u6210\u9875\u3002\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002",
     "ux.historyDraftRestoreFailed": "\u8349\u7A3F\u6062\u590D\u5931\u8D25\uFF0C\u5DF2\u4FDD\u7559\u4E34\u65F6\u526F\u672C\u3002\u8BF7\u5237\u65B0\u91CD\u8BD5\u3002",
@@ -13931,6 +13972,7 @@
     "ux.recovery.temporary": "\u751F\u6210\u672A\u5B8C\u6210\u3002\u5DF2\u6210\u529F\u7684\u56FE\u7247\u4F1A\u4FDD\u7559\uFF1B\u53EF\u91CD\u8BD5\u5931\u8D25\u56FE\u7247\u3002",
     "ux.checkProvider": "\u68C0\u67E5\u4F9B\u5E94\u5546\u8BBE\u7F6E",
     "ux.acceptDetail": "\u4FDD\u7559\u5DF2\u6210\u529F\u56FE\u7247\u5E76\u7ED3\u675F\u4EFB\u52A1\uFF0C\u4E0D\u518D\u8865\u9F50\u5931\u8D25\u56FE\u7247\u3002",
+    "ux.editInputs": "\u4FEE\u6539\u8F93\u5165\u4E0E\u53C2\u6570",
     "ux.errorDetails": "\u9519\u8BEF\u8BE6\u60C5",
     "ux.openRecovery": "\u8FDB\u5165\u751F\u6210\u9875\u5904\u7406",
     "ux.useSize": "\u91C7\u7528 {width} \xD7 {height}",
@@ -15207,6 +15249,7 @@
     "referenceFiles.switchTitle": "\u79FB\u9664\u53C2\u8003\u6587\u4EF6\uFF1F",
     "referenceFiles.switchMessage": "\u53C2\u8003\u6587\u4EF6\u4EC5\u652F\u6301 Responses\uFF0C\u5207\u6362\u5230 Images \u524D\u9700\u8981\u79FB\u9664\u5DF2\u9009\u6587\u4EF6\u3002",
     "referenceFiles.removeAndSwitch": "\u79FB\u9664\u6587\u4EF6\u5E76\u5207\u6362",
+    "referenceFiles.chooseResponses": "\u9009\u62E9 Responses \u901A\u9053",
     "referenceFiles.requiresResponses": "\u53C2\u8003\u6587\u4EF6\u4EC5\u652F\u6301 Responses",
     "referenceFiles.switchToResponses": "\u5207\u6362\u5230 Responses",
     "referenceFiles.openApiSettings": "\u6253\u5F00 API \u8BBE\u7F6E",
@@ -18639,10 +18682,14 @@
         preview.focus({ preventScroll: true });
       });
     };
-    back.addEventListener("click", () => {
+    const showEditor = () => {
       dashboard.scrollTop = editorScroll;
-      document.getElementById("promptEditor")?.focus({ preventScroll: true });
-    });
+      const prompt = document.getElementById("promptEditor");
+      prompt?.scrollIntoView({ block: "nearest" });
+      prompt?.focus({ preventScroll: true });
+    };
+    back.addEventListener("click", showEditor);
+    getLegacyBridge().methods.showGenerationEditor = showEditor;
     getLegacyBridge().methods.showMobilePreview = showPreview;
     const feedback2 = document.getElementById("statusText");
     const feedbackOrigin = document.createComment("mobile-feedback-origin");
@@ -18806,6 +18853,7 @@
     if (button) {
       button.hidden = !drafts.length;
       button.textContent = translate("ux.restoreDraft");
+      button.title = translate("ux.restoreInputsHint");
     }
   }
   function restoreComposerDraft() {
@@ -20399,10 +20447,6 @@
     };
   }
   function addReferenceFileInput(input) {
-    if (!responsesEnabled()) {
-      showResponsesRequirement();
-      return false;
-    }
     const state33 = getState();
     let source = null;
     if (input instanceof File) {
@@ -20420,7 +20464,8 @@
     }
     requirementActionVisible = false;
     state33.referenceFiles.push(source);
-    renderReferenceFiles();
+    if (!responsesEnabled()) showResponsesRequirement();
+    else renderReferenceFiles();
     legacyMethod2("updateRequestPreview");
     return true;
   }
@@ -20454,6 +20499,7 @@
     requirementFeedback = null;
     container.replaceChildren();
     const sources = getState().referenceFiles;
+    requirementActionVisible = sources.length > 0 && !responsesEnabled();
     if (!sources.length && !requirementActionVisible) {
       container.classList.add("hidden");
       legacyMethod2("updateImageStripDensity");
@@ -20470,8 +20516,31 @@
       action.className = "ghost-button text-sm";
       action.textContent = (legacyMethod2("currentAuthSource") || "codex") === "api" ? translate("referenceFiles.openApiSettings") : translate("referenceFiles.switchToResponses");
       action.addEventListener("click", activateResponsesRequirementAction);
-      feedback2.append(message, action);
-      els44.imageUploaderGrid?.append(feedback2);
+      feedback2.append(message);
+      const state33 = getState();
+      const compatible = state33.generationCatalog ? (legacyMethod2("eligibleProviderBindings", state33.generationCatalog, state33.selectedModelId, state33.mode) || []).filter((entry) => entry.binding.protocol_profile.endsWith("_responses")) : [];
+      if (compatible.length) {
+        const select = document.createElement("select");
+        select.className = "control reference-file-provider";
+        select.setAttribute("aria-label", translate("referenceFiles.chooseResponses"));
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = translate("referenceFiles.chooseResponses");
+        select.append(placeholder);
+        compatible.forEach((entry) => {
+          const option2 = document.createElement("option");
+          option2.value = entry.selectionKey;
+          option2.textContent = entry.binding.display_name || entry.provider.name;
+          select.append(option2);
+        });
+        select.addEventListener("change", () => {
+          if (!select.value) return;
+          legacyMethod2("selectGenerationProvider", select.value);
+          syncReferenceFileAvailability();
+        });
+        feedback2.append(select);
+      } else feedback2.append(action);
+      els44.imageUploaderGrid?.after(feedback2);
       requirementFeedback = feedback2;
     }
     sources.forEach((source, index) => {
@@ -20509,6 +20578,8 @@
       if (status?.textContent === translate("referenceFiles.requiresResponses")) {
         legacyMethod2("setStatus", translate("status.waiting"), "");
       }
+    } else if (!supported && getState().referenceFiles.length) {
+      renderReferenceFiles();
     }
   }
   function initReferenceFileInputsFeature() {
@@ -46976,15 +47047,19 @@ ${hint}` : hint;
     const chips = Array.from(els17.promptEditor?.querySelectorAll(".gallery-chip[data-gallery-id]") || []);
     const mentionedIds = new Set(chips.map((chip) => chip.dataset.galleryId).filter(Boolean));
     const beforeKey = imageSourcesKey(state14.images);
-    const uploads = state14.images.filter((source) => source.kind !== "gallery");
-    const existingById = new Map(state14.images.filter((source) => source.kind === "gallery").map((source) => [source.id, source]));
-    const galleries = chips.map((chip) => {
+    const retainedIds = /* @__PURE__ */ new Set();
+    const sources = state14.images.filter((source) => {
+      if (source.kind !== "gallery") return true;
+      if (!mentionedIds.has(source.id) || retainedIds.has(source.id)) return false;
+      retainedIds.add(source.id);
+      return true;
+    });
+    for (const chip of chips) {
       const itemId = chip.dataset.galleryId;
-      const existing = existingById.get(itemId);
-      if (existing) return existing;
+      if (!itemId || retainedIds.has(itemId)) continue;
+      retainedIds.add(itemId);
       const item = findGalleryItem5(itemId);
-      if (item) return gallerySource3(item);
-      return gallerySource3({
+      sources.push(gallerySource3(item || {
         id: itemId,
         name: chip.dataset.galleryName || chip.textContent.replace(/^@/, "").trim() || translate("gallery.imageFallback"),
         category: chip.dataset.galleryCategory || "",
@@ -46993,9 +47068,9 @@ ${hint}` : hint;
         prompt_note: chip.dataset.galleryPromptNote || "",
         image_url: chip.dataset.galleryImageUrl || "",
         missing: true
-      });
-    }).filter((source) => source.id && mentionedIds.has(source.id));
-    state14.images = [...uploads, ...galleries];
+      }));
+    }
+    state14.images = sources;
     if (imageSourcesKey(state14.images) === beforeKey) return false;
     if (!state14.images.length) {
       setMode3("generate");
@@ -47655,47 +47730,34 @@ ${hint}` : hint;
   function galleryInputs3() {
     return legacyMethod24("galleryInputs");
   }
-  function uploadInputs2() {
-    return legacyMethod24("uploadInputs");
-  }
-  function referenceAssetInputs2() {
-    return legacyMethod24("referenceAssetInputs");
-  }
   function categoryPromptRole3(category) {
     return legacyMethod24("categoryPromptRole", category);
   }
   function promptTokenReplacement(prompt) {
     return expandPromptSnippets2(prompt);
   }
-  function galleryPromptText(galleries = galleryInputs3()) {
-    if (!galleries.length) return "";
-    const referenceOffset = uploadInputs2().length + referenceAssetInputs2().length;
-    const lines = galleries.map((source, index) => galleryReferenceInstruction(source, referenceOffset + index + 1));
-    return `${translate("promptModel.galleryHeader")}
-${lines.join("\n")}`;
+  function galleryPrompt() {
+    const galleries = galleryInputs3();
+    if (!galleries.length || currentPromptFidelity() === "original") return null;
+    return {
+      header: translate("promptModel.galleryHeader"),
+      template: translate("promptModel.galleryInstruction"),
+      references: galleries.map((source) => {
+        const promptNote = String(source.prompt_note || "").trim();
+        return {
+          id: source.id,
+          name: source.name,
+          role: source.category_prompt_role || categoryPromptRole3(source.category),
+          note: promptNote ? ` ${promptNote}` : ""
+        };
+      })
+    };
   }
   function buildPromptForModel() {
-    const prompt = expandPromptSnippets2(getPromptText8());
-    const galleries = galleryInputs3();
-    const galleryText = galleryPromptText(galleries);
-    if (!galleryText) return prompt;
-    return `${prompt}
-
-${galleryText}`;
-  }
-  function galleryReferenceInstruction(source, number) {
-    const role = source.category_prompt_role || categoryPromptRole3(source.category);
-    const promptNote = String(source.prompt_note || "").trim();
-    return formatTranslation("promptModel.galleryInstruction", {
-      number,
-      name: source.name,
-      role,
-      note: promptNote ? ` ${promptNote}` : ""
-    });
+    return expandPromptSnippets2(getPromptText8());
   }
   function currentPromptForModel() {
-    if (!supportsGptPromptProcessing()) return buildPromptForModel();
-    return currentPromptFidelity() === "original" ? expandPromptSnippets2(getPromptText8()) : buildPromptForModel();
+    return buildPromptForModel();
   }
   function currentPromptFidelity() {
     if (!supportsGptPromptProcessing()) return "off";
@@ -47709,9 +47771,8 @@ ${galleryText}`;
   function initPromptModelFeature() {
     Object.assign(getLegacyBridge().methods, {
       promptTokenReplacement,
-      galleryPromptText,
+      galleryPrompt,
       buildPromptForModel,
-      galleryReferenceInstruction,
       currentPromptForModel,
       currentPromptFidelity,
       supportsGptPromptProcessing
@@ -49320,31 +49381,6 @@ ${galleryText}`;
     const callLabel = authSource === "api" ? "Images API" : "Codex Image";
     return { responses, task: false, callLabel };
   }
-  function taskSummaryContext(task) {
-    const params = task?.params || {};
-    const request = task?.request || {};
-    const responses = params.api_mode === "responses" || params.codex_mode === "responses" || request.api_mode === "responses" || request.codex_mode === "responses" || request.endpoint === "/responses" || String(task?.backend || "").includes("responses");
-    const apiTask = Boolean(params.api_mode || request.api_mode || task?.api_provider_id || task?.api_provider_name);
-    return { responses, task: true, callLabel: apiTask ? "Images API" : "Codex Image" };
-  }
-  function snapshotFromTask(task) {
-    const params = task?.params || {};
-    const request = task?.request || {};
-    const frozen = record(task?.generation_snapshot);
-    const canonicalModelId = String(frozen.canonical_model_id || request.canonical_model_id || "gpt-image-2");
-    const catalogModel = getLegacyBridge().state.generationCatalog?.models.find((item) => item.id === canonicalModelId);
-    const responses = params.api_mode === "responses" || params.codex_mode === "responses" || request.api_mode === "responses" || request.codex_mode === "responses" || request.endpoint === "/responses";
-    return normalizeOutputSettingsSnapshot({
-      ...params,
-      canonical_model_id: canonicalModelId,
-      model_display_name: catalogModel?.display_name || canonicalModelId,
-      parameters: Object.keys(record(frozen.requested_parameters)).length ? record(frozen.requested_parameters) : record(request.parameters),
-      main_model: params.main_model || request.main_model || (responses ? request.model : ""),
-      model: params.model || request.image_model || request.model,
-      size: params.size || request.size,
-      n: params.n || request.n
-    });
-  }
   function snapshotFromCurrentSelection() {
     const bridge40 = getLegacyBridge();
     const legacy = legacyMethod30("currentTaskParams");
@@ -49501,11 +49537,8 @@ ${galleryText}`;
   }
   function showTaskOutputSettings(task) {
     if (!locked) return;
-    taskSnapshot = snapshotFromTask(task);
-    taskContext = taskSummaryContext(task);
-    renderSummary(taskSnapshot, taskContext);
-    setLockedViewVisible(true);
-    updateLockButton();
+    showLockedOutputSettings();
+    legacyMethod30("inspectTaskParameters", task);
   }
   function refreshOutputSettingsLock() {
     if (!locked) return;
@@ -53043,13 +53076,13 @@ ${galleryText}`;
   function currentTaskParams2(...args) {
     return legacyMethod36("currentTaskParams", ...args);
   }
-  function uploadInputs3(...args) {
+  function uploadInputs2(...args) {
     return legacyMethod36("uploadInputs", ...args);
   }
   function galleryInputs4(...args) {
     return legacyMethod36("galleryInputs", ...args);
   }
-  function referenceAssetInputs3(...args) {
+  function referenceAssetInputs2(...args) {
     return legacyMethod36("referenceAssetInputs", ...args);
   }
   function currentCodexMode4(...args) {
@@ -53162,6 +53195,10 @@ ${galleryText}`;
       missing: Boolean(source.missing)
     };
   }
+  function referenceImageOrder() {
+    let uploadIndex = 0;
+    return state24.images.map((source) => source.kind === "upload" ? { kind: "upload", index: uploadIndex++ } : { kind: source.kind, id: source.id });
+  }
   function applyTaskOutputParams(task) {
     const params = task.params || {};
     const request = task.request || {};
@@ -53215,9 +53252,9 @@ ${galleryText}`;
   }
   function buildPreviewRequest2() {
     const params = currentTaskParams2();
-    const uploads = uploadInputs3();
+    const uploads = uploadInputs2();
     const galleries = galleryInputs4();
-    const assets = referenceAssetInputs3();
+    const assets = referenceAssetInputs2();
     const fileUploads = referenceFileUploads2();
     const storedFiles = storedReferenceFileInputs2();
     const { authSource, requestedBackend } = selectedRoutingFields();
@@ -53226,6 +53263,7 @@ ${galleryText}`;
     const codexMode = isCodex ? currentCodexMode4() : null;
     const parameters = currentCanonicalParameters();
     const selection = currentGenerationSelection();
+    const galleryContext = galleryPrompt();
     const payload2 = {
       mode: state24.mode,
       auth_source: authSource,
@@ -53237,9 +53275,11 @@ ${galleryText}`;
       ui_language: currentLocaleCode(),
       prompt: getPromptText9(),
       prompt_for_model: currentPromptForModel2(),
+      ...galleryContext ? { gallery_prompt: galleryContext } : {},
       images: uploads.map((source) => source.name),
       gallery_image_ids: galleries.map((source) => source.id),
       reference_asset_ids: assets.map((source) => source.id),
+      reference_image_order: referenceImageOrder(),
       reference_files: fileUploads.map((source) => source.filename),
       reference_file_ids: storedFiles.map((source) => source.id)
     };
@@ -53305,9 +53345,9 @@ ${galleryText}`;
     syncGalleryInputsFromPrompt3();
     const prompt = getPromptText9();
     const promptForModel = currentPromptForModel2();
-    const uploads = uploadInputs3();
+    const uploads = uploadInputs2();
     const galleries = galleryInputs4();
-    const assets = referenceAssetInputs3();
+    const assets = referenceAssetInputs2();
     const fileUploads = referenceFileUploads2();
     const storedFiles = storedReferenceFileInputs2();
     if (missingGalleryInputs2().length) {
@@ -53353,6 +53393,8 @@ ${galleryText}`;
     const form = new FormData();
     form.append("prompt", prompt);
     form.append("prompt_for_model", promptForModel);
+    const galleryContext = galleryPrompt();
+    if (galleryContext) form.append("gallery_prompt", JSON.stringify(galleryContext));
     form.append("ui_language", currentLocaleCode());
     appendCanonicalGenerationFields(form, currentGenerationSelection());
     if (!state24.generationCatalog || isGptImageModel(state24.selectedModelId)) {
@@ -53361,6 +53403,7 @@ ${galleryText}`;
     }
     galleries.forEach((source) => form.append("gallery_image_ids", source.id));
     assets.forEach((source) => form.append("reference_asset_ids", source.id));
+    form.append("reference_image_order", JSON.stringify(referenceImageOrder()));
     fileUploads.forEach((source) => form.append("reference_files", source.file));
     storedFiles.forEach((source) => form.append("reference_file_ids", source.id));
     if (state24.mode === "generate") {
@@ -55398,9 +55441,14 @@ ${galleryText}`;
   // codex_image/webui/frontend/src/task-recovery.ts
   function taskRecoveryKind(task) {
     const text = String(task?.error || task?.last_error || "").toLowerCase();
-    if (/\b401\b|invalid_api_key|authentication_error|unauthorized|incorrect api key/.test(text)) return "credentials";
+    const statusMatch = text.match(/\bhttp(?:\s+(?:error|status))?\s*[:=]?\s*(\d{3})\b/) || text.match(/\bstatus(?:\s+code)?\s*[:=]\s*(\d{3})\b/);
+    const status = statusMatch ? Number(statusMatch[1]) : null;
+    if (status === 401 || status === 403) return "credentials";
+    if (status !== null && status >= 500 && status <= 599) return "temporary";
+    if (status === null && /invalid_api_key|authentication_error|unauthorized|incorrect api key/.test(text)) return "credentials";
     if (/quota|usage limit|insufficient_quota|billing/.test(text)) return "quota";
-    if (/invalid_value|unsupported mime|base64-encoded data url/.test(text)) return "input";
+    if (status === 400 || status === 422) return "input";
+    if (status === null && /invalid[_ ](?:parameters?|value)|unsupported mime|base64-encoded data url/.test(text)) return "input";
     return "temporary";
   }
   function taskRecoveryMessage(task) {
@@ -55919,7 +55967,7 @@ ${galleryText}`;
   function taskHasNonRetryableError(task) {
     const message = String(task?.error || task?.last_error || "").toLowerCase();
     if (!message) return false;
-    if (taskRecoveryKind(task) === "credentials") return true;
+    if (["credentials", "quota", "input"].includes(taskRecoveryKind(task))) return true;
     if (message.includes("usage limit") || message.includes("quota") || message.includes("rate limit")) return true;
     if (!message.includes("http 400")) return false;
     return [
@@ -56289,8 +56337,9 @@ ${galleryText}`;
       clearPreviewGridLayout();
       els38.previewGrid.innerHTML = `
       <div class="empty-preview error-preview">
-        <p>${escapeHtml19(taskFailureMessage2(selected) || translate("preview.taskFailed"))}</p>
+        <strong>${escapeHtml19(translate("preview.taskFailed"))}</strong>
         ${retryFailureSummaryButton(selected)}
+        ${failureDetailsHtml(selected)}
       </div>
     `;
       bindPreviewRetryButtons();
@@ -56645,6 +56694,10 @@ ${galleryText}`;
       legacyMethod41("openApiSettingsModal");
       return;
     }
+    if (target.closest("[data-preview-edit-inputs]")) {
+      getLegacyBridge().methods.showGenerationEditor?.();
+      return;
+    }
     const retryButton = target.closest("[data-preview-retry-failed-task-id]");
     if (retryButton) {
       retryFailedTask2(retryButton.dataset.previewRetryFailedTaskId);
@@ -56934,7 +56987,6 @@ ${galleryText}`;
     const failed = Number.parseInt(task?.failed_count ?? "", 10);
     const failedCount = Number.isNaN(failed) ? Math.max(0, taskTotalCount2(task) - generated) : failed;
     const total = taskTotalCount2(task);
-    const message = escapeHtml19(taskFailureMessage2(task) || translate("preview.partialFailed"));
     const retryState = taskRetryStateText4(task);
     const retryStateHtml = retryState ? `<p data-preview-retry-state>${escapeHtml19(retryState)}</p>` : "";
     return `
@@ -56942,10 +56994,14 @@ ${galleryText}`;
       <strong>${escapeHtml19(task.status === "partial_failed" ? translate("preview.partialFailed") : translate("preview.taskFailed"))}</strong>
       <p>${escapeHtml19(formatTranslation("preview.failureLine", { generated, total, failed: failedCount }))}</p>
       ${retryStateHtml}
-      <p>${message}</p>
       ${retryFailureSummaryButton(task)}
+      ${failureDetailsHtml(task)}
     </div>
   `;
+  }
+  function failureDetailsHtml(task) {
+    const message = taskFailureMessage2(task);
+    return message ? `<details class="failure-details"><summary>${escapeHtml19(translate("ux.errorDetails"))}</summary><p>${escapeHtml19(message)}</p></details>` : "";
   }
   function retryFailureSummaryButton(task) {
     const taskId = escapeHtml19(task.task_id || "");
@@ -56953,6 +57009,9 @@ ${galleryText}`;
     actions.push(`<p class="recovery-guidance">${escapeHtml19(taskRecoveryMessage(task))}</p>`);
     if (taskRecoveryKind(task) === "credentials" || taskRecoveryKind(task) === "quota") {
       actions.push(`<button type="button" class="ghost-button text-sm" data-preview-provider-settings>${escapeHtml19(translate("ux.checkProvider"))}</button>`);
+    }
+    if (taskRecoveryKind(task) === "input") {
+      actions.push(`<button type="button" class="ghost-button text-sm" data-preview-edit-inputs>${escapeHtml19(translate("ux.editInputs"))}</button>`);
     }
     if (canRetryFailedTask3(task)) {
       actions.push(`<button class="ghost-button text-sm" type="button" data-preview-retry-failed-task-id="${taskId}">${escapeHtml19(translate("preview.retryFailed"))}</button>`);
@@ -57560,9 +57619,6 @@ ${galleryText}`;
   function renderPreview7(task) {
     legacyMethod43("renderPreview", task);
   }
-  function taskFailureMessage3(task) {
-    return legacyMethod43("taskFailureMessage", task);
-  }
   function taskRequestPreviewPayload2(task) {
     return legacyMethod43("taskRequestPreviewPayload", task);
   }
@@ -57649,7 +57705,7 @@ ${galleryText}`;
     renderPreview7(task);
     if (wasBrowsingTasks) getLegacyBridge().methods.showMobilePreview?.();
     if (task.status === "failed") {
-      setStatus22(taskFailureMessage3(task) || translate("taskActions.failedFallback"), "error");
+      setStatus22(taskRecoveryMessage(task), "error");
     } else if (!["running", "cancelling"].includes(String(task.status || ""))) {
       setStatus22(formatTranslation("status.loadedTask", { taskId }), "ok");
     }
@@ -59739,7 +59795,7 @@ ${galleryText}`;
       formatTranslation("modelParameters.migrated", { count })
     );
   }
-  function snapshotFromTask2(task) {
+  function snapshotFromTask(task) {
     const raw = record4(task.generation_snapshot);
     if (!Object.keys(raw).length) return legacyGenerationSnapshot(task);
     return {
@@ -59760,7 +59816,7 @@ ${galleryText}`;
   }
   function inspectTaskParameters2(task) {
     const { state: state33, methods } = getLegacyBridge();
-    state33.inspectedGenerationSnapshot = snapshotFromTask2(task);
+    state33.inspectedGenerationSnapshot = snapshotFromTask(task);
     methods.renderTaskParameterInspector?.();
   }
   function clearTaskParameterInspection3() {
@@ -59902,11 +59958,9 @@ ${galleryText}`;
     const { state: state33, els: els44 } = getLegacyBridge();
     const snapshot2 = state33.inspectedGenerationSnapshot;
     const inspector = els44.taskParameterInspector;
-    const stage = els44.outputSettingsStage;
     if (!inspector) return;
     inspector.classList.toggle("hidden", !snapshot2);
     inspector.setAttribute("aria-hidden", snapshot2 ? "false" : "true");
-    stage?.classList.toggle("is-inspecting-task", Boolean(snapshot2));
     if (!snapshot2) {
       els44.taskParameterInspectorHeader?.replaceChildren();
       els44.taskParameterInspectorGrid?.replaceChildren();
@@ -59955,7 +60009,7 @@ ${galleryText}`;
   }
   function adoptTaskParameters(task) {
     const { state: state33, methods } = getLegacyBridge();
-    const snapshot2 = snapshotFromTask2(task);
+    const snapshot2 = snapshotFromTask(task);
     const keepGptBinding = isGptImageModel(state33.selectedModelId) && isGptImageModel(snapshot2.canonical_model_id);
     const targetModelId = keepGptBinding ? state33.selectedModelId : snapshot2.canonical_model_id;
     const model = state33.generationCatalog?.models.find((item) => item.id === targetModelId);
@@ -59980,6 +60034,7 @@ ${galleryText}`;
     restoreCurrentModelParameterDraft();
     methods.updateRequestPreview?.();
     methods.persistModelSelection?.();
+    methods.refreshOutputSettingsLock?.();
     notifyParameterMigration(report);
     return report;
   }

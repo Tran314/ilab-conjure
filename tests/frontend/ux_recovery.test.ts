@@ -58,6 +58,33 @@ test("credential errors require account repair while transient errors remain ret
   assert.equal(taskRecoveryKind({error:'HTTP 503 upstream unavailable'}),'temporary');
   assert.equal(taskRecoveryKind({last_error:'insufficient_quota'}),'quota');
   assert.equal(taskRecoveryKind({error:'unsupported mime type'}),'input');
+  for (const error of ['HTTP 400: {"error":{"message":"fixture invalid parameters"}}', 'invalid_parameters', 'HTTP 422 Unprocessable Entity']) {
+    assert.equal(taskRecoveryKind({error}), 'input');
+  }
+});
+
+test("diagnostic numbers cannot hide retry actions for transient failures", async () => {
+  const previousWindow = globalThis.window;
+  const methods: any = {};
+  (globalThis as any).window = { __codexImageWebUI: { state: {}, els: {}, methods } };
+  try {
+    const { initTaskDerivedFeature } = await import("../../codex_image/webui/frontend/src/task-derived");
+    initTaskDerivedFeature();
+    for (const error of [
+      'HTTP 502 upstream service temporarily unavailable; diagnostics={"latency_ms":400}',
+      'HTTP 503 upstream unavailable; diagnostics={"response_bytes":422}',
+      'HTTP 502 upstream unavailable; diagnostics={"latency_ms":401}',
+      'HTTP 502 upstream unavailable; details mention HTTP 400 invalid_parameters',
+    ]) {
+      const task = { status: "failed", error, total_count: 1, outputs: [{ index: 1, status: "failed", error }] };
+      assert.equal(taskRecoveryKind(task), "temporary", error);
+      assert.equal(methods.canRetryFailedTask(task), true, error);
+    }
+    for (const error of ['HTTP 400 invalid request parameters', 'HTTP status: 422', 'status code=400', 'HTTP 401 Unauthorized']) {
+      const task = { status: "failed", error, total_count: 1, outputs: [{ index: 1, status: "failed", error }] };
+      assert.equal(methods.canRetryFailedTask(task), false, error);
+    }
+  } finally { (globalThis as any).window = previousWindow; }
 });
 
 test("draft restoration preserves prompt chips, files and image blobs across a destructive switch", async () => {
