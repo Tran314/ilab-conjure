@@ -22,10 +22,13 @@ class SourceMetadataScanner:
         read_records: bool,
     ) -> tuple[list[Path], list[dict[str, Any]]]:
         nofollow = getattr(os, "O_NOFOLLOW", None)
-        if nofollow is None:
+        windows = os.name == "nt"
+        if windows:
+            from ..windows_files import open_nofollow
+        elif nofollow is None:
             raise OSError("backup_restore_reference_scan_unavailable")
-        directory_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | nofollow
-        file_flags = os.O_RDONLY | nofollow
+        directory_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | (nofollow or 0)
+        file_flags = os.O_RDONLY | (nofollow or 0)
         root_descriptor = -1
         paths: list[Path] = []
         records: list[dict[str, Any]] = []
@@ -46,10 +49,14 @@ class SourceMetadataScanner:
             relative: Path,
             group: int,
         ) -> None:
-            expected = entry.stat(follow_symlinks=False)
+            # Windows DirEntry.stat() caches a zero file ID; query the path
+            # while the parent is pinned before comparing with the opened file.
+            expected = (os.stat(entry.path, follow_symlinks=False) if windows
+                        else entry.stat(follow_symlinks=False))
             if not stat.S_ISREG(expected.st_mode):
                 raise OSError("backup_restore_reference_scan_invalid")
-            descriptor = os.open(entry.name, file_flags, dir_fd=parent_descriptor)
+            descriptor = (open_nofollow(Path(entry.path)) if windows
+                          else os.open(entry.name, file_flags, dir_fd=parent_descriptor))
             try:
                 matching_stat(descriptor, expected, directory=False)
                 path = self.trust_root / relative / entry.name
@@ -67,10 +74,12 @@ class SourceMetadataScanner:
                     os.close(descriptor)
 
         def open_child_directory(parent_descriptor: int, entry: os.DirEntry[str]) -> int:
-            expected = entry.stat(follow_symlinks=False)
+            expected = (os.stat(entry.path, follow_symlinks=False) if windows
+                        else entry.stat(follow_symlinks=False))
             if not stat.S_ISDIR(expected.st_mode):
                 raise OSError("backup_restore_reference_scan_invalid")
-            descriptor = os.open(entry.name, directory_flags, dir_fd=parent_descriptor)
+            descriptor = (open_nofollow(Path(entry.path), directory=True) if windows
+                          else os.open(entry.name, directory_flags, dir_fd=parent_descriptor))
             try:
                 matching_stat(descriptor, expected, directory=True)
             except Exception:
@@ -80,7 +89,8 @@ class SourceMetadataScanner:
 
         try:
             self._assert_source_data_trust_binding()
-            root_descriptor = os.open(self.trust_root, directory_flags)
+            root_descriptor = (open_nofollow(self.trust_root, directory=True) if windows
+                               else os.open(self.trust_root, directory_flags))
             root_stat = os.fstat(root_descriptor)
             if (
                 not stat.S_ISDIR(root_stat.st_mode)
@@ -88,10 +98,10 @@ class SourceMetadataScanner:
             ):
                 raise OSError("backup_restore_reference_scan_invalid")
             self._assert_source_data_trust_binding()
-            with os.scandir(root_descriptor) as root_entries:
+            with os.scandir(self.trust_root if windows else root_descriptor) as root_entries:
                 for entry in root_entries:
-                    mode = entry.stat(follow_symlinks=False).st_mode
-                    if stat.S_ISLNK(mode):
+                    entry_stat = entry.stat(follow_symlinks=False)
+                    if _is_link(entry_stat):
                         raise OSError("backup_restore_reference_scan_invalid")
                     if entry.name.endswith(".metadata.json"):
                         scan_metadata_file(root_descriptor, entry, Path(), 0)
@@ -100,17 +110,15 @@ class SourceMetadataScanner:
                         continue
                     tasks_descriptor = open_child_directory(root_descriptor, entry)
                     try:
-                        with os.scandir(tasks_descriptor) as shard_entries:
+                        with os.scandir(entry.path if windows else tasks_descriptor) as shard_entries:
                             for shard in shard_entries:
-                                shard_mode = shard.stat(follow_symlinks=False).st_mode
-                                if stat.S_ISLNK(shard_mode):
+                                if _is_link(shard.stat(follow_symlinks=False)):
                                     raise OSError("backup_restore_reference_scan_invalid")
                                 shard_descriptor = open_child_directory(tasks_descriptor, shard)
                                 try:
-                                    with os.scandir(shard_descriptor) as file_entries:
+                                    with os.scandir(shard.path if windows else shard_descriptor) as file_entries:
                                         for file in file_entries:
-                                            file_mode = file.stat(follow_symlinks=False).st_mode
-                                            if stat.S_ISLNK(file_mode):
+                                            if _is_link(file.stat(follow_symlinks=False)):
                                                 raise OSError("backup_restore_reference_scan_invalid")
                                             if file.name.endswith(".metadata.json"):
                                                 scan_metadata_file(
@@ -152,3 +160,8 @@ class SourceMetadataScanner:
             or (current.st_dev, current.st_ino) != self.trust_identity
         ):
             raise OSError("backup_restore_reference_scan_invalid")
+
+
+def _is_link(info: os.stat_result) -> bool:
+    return (stat.S_ISLNK(info.st_mode)
+            or bool(getattr(info, "st_file_attributes", 0) & 0x400))

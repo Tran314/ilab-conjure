@@ -1,4 +1,5 @@
 from __future__ import annotations
+from ..file_permissions import is_private_file_descriptor, restrict_directory, restrict_file_descriptor
 
 from concurrent.futures import Executor, ThreadPoolExecutor
 import base64
@@ -181,7 +182,7 @@ class HistoryBackupExportService:
             self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
             if self.root.is_symlink() or not self.root.is_dir():
                 raise ValueError("backup_export_root_invalid")
-            os.chmod(self.root, 0o700)
+            restrict_directory(self.root)
             self._recover_statuses()
             self._recovered = True
             self._accepting = True
@@ -421,8 +422,7 @@ class HistoryBackupExportService:
         tasks_with_missing_inputs = 0
         missing_input_files = 0
         try:
-            if os.fstat(descriptor).st_mode & 0o777 != 0o600:
-                raise ValueError("backup_plan_private_mode_failed")
+            restrict_file_descriptor(descriptor)
             with (
                 plan_path.open("r", encoding="utf-8") as source,
                 os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as destination,
@@ -506,8 +506,7 @@ class HistoryBackupExportService:
             "uncompressed_bytes": total_bytes,
         }
         try:
-            if os.fstat(descriptor).st_mode & 0o777 != 0o600:
-                raise ValueError("backup_plan_private_mode_failed")
+            restrict_file_descriptor(descriptor)
             with os.fdopen(descriptor, "w", encoding="utf-8", newline="") as destination:
                 descriptor = -1
                 encoded_prefix = json.dumps(
@@ -566,6 +565,7 @@ class HistoryBackupExportService:
         final_path = self._artifact_path(final_name)
         descriptor = os.open(partial_path, os.O_CREAT | os.O_EXCL | os.O_RDWR, 0o600)
         try:
+            restrict_file_descriptor(descriptor)
             with os.fdopen(descriptor, "w+b") as destination:
                 descriptor = -1
                 with zipfile.ZipFile(
@@ -655,9 +655,11 @@ class HistoryBackupExportService:
 
     def _iter_spooled_tasks(self, path: Path) -> Iterator[PlannedBackupTask]:
         try:
-            if path.is_symlink() or not path.is_file() or os.stat(path).st_mode & 0o077:
+            if path.is_symlink() or not path.is_file():
                 raise ValueError("backup_plan_invalid")
             with path.open("r", encoding="utf-8") as source:
+                if not is_private_file_descriptor(source.fileno()):
+                    raise ValueError("backup_plan_invalid")
                 for line in source:
                     yield _planned_task_from_json_line(line)
         except OSError as exc:
@@ -770,7 +772,7 @@ class HistoryBackupExportService:
         )
         temporary = Path(temporary_name)
         try:
-            os.fchmod(descriptor, 0o600)
+            restrict_file_descriptor(descriptor)
             with os.fdopen(descriptor, "w", encoding="utf-8") as destination:
                 descriptor = -1
                 json.dump(asdict(job), destination, separators=(",", ":"), sort_keys=True)

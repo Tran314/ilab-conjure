@@ -44,6 +44,7 @@ from uuid import uuid4
 import zipfile
 
 from .atomic_files import atomic_write_bytes, atomic_write_text
+from ..file_permissions import restrict_directory, restrict_file_descriptor
 from .color_settings import _normalize_color_palette_payload
 from .image_uploads import InvalidRasterImage, validate_raster_image
 from .prompt_snippets import _normalize_prompt_snippets_payload
@@ -150,7 +151,7 @@ class UserConfigBackupImportService:
             self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
             if self.root.is_symlink() or not self.root.is_dir():
                 raise ValueError("user_config_restore_root_invalid")
-            os.chmod(self.root, 0o700)
+            restrict_directory(self.root)
             self._recover_rollback_journals()
             for status_path in self.root.glob("*.json"):
                 self._recover_status(status_path)
@@ -192,8 +193,14 @@ class UserConfigBackupImportService:
                 os.O_CREAT | os.O_EXCL | os.O_WRONLY,
                 0o600,
             )
-            os.fchmod(descriptor, 0o600)
-            os.close(descriptor)
+            try:
+                restrict_file_descriptor(descriptor)
+            except Exception:
+                os.close(descriptor)
+                upload_path.unlink(missing_ok=True)
+                raise
+            else:
+                os.close(descriptor)
             record = _SessionRecord(session, hashlib.sha256())
             self._records[session_id] = record
             try:
@@ -781,7 +788,7 @@ class UserConfigBackupImportService:
                 for field in network["present_fields"]
                 if field in network["values"]
             }
-            imported_providers = providers
+            imported_providers = self._preserve_current_provider_keys(providers)
         else:
             webui_candidate = dict(current_webui)
             for field in webui["present_fields"]:
@@ -810,10 +817,6 @@ class UserConfigBackupImportService:
             json.dumps(network_candidate, indent=2, ensure_ascii=False),
             mode=0o600,
         )
-        if mode == "replace":
-            imported_providers = self._preserve_current_provider_keys(
-                imported_providers
-            )
         self.planner.provider_settings.replace_snapshot(imported_providers)
         after_paths = self.planner.webui_settings.read_paths()
         return (
@@ -843,7 +846,7 @@ class UserConfigBackupImportService:
                 == provider_url_origin(provider["base_url"])
             ):
                 existing["api_key"] = imported_key
-        return merged
+        return self._complete_provider_defaults(merged, imported)
 
     def _preserve_current_provider_keys(
         self,
@@ -865,11 +868,34 @@ class UserConfigBackupImportService:
             if target is None:
                 candidate["providers"].append(provider)
                 imported_by_id[provider["id"]] = provider
-            elif not target.get("api_key"):
+            elif (
+                not target.get("api_key")
+                and provider_url_origin(target["base_url"])
+                == provider_url_origin(provider["base_url"])
+            ):
                 target["api_key"] = key
-        # Repair defaults for retained keyed providers only if their models are absent.
-        validated = validate_v2_payload(candidate)
-        return validated
+        return self._complete_provider_defaults(candidate, current)
+
+    @staticmethod
+    def _complete_provider_defaults(
+        candidate: dict[str, Any], fallback: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Preserve valid choices, then fill defaults for the final binding set."""
+        support: dict[str, list[str]] = {}
+        for provider in candidate["providers"]:
+            for binding in provider["bindings"]:
+                support.setdefault(binding["canonical_model_id"], []).append(provider["id"])
+        preferred = candidate["default_provider_by_model"]
+        secondary = fallback["default_provider_by_model"]
+        candidate["default_provider_by_model"] = {
+            model: next(
+                (choice for choice in (preferred.get(model), secondary.get(model))
+                 if choice in providers),
+                providers[0],
+            )
+            for model, providers in support.items()
+        }
+        return validate_v2_payload(candidate)
 
     def _remove_managed_gallery_paths(self) -> None:
         assert self.planner is not None
@@ -1248,6 +1274,10 @@ class UserConfigBackupImportService:
         semantic: dict[str, Any],
     ) -> UserConfigRestorePreview:
         payloads = semantic["json_payloads"]
+        if self.planner is not None and "settings" in manifest.sections:
+            # Validate both selectable modes against the actual merged bindings.
+            self._merge_providers(payloads["settings/providers.json"])
+            self._preserve_current_provider_keys(payloads["settings/providers.json"])
         section_previews: list[UserConfigRestoreSectionPreview] = []
         current_fingerprints: dict[str, str] = {}
         for section in manifest.sections:

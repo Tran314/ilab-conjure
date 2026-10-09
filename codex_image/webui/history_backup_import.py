@@ -1,4 +1,5 @@
 from __future__ import annotations
+from ..file_permissions import restrict_directory, restrict_file_descriptor
 
 from .history_restore_metadata import (
     _record_at,
@@ -203,7 +204,7 @@ class HistoryBackupImportService:
                 self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
                 if self.root.is_symlink() or not self.root.is_dir():
                     raise ValueError("backup_import_root_invalid")
-                os.chmod(self.root, 0o700)
+                restrict_directory(self.root)
                 self._recover_statuses()
                 self._replay_private_journals()
                 self._cleanup_orphan_staging()
@@ -264,7 +265,7 @@ class HistoryBackupImportService:
         upload_path = self._upload_path(session_id)
         descriptor = os.open(upload_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
         try:
-            os.fchmod(descriptor, 0o600)
+            restrict_file_descriptor(descriptor)
             os.close(descriptor)
             descriptor = -1
             record = _SessionRecord(session=session, digest=hashlib.sha256())
@@ -729,6 +730,7 @@ class HistoryBackupImportService:
                     actual_size = 0
                     descriptor = os.open(staged_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
                     with os.fdopen(descriptor, "wb") as destination, archive.open(entry.path, "r") as source:
+                        restrict_file_descriptor(destination.fileno())
                         while chunk := source.read(_STREAM_BYTES):
                             actual_size += len(chunk)
                             if actual_size > entry.size_bytes:
@@ -1726,7 +1728,7 @@ class HistoryBackupImportService:
         descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=self.root)
         temporary = Path(temporary_name)
         try:
-            os.fchmod(descriptor, 0o600)
+            restrict_file_descriptor(descriptor)
             with os.fdopen(descriptor, "w", encoding="utf-8") as destination:
                 descriptor = -1
                 json.dump(payload, destination, ensure_ascii=False, separators=(",", ":"), sort_keys=True)

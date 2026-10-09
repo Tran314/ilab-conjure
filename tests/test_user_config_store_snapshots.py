@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.file_security_helpers import assert_private_file
 
 from io import BytesIO
 import json
@@ -114,7 +115,7 @@ class UserConfigStoreSnapshotTests(unittest.TestCase):
             self.assertEqual(restored["providers"][0]["api_key"], "")
             self.assertNotIn("sk-secret", settings.path.read_text(encoding="utf-8"))
             self.assertNotIn('"api_key":', json.dumps(settings.public_settings()))
-            self.assertEqual(settings.path.stat().st_mode & 0o777, 0o600)
+            assert_private_file(self, settings.path)
 
     def test_gallery_snapshot_round_trips_owned_images_and_rejects_tampering(self) -> None:
         from dataclasses import replace

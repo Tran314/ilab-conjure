@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.file_security_helpers import assert_private_file
 
 from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timedelta, timezone
@@ -246,7 +247,7 @@ class WebUIHistoryBackupExportTests(unittest.TestCase):
             self.assertTrue(observed)
             self.assertEqual(observed, sorted(observed))
             archive_path = service.claim_download(job.job_id)
-            self.assertEqual(os.stat(archive_path).st_mode & 0o777, 0o600)
+            assert_private_file(self, archive_path)
             with zipfile.ZipFile(archive_path) as archive:
                 self.assertEqual(archive.namelist()[-1], "manifest.json")
                 manifest = parse_backup_manifest(archive.read("manifest.json"))
@@ -782,7 +783,7 @@ class WebUIHistoryBackupExportTests(unittest.TestCase):
             job = service.create(BackupExportScope.all())
             status_path = root / "private-backups" / f"history-backup-{job.job_id}.status.json"
 
-            self.assertEqual(os.stat(status_path).st_mode & 0o777, 0o600)
+            assert_private_file(self, status_path)
             status_text = status_path.read_text(encoding="utf-8")
             self.assertNotIn(str(root), status_text)
             self.assertNotIn("TOP-SECRET-PAYLOAD", status_text)
