@@ -3,8 +3,8 @@ set -e
 set -o pipefail
 export PATH="/usr/bin:/bin:/usr/sbin:/sbin:${PATH:-}"
 
-REPO_SLUG="kadevin/ilab-conjure"
-LATEST_UPDATE_MANIFEST_URL="https://github.com/kadevin/ilab-conjure/releases/latest/download/latest.json"
+REPO_SLUG="Tran314/ilab-conjure"
+LATEST_UPDATE_MANIFEST_URL="https://github.com/Tran314/ilab-conjure/releases/latest/download/latest.json"
 BUNDLE_DIR="$(cd "$(dirname "$0")" && pwd)"
 DATA_DIR="${BUNDLE_DIR}/data"
 VERSION_FILE="${BUNDLE_DIR}/portable-version.txt"
@@ -179,7 +179,7 @@ from_version = normalize(sys.argv[2])
 to_version = normalize(sys.argv[3])
 if not to_version:
     raise SystemExit(0)
-release_url = f"https://github.com/kadevin/ilab-conjure/releases/tag/v{to_version}"
+release_url = f"https://github.com/Tran314/ilab-conjure/releases/tag/v{to_version}"
 payload = {
     "kind": "portable_standard_app_transition",
     "to_version": to_version,

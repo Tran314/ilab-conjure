@@ -195,7 +195,7 @@ class PortablePackagingTests(unittest.TestCase):
         self.assertIn("%*", updater_text)
         self.assertIn("AUTO_MODE", updater_text)
         self.assertNotIn("ExecutionPolicy Bypass", updater_text)
-        self.assertIn("https://github.com/kadevin/ilab-conjure/releases/latest/download/latest.json", updater_helper_text)
+        self.assertIn("https://github.com/Tran314/ilab-conjure/releases/latest/download/latest.json", updater_helper_text)
         self.assertIn("[switch]$AutoInstall", updater_helper_text)
         self.assertIn("[switch]$RestartLauncher", updater_helper_text)
         self.assertIn("windows-x86_64", updater_helper_text)
@@ -343,7 +343,7 @@ class PortablePackagingTests(unittest.TestCase):
         self.assertNotIn("update-notice.json", launcher_text)
 
         updater_text = updater.read_text(encoding="utf-8")
-        self.assertIn("https://github.com/kadevin/ilab-conjure/releases/latest/download/latest.json", updater_text)
+        self.assertIn("https://github.com/Tran314/ilab-conjure/releases/latest/download/latest.json", updater_text)
         self.assertIn("AUTO_INSTALL=0", updater_text)
         self.assertIn("RESTART_LAUNCHER=0", updater_text)
         self.assertIn("--auto", updater_text)

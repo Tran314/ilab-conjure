@@ -1,3 +1,5 @@
+> 本仓库是 [kadevin/ilab-conjure](https://github.com/kadevin/ilab-conjure) 的 Tran314 分支，包含备份恢复安全与 Windows 兼容性修复。下载和签名更新使用本 fork 的独立发布渠道；首次从上游版本切换时，请手动下载完整安装包。
+
 <h1 align="center">iLab CONJURE</h1>
 
 <p align="center">
@@ -5,11 +7,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/kadevin/ilab-conjure/releases"><img alt="release" src="https://img.shields.io/github/v/release/kadevin/ilab-conjure?style=flat-square&logo=github&label=release&color=0EA5E9"></a>
-  <a href="https://github.com/kadevin/ilab-conjure/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/kadevin/ilab-conjure/actions/workflows/ci.yml/badge.svg?branch=main&event=push"></a>
-  <a href="https://github.com/kadevin/ilab-conjure/commits/main"><img alt="last commit" src="https://img.shields.io/github/last-commit/kadevin/ilab-conjure?style=flat-square&logo=github&label=last%20commit&color=10B981"></a>
-  <a href="https://github.com/kadevin/ilab-conjure/stargazers"><img alt="stars" src="https://img.shields.io/github/stars/kadevin/ilab-conjure?style=flat-square&logo=github&label=stars&color=0284C7"></a>
-  <a href="https://github.com/kadevin/ilab-conjure/network/members"><img alt="forks" src="https://img.shields.io/github/forks/kadevin/ilab-conjure?style=flat-square&logo=github&label=forks&color=0369A1"></a>
+  <a href="https://github.com/Tran314/ilab-conjure/releases"><img alt="release" src="https://img.shields.io/github/v/release/Tran314/ilab-conjure?style=flat-square&logo=github&label=release&color=0EA5E9"></a>
+  <a href="https://github.com/Tran314/ilab-conjure/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/Tran314/ilab-conjure/actions/workflows/ci.yml/badge.svg?branch=main&event=push"></a>
+  <a href="https://github.com/Tran314/ilab-conjure/commits/main"><img alt="last commit" src="https://img.shields.io/github/last-commit/Tran314/ilab-conjure?style=flat-square&logo=github&label=last%20commit&color=10B981"></a>
+  <a href="https://github.com/Tran314/ilab-conjure/stargazers"><img alt="stars" src="https://img.shields.io/github/stars/Tran314/ilab-conjure?style=flat-square&logo=github&label=stars&color=0284C7"></a>
+  <a href="https://github.com/Tran314/ilab-conjure/network/members"><img alt="forks" src="https://img.shields.io/github/forks/Tran314/ilab-conjure?style=flat-square&logo=github&label=forks&color=0369A1"></a>
 </p>
 
 <p align="center">
@@ -116,7 +118,7 @@ API 中转站可分别绑定 GPT Image 2、GPT Image 2.5 Flare 和 Sunburst，�
 ## 安装
 
 ```bash
-git clone https://github.com/kadevin/ilab-conjure.git
+git clone https://github.com/Tran314/ilab-conjure.git
 cd ilab-conjure
 python3 -m venv .venv
 .venv/bin/python -m pip install --require-hashes -r requirements-webui.txt
@@ -162,15 +164,15 @@ http://127.0.0.1:8787/
 
 ## 应用包下载
 
-当前版本为 `v0.9.6`。正式安装包见
-[下载 / Releases](RELEASES.md) 或 [GitHub 最新正式版](https://github.com/kadevin/ilab-conjure/releases/latest)。
+当前版本为 `v0.9.7`。正式安装包见
+[下载 / Releases](RELEASES.md) 或 [GitHub 最新正式版](https://github.com/Tran314/ilab-conjure/releases/latest)。
 
 新用户建议优先下载标准包：
 
-1. macOS：Apple Silicon 下载 `iLab-GPT-CONJURE-macos-arm64-0.9.6.dmg`，
-   Intel 下载 `iLab-GPT-CONJURE-macos-x64-0.9.6.dmg`，然后把
+1. macOS：Apple Silicon 下载 `iLab-GPT-CONJURE-macos-arm64-0.9.7.dmg`，
+   Intel 下载 `iLab-GPT-CONJURE-macos-x64-0.9.7.dmg`，然后把
    `iLab GPT CONJURE.app` 拖到 Applications。
-2. Windows：下载 `iLab-GPT-CONJURE-windows-x64_0.9.6.zip`，
+2. Windows：下载 `iLab-GPT-CONJURE-windows-x64_0.9.7.zip`，
    解压到普通用户目录，双击 `iLab GPT CONJURE.exe`。
 
 标准包的用户数据会写入 macOS 的
