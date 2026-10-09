@@ -512,6 +512,10 @@ class TaskStorage:
             or name.startswith(f"{task_id}-image-")
         ):
             raise OSError("backup_restore_path_invalid")
+        if os.name == "nt":
+            from ..windows_files import unlink_nofollow
+            unlink_nofollow(lexical_root, candidate)
+            return
         flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0)
         descriptor = os.open(candidate.parent, flags)
         try:

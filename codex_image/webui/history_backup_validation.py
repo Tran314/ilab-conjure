@@ -126,7 +126,9 @@ class HistoryBackupArchiveValidator:
         normalized_paths: set[str] = set()
         expanded = 0
         for info in infos:
-            path = _validated_member_path(info.filename)
+            # ZipInfo.filename is normalized on Windows and truncates NULs.
+            # Validate the original central-directory name before using it.
+            path = _validated_member_path(info.orig_filename)
             normalized_path = unicodedata.normalize("NFC", path).casefold()
             if path in paths or normalized_path in normalized_paths:
                 raise ValueError("backup_import_duplicate_member_path")

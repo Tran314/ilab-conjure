@@ -58839,7 +58839,7 @@ ${hint}` : hint;
       source.textContent = runtimeSourceLabel(payload?.source);
     }
     if (releaseLink) {
-      releaseLink.href = payload?.release_url || "https://github.com/kadevin/ilab-conjure/releases";
+      releaseLink.href = payload?.release_url || "https://github.com/Tran314/ilab-conjure/releases";
     }
     if (panel) {
       panel.classList.toggle("has-onboarding", Boolean(onboarding));
@@ -58852,7 +58852,7 @@ ${hint}` : hint;
     }
     if (standardDownloadLink) {
       standardDownloadLink.classList.toggle("hidden", !showStandardDownload);
-      standardDownloadLink.href = standardDownloadUrl || onboarding?.release_url || payload?.release_url || "https://github.com/kadevin/ilab-conjure/releases";
+      standardDownloadLink.href = standardDownloadUrl || onboarding?.release_url || payload?.release_url || "https://github.com/Tran314/ilab-conjure/releases";
     }
     if (continuePortableButton) {
       continuePortableButton.classList.toggle("hidden", !onboarding);
@@ -58885,7 +58885,7 @@ ${hint}` : hint;
         source: "source",
         update_available: false,
         updater_available: false,
-        release_url: "https://github.com/kadevin/ilab-conjure/releases"
+        release_url: "https://github.com/Tran314/ilab-conjure/releases"
       };
     }
     renderAppVersion();

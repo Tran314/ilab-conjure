@@ -43,7 +43,10 @@ def atomic_write_bytes(
     descriptor_open = True
     try:
         fchmod = getattr(os, "fchmod", None)
-        if mode is not None and callable(fchmod):
+        if mode == 0o600 and os.name == "nt":
+            from .file_permissions import restrict_file_descriptor
+            restrict_file_descriptor(descriptor)
+        elif mode is not None and callable(fchmod):
             fchmod(descriptor, mode)
         with os.fdopen(descriptor, "wb") as handle:
             descriptor_open = False

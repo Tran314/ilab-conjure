@@ -143,14 +143,14 @@ class WebUIStorageTests(unittest.TestCase):
             deleted.parent.mkdir(parents=True, exist_ok=True)
             deleted.write_bytes(b"deleted")
             pending.write_bytes(b"pending")
-            original_unlink = os.unlink
+            original_unlink = storage._unlink_restored_task_path
 
-            def fail_one(path, *args, **kwargs):
-                if path == pending.name and kwargs.get("dir_fd") is not None:
+            def fail_one(task_id, path):
+                if path == pending:
                     raise OSError("pending unlink")
-                return original_unlink(path, *args, **kwargs)
+                return original_unlink(task_id, path)
 
-            with patch("codex_image.webui.storage.os.unlink", side_effect=fail_one), patch.object(
+            with patch.object(storage, "_unlink_restored_task_path", side_effect=fail_one), patch.object(
                 storage.task_index, "delete", side_effect=OSError("index pending")
             ):
                 with self.assertRaises(RestoredTaskRollbackIncomplete) as caught:

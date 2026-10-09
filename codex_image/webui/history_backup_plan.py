@@ -1,4 +1,5 @@
 from __future__ import annotations
+from ..file_permissions import restrict_file_descriptor
 
 import hashlib
 import json
@@ -290,9 +291,7 @@ class TaskBackupPlanner:
         selected_count = 0
         eligible_count = 0
         try:
-            os.fchmod(descriptor, 0o600)
-            if os.fstat(descriptor).st_mode & 0o777 != 0o600:
-                raise OSError("backup_plan_private_mode_failed")
+            restrict_file_descriptor(descriptor)
             with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as destination:
                 descriptor = -1
                 for task_id, status in scope_rows:

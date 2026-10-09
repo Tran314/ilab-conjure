@@ -1,4 +1,5 @@
 from __future__ import annotations
+from ..file_permissions import restrict_file_descriptor
 import hashlib
 import json
 import os
@@ -156,7 +157,7 @@ class UserConfigArchiveValidator:
         total_expanded = 0
         result: dict[str, zipfile.ZipInfo] = {}
         for info in infos:
-            name = _validated_zip_member_name(info.filename)
+            name = _validated_zip_member_name(info.orig_filename)
             if name in result:
                 raise ValueError("user_config_restore_duplicate_entry")
             if info.is_dir():
@@ -205,6 +206,7 @@ class UserConfigArchiveValidator:
         digest = hashlib.sha256()
         written = 0
         try:
+            restrict_file_descriptor(descriptor)
             with os.fdopen(descriptor, "wb") as destination, archive.open(info) as source:
                 descriptor = -1
                 while chunk := source.read(min(1024 * 1024, self._max_member_bytes + 1)):

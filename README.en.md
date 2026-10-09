@@ -1,3 +1,5 @@
+> This is the Tran314 fork of [kadevin/ilab-conjure](https://github.com/kadevin/ilab-conjure), with backup restoration security and Windows compatibility fixes. Downloads and signed updates use this fork's independent release channel. Install a complete package manually when switching from an upstream build.
+
 <h1 align="center">iLab CONJURE</h1>
 
 <p align="center">
@@ -5,11 +7,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/kadevin/ilab-conjure/releases"><img alt="release" src="https://img.shields.io/github/v/release/kadevin/ilab-conjure?style=flat-square&logo=github&label=release&color=0EA5E9"></a>
-  <a href="https://github.com/kadevin/ilab-conjure/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/kadevin/ilab-conjure/actions/workflows/ci.yml/badge.svg?branch=main&event=push"></a>
-  <a href="https://github.com/kadevin/ilab-conjure/commits/main"><img alt="last commit" src="https://img.shields.io/github/last-commit/kadevin/ilab-conjure?style=flat-square&logo=github&label=last%20commit&color=10B981"></a>
-  <a href="https://github.com/kadevin/ilab-conjure/stargazers"><img alt="stars" src="https://img.shields.io/github/stars/kadevin/ilab-conjure?style=flat-square&logo=github&label=stars&color=0284C7"></a>
-  <a href="https://github.com/kadevin/ilab-conjure/network/members"><img alt="forks" src="https://img.shields.io/github/forks/kadevin/ilab-conjure?style=flat-square&logo=github&label=forks&color=0369A1"></a>
+  <a href="https://github.com/Tran314/ilab-conjure/releases"><img alt="release" src="https://img.shields.io/github/v/release/Tran314/ilab-conjure?style=flat-square&logo=github&label=release&color=0EA5E9"></a>
+  <a href="https://github.com/Tran314/ilab-conjure/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/Tran314/ilab-conjure/actions/workflows/ci.yml/badge.svg?branch=main&event=push"></a>
+  <a href="https://github.com/Tran314/ilab-conjure/commits/main"><img alt="last commit" src="https://img.shields.io/github/last-commit/Tran314/ilab-conjure?style=flat-square&logo=github&label=last%20commit&color=10B981"></a>
+  <a href="https://github.com/Tran314/ilab-conjure/stargazers"><img alt="stars" src="https://img.shields.io/github/stars/Tran314/ilab-conjure?style=flat-square&logo=github&label=stars&color=0284C7"></a>
+  <a href="https://github.com/Tran314/ilab-conjure/network/members"><img alt="forks" src="https://img.shields.io/github/forks/Tran314/ilab-conjure?style=flat-square&logo=github&label=forks&color=0369A1"></a>
 </p>
 
 <p align="center">
@@ -168,7 +170,7 @@ metadata, SQLite databases, or debug logs.
 ## Install
 
 ```bash
-git clone https://github.com/kadevin/ilab-conjure.git
+git clone https://github.com/Tran314/ilab-conjure.git
 cd ilab-conjure
 python3 -m venv .venv
 .venv/bin/python -m pip install --require-hashes -r requirements-webui.txt
@@ -220,16 +222,16 @@ require a secure context may be unavailable.
 
 ## App packages
 
-The current version is `v0.9.6`. Published packages are listed in
+The current version is `v0.9.7`. Published packages are listed in
 [Downloads / Releases](RELEASES.md) and the
-[latest official GitHub release](https://github.com/kadevin/ilab-conjure/releases/latest).
+[latest official GitHub release](https://github.com/Tran314/ilab-conjure/releases/latest).
 
 New users should choose the standard packages:
 
-1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.9.6.dmg`
-   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.9.6.dmg`
+1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.9.7.dmg`
+   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.9.7.dmg`
    for Intel, then drag `iLab GPT CONJURE.app` to Applications.
-2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.9.6.zip`,
+2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.9.7.zip`,
    extract it into a normal user directory, and run `iLab GPT CONJURE.exe`.
 
 Standard packages store user data in `~/Library/Application Support/iLab GPT

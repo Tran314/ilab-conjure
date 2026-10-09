@@ -36,10 +36,10 @@ pub const DEFAULT_PORT: u16 = 8787;
 pub const WEBUI_URL: &str = "http://127.0.0.1:8787/";
 pub const HEALTH_PATH: &str = "/api/health";
 pub const LOG_FILE_NAME: &str = "webui-server.log";
-pub const PROJECT_URL: &str = "https://github.com/kadevin/ilab-conjure";
-pub const RELEASES_URL: &str = "https://github.com/kadevin/ilab-conjure/releases/latest";
+pub const PROJECT_URL: &str = "https://github.com/Tran314/ilab-conjure";
+pub const RELEASES_URL: &str = "https://github.com/Tran314/ilab-conjure/releases/latest";
 pub const LATEST_UPDATE_MANIFEST_URL: &str =
-    "https://github.com/kadevin/ilab-conjure/releases/latest/download/latest.json";
+    "https://github.com/Tran314/ilab-conjure/releases/latest/download/latest.json";
 pub const UPDATE_SIGNING_PUBLIC_KEY_B64: &str =
     include_str!("../assets/update-signing-public-key.b64");
 pub const DEFAULT_LOCALE_TAG: &str = "zh-CN";

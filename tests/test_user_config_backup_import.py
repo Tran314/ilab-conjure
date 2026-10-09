@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.file_security_helpers import assert_private_file
 
 from datetime import datetime, timedelta, timezone
 import hashlib
@@ -131,11 +132,7 @@ class UserConfigBackupImportTests(unittest.TestCase):
             )
 
             self.assertEqual(updated, retried)
-            self.assertEqual(
-                (service.root / f"{session.session_id}.upload").stat().st_mode
-                & 0o777,
-                0o600,
-            )
+            assert_private_file(self, service.root / f"{session.session_id}.upload")
             with self.assertRaisesRegex(ValueError, "retry_mismatch"):
                 different = b"differen"
                 service.append_chunk(
@@ -165,10 +162,7 @@ class UserConfigBackupImportTests(unittest.TestCase):
             self.assertEqual([item.section for item in preview.sections], ["chips"])
             self.assertTrue(preview.preview_revision)
             staging = service.root / f"{session.session_id}.staging"
-            self.assertEqual(
-                (staging / "chips" / "colors.json").stat().st_mode & 0o777,
-                0o600,
-            )
+            assert_private_file(self, staging / "chips" / "colors.json")
             self.assertFalse(any(root.glob("settings/*.json")))
 
     def test_hostile_zip_shapes_are_rejected_before_restore(self) -> None:

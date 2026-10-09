@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.file_security_helpers import assert_private_directory, assert_private_file
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -170,8 +171,8 @@ class UserConfigBackupExportTests(unittest.TestCase):
             progress = [(item.completed_members, item.completed_bytes) for item in observed]
             self.assertEqual(progress, sorted(progress))
             ready_path = service.root / f"{job.job_id}.zip"
-            self.assertEqual(ready_path.stat().st_mode & 0o777, 0o600)
-            self.assertEqual(service.root.stat().st_mode & 0o777, 0o700)
+            assert_private_file(self, ready_path)
+            assert_private_directory(self, service.root)
             with zipfile.ZipFile(ready_path) as archive:
                 self.assertEqual(archive.namelist()[-1], "manifest.json")
                 manifest = parse_user_config_manifest(archive.read("manifest.json"))

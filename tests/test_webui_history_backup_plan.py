@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.file_security_helpers import assert_private_file, require_symlinks
 
 import hashlib
 import json
@@ -235,6 +236,7 @@ class WebUIHistoryBackupPlanTests(unittest.TestCase):
                     planner.plan_task(task.task_id)
 
     def test_plan_task_rejects_cross_task_and_content_storage_path_escape(self) -> None:
+        require_symlinks(self)
         with TemporaryDirectory() as tmp:
             root = Path(tmp)
             storage, gallery, assets, reference_files, planner = self._storages(root)
@@ -582,7 +584,7 @@ class WebUIHistoryBackupPlanTests(unittest.TestCase):
                     json.dumps({"task_id": failed_id}, separators=(",", ":")),
                 ],
             )
-            self.assertEqual(os.stat(plan_path).st_mode & 0o777, 0o600)
+            assert_private_file(self, plan_path)
 
             filtered_path = root / "plans" / "filtered.jsonl"
             with (
@@ -668,7 +670,7 @@ class WebUIHistoryBackupPlanTests(unittest.TestCase):
             real_replace = os.replace
 
             def checked_replace(source, target):
-                self.assertEqual(os.stat(source).st_mode & 0o777, 0o600)
+                assert_private_file(self, source)
                 real_replace(source, target)
 
             with (
@@ -679,7 +681,7 @@ class WebUIHistoryBackupPlanTests(unittest.TestCase):
                 ),
             ):
                 planner.plan_scope(BackupExportScope.all(), plan_path)
-            self.assertEqual(os.stat(plan_path).st_mode & 0o777, 0o600)
+            assert_private_file(self, plan_path)
 
             failed_path = root / "plans" / "failed.jsonl"
             with patch(

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from ..file_permissions import restrict_directory, restrict_file_descriptor
 
 from concurrent.futures import Executor, ThreadPoolExecutor
 from dataclasses import asdict, dataclass, replace
@@ -128,7 +129,7 @@ class UserConfigBackupExportService:
             self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
             if self.root.is_symlink() or not self.root.is_dir():
                 raise ValueError("user_config_backup_root_invalid")
-            os.chmod(self.root, 0o700)
+            restrict_directory(self.root)
             for status_path in self.root.glob("*.json"):
                 self._recover_status(status_path)
             for partial in self.root.glob("*.partial"):
@@ -312,25 +313,27 @@ class UserConfigBackupExportService:
         partial_path = self.root / f"{job_id}.partial"
         ready_path = self.root / f"{job_id}.zip"
         try:
-            with zipfile.ZipFile(
-                partial_path,
-                mode="w",
-                compression=zipfile.ZIP_DEFLATED,
-                allowZip64=True,
-            ) as archive:
-                for member in plan.members:
-                    record = self._record(job_id)
-                    self._raise_if_cancelled(record)
-                    if member.data is not None:
-                        archive.writestr(member.entry.path, member.data)
-                        written = len(member.data)
-                    else:
-                        written = self._write_source_member(archive, member)
-                    self._advance(job_id, written)
-                archive.writestr("manifest.json", manifest_bytes)
-            os.chmod(partial_path, 0o600)
+            with partial_path.open("xb") as destination:
+                restrict_file_descriptor(destination.fileno())
+                with zipfile.ZipFile(
+                    destination,
+                    mode="w",
+                    compression=zipfile.ZIP_DEFLATED,
+                    allowZip64=True,
+                ) as archive:
+                    for member in plan.members:
+                        record = self._record(job_id)
+                        self._raise_if_cancelled(record)
+                        if member.data is not None:
+                            archive.writestr(member.entry.path, member.data)
+                            written = len(member.data)
+                        else:
+                            written = self._write_source_member(archive, member)
+                        self._advance(job_id, written)
+                    archive.writestr("manifest.json", manifest_bytes)
+                destination.flush()
+                os.fsync(destination.fileno())
             os.replace(partial_path, ready_path)
-            os.chmod(ready_path, 0o600)
         finally:
             partial_path.unlink(missing_ok=True)
 

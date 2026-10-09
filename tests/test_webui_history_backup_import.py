@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.file_security_helpers import assert_private_directory, assert_private_file, require_symlinks
 
 from dataclasses import asdict
 import hashlib
@@ -109,6 +110,12 @@ def _archive_bytes(
         for path, data in payloads.items():
             archive.writestr(path, data)
         for name, data in extra_members or []:
+            if isinstance(name, str) and "\\" in name:
+                # ZipInfo normalizes backslashes on Windows. Preserve hostile
+                # bytes here so this fixture exercises the validator everywhere.
+                raw_name = name
+                name = zipfile.ZipInfo("placeholder")
+                name.filename = name.orig_filename = raw_name
             archive.writestr(name, data)
         archive.writestr("manifest.json", _json_bytes(manifest))
     return destination.getvalue()
@@ -682,6 +689,7 @@ class HistoryBackupImportTests(unittest.TestCase):
         self.assertEqual(recovered.restore(session_id), expected)
 
     def test_recovery_removes_only_unreferenced_canonical_orphan_staging(self) -> None:
+        require_symlinks(self)
         session_id = "d" * 32
         nonce = "a" * 32
         plain = self.root / f".history-backup-import-task-plain.{nonce}.staging"
@@ -1158,6 +1166,7 @@ class HistoryBackupImportTests(unittest.TestCase):
         self.assertEqual(json.loads(journal.read_text(encoding="utf-8")), payload)
 
     def test_startup_replay_rejects_symlink_parent_and_preserves_external_file(self) -> None:
+        require_symlinks(self)
         payload_bytes, _ = _full_restore_archive("replay-symlink-parent")
         _, planner = self._restore_service(payload_bytes)
         session_id = "7" * 32
@@ -1602,6 +1611,7 @@ class HistoryBackupImportTests(unittest.TestCase):
         self.assertEqual(planner.reference_asset_storage.read_item(handle.record["id"])["id"], handle.record["id"])
 
     def test_resource_reference_scan_rejects_date_shard_symlink_and_preserves_rollback(self) -> None:
+        require_symlinks(self)
         payload_bytes, _ = _full_restore_archive("reference-symlink-guard")
         _, planner = self._restore_service(payload_bytes)
         data = _png_bytes((101, 102, 103))
@@ -1640,6 +1650,7 @@ class HistoryBackupImportTests(unittest.TestCase):
         self.assertTrue(journal.exists())
 
     def test_source_data_binding_swap_during_descriptor_scan_fails_closed(self) -> None:
+        require_symlinks(self)
         for variant, session_char in (("parent", "1"), ("root", "2")):
             with self.subTest(variant=variant):
                 base = Path(self.temporary.name) / f"binding-{variant}"
@@ -1709,6 +1720,7 @@ class HistoryBackupImportTests(unittest.TestCase):
                 self.assertEqual(assets.read_item(handle.record["id"])["id"], handle.record["id"])
                 self.assertTrue(journal.exists())
 
+    @unittest.skipIf(os.name == "nt", "Windows uses native handles instead of O_NOFOLLOW")
     def test_missing_nofollow_capability_keeps_normal_reads_but_rollback_fails_closed(self) -> None:
         payload_bytes, _ = _full_restore_archive("missing-nofollow")
         _, planner = self._restore_service(payload_bytes)
@@ -1918,6 +1930,7 @@ class HistoryBackupImportTests(unittest.TestCase):
         self.assertFalse(journal.exists())
 
     def test_changed_or_symlinked_staged_binary_rolls_back_entire_task(self) -> None:
+        require_symlinks(self)
         for attack in ("changed", "symlink"):
             with self.subTest(attack=attack):
                 task_id = f"staged-{attack}"
@@ -2003,7 +2016,8 @@ class HistoryBackupImportTests(unittest.TestCase):
         session = self.service.create("backup.zip", 6)
         artifacts = list(self.root.iterdir())
         self.assertEqual(len(artifacts), 2)
-        self.assertTrue(all(stat.S_IMODE(path.stat().st_mode) == 0o600 for path in artifacts))
+        for path in artifacts:
+            assert_private_file(self, path)
 
         first = b"abc"
         state = self.service.append_chunk(session.session_id, 0, first, hashlib.sha256(first).hexdigest())
@@ -2119,7 +2133,7 @@ class HistoryBackupImportTests(unittest.TestCase):
         self.assertEqual(preview.invalid, ())
         self.assertEqual(service.validate(session_id), preview)
         plan_path = next(self.root.glob("*.plan.json"))
-        self.assertEqual(stat.S_IMODE(plan_path.stat().st_mode), 0o600)
+        assert_private_file(self, plan_path)
         plan = json.loads(plan_path.read_text(encoding="utf-8"))
         self.assertEqual(plan["classifications"]["conflict"][0]["task_id"], "conflict")
         self.assertNotIn("classification", plan["manifest"]["tasks"][0])
@@ -2206,7 +2220,7 @@ class HistoryBackupImportTests(unittest.TestCase):
             min_free_bytes=0,
             free_ratio=0,
         )
-        self.assertEqual(stat.S_IMODE(permissive_root.stat().st_mode), 0o700)
+        assert_private_directory(self, permissive_root)
 
     def test_manifest_members_must_match_archive_and_supported_version(self) -> None:
         valid = _archive_bytes()

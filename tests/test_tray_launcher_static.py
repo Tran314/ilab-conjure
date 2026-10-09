@@ -97,7 +97,7 @@ class TrayLauncherStaticTests(unittest.TestCase):
         self.assertIn('"signature"', manifest_source)
         self.assertIn("User-Agent", combined_source)
         self.assertIn(
-            "https://github.com/kadevin/ilab-conjure/releases/latest/download/latest.json",
+            "https://github.com/Tran314/ilab-conjure/releases/latest/download/latest.json",
             combined_source,
         )
         self.assertIn("show_platform_about_window", combined_source)

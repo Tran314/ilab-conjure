@@ -221,7 +221,10 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertIsNotNone(job, "CI must verify the runtime dependency lock on Windows")
         body = job.group("body") if job else ""
         self.assertIn("runs-on: windows-latest", body)
-        self.assertIn('python-version: "3.11"', body)
+        self.assertIn('python-version: ["3.11", "3.13"]', body)
+        self.assertIn('python-version: ${{ matrix.python-version }}', body)
+        self.assertIn('tests.test_windows_backup_files', body)
+        self.assertIn('tests.test_backup_restore_regressions', body)
         self.assertIn(
             "python -m pip install --require-hashes -r requirements-webui.txt",
             body,
