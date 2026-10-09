@@ -23,8 +23,10 @@ class WindowsBackupFileTests(unittest.TestCase):
         self.source.mkdir()
 
     def _scanner(self):
-        info = self.source.stat()
-        return SourceMetadataScanner(self.source, self.source, (info.st_dev, info.st_ino))
+        # Match TaskStorage: runner temp paths may contain an 8.3 alias.
+        trust_root = self.source.resolve(strict=True)
+        info = trust_root.stat()
+        return SourceMetadataScanner(self.source, trust_root, (info.st_dev, info.st_ino))
 
     def _junction(self, path, target):
         subprocess.run(["cmd.exe", "/c", "mklink", "/J", str(path), str(target)],
@@ -93,7 +95,7 @@ class WindowsBackupFileTests(unittest.TestCase):
         task = shard / "task.metadata.json"
         task.write_text(json.dumps({"task_id": "task"}), encoding="utf-8")
         paths, records = self._scanner()._secure_source_metadata_scan(read_records=True)
-        self.assertEqual(paths, [legacy, task])
+        self.assertEqual(paths, [legacy.resolve(), task.resolve()])
         self.assertEqual(records, [{"task_id": "legacy"}, {"task_id": "task"}])
 
     def test_scanner_rejects_junction_to_external_metadata(self):

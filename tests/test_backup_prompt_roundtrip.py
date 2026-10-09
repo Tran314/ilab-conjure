@@ -58,7 +58,7 @@ class BackupPromptRoundtripTests(unittest.TestCase):
             self.assertEqual(result.failed, ())
             for task_id, prompt in expected.items():
                 metadata = target.task_storage.read_metadata(task_id)
-                request = json.loads(target.task_storage.request_path(task_id).read_text())
+                request = json.loads(target.task_storage.request_path(task_id).read_text(encoding="utf-8"))
                 self.assertEqual(metadata.get("prompt"), prompt)
                 self.assertEqual(metadata.get("prompt_for_model"), prompt)
                 self.assertEqual(metadata["outputs"][0].get("revised_prompt"), prompt)
