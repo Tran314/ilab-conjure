@@ -1,6 +1,14 @@
 import type { TranslationDictionary } from "./types";
 
 export const ZH_CN_DICTIONARY: TranslationDictionary = {
+    "history.media.details": "打开任务查看详情",
+    "history.media.unavailable": "图片加载失败",
+    "history.media.missing": "原图缺失",
+    "history.media.empty": "未生成图片",
+    "history.media.failed": "生成失败",
+    "history.media.loading": "正在加载图片",
+    "prompt.referenceHelpText": "输入 @ 引用图库图片，# 插入颜色，~ 引用提示词片段。",
+    "prompt.referenceHelp": "提示词快捷引用",
     "mobile.taskActions": "任务操作",
     "mobile.photos": "照片",
     "mobile.files": "文件",
@@ -615,7 +623,7 @@ export const ZH_CN_DICTIONARY: TranslationDictionary = {
     "promptGallery.remove": "移除 @{name}",
     "prompt.title": "提示词",
     "prompt.editorLabel": "提示词",
-    "prompt.placeholder": "描述你要生成或编辑的图片，输入 @ 可调用图库参考图，输入 # 可插入颜色码，输入 ~ 或 ～ 可调用提示词片段",
+    "prompt.placeholder": "描述你想生成或编辑的图片",
     "prompt.run": "开始生成",
     "prompt.runEdit": "开始编辑",
     "prompt.runTitle": "开始生成（Cmd+Enter）",
@@ -734,7 +742,7 @@ export const ZH_CN_DICTIONARY: TranslationDictionary = {
     "preview.downloadSelected": "只下载精选",
     "preview.deleteUnselected": "删除未精选",
     "preview.downloadAll": "打包下载",
-    "preview.empty": "暂无图片",
+    "preview.empty": "生成结果将在这里显示",
     "preview.taskFailed": "任务失败",
     "preview.partialFailed": "部分图片生成失败",
     "preview.failedOutput": "第 {index} 张失败",

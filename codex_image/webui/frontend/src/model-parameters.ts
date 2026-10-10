@@ -649,8 +649,9 @@ export const PARAMETER_RENDERERS: Record<CatalogParameterDefinition["control"], 
   aspect_ratio_grid: renderAspectRatioGrid,
 };
 
-export function advancedParametersAreExpanded(model: CatalogModel, readOnly: boolean): boolean {
-  return readOnly || model.expand_advanced_parameters === true;
+export function advancedParametersAreExpanded(_model: CatalogModel, readOnly: boolean): boolean {
+  // Editing prioritizes common controls; historical inspection shows every value.
+  return readOnly;
 }
 
 export function legacyParameterVisibility(modelId: string, sizeMode: unknown): {
@@ -748,7 +749,10 @@ export function renderInteractiveParameterDefinitionsInto(
   const resolvedValues = resolvedParameterValues(model, values);
   const visibleDefinitions = visibleParameterDefinitions(model, resolvedValues, operation);
   if (visibleDefinitions.some((definition) => definition.group === "advanced")) {
+    const wasOpen = root.querySelector<HTMLDetailsElement>("details.model-parameter-advanced")?.open;
     renderParameterDefinitionsInto(root, model, values, { readOnly: false, operation });
+    const disclosure = root.querySelector<HTMLDetailsElement>("details.model-parameter-advanced");
+    if (disclosure && wasOpen) disclosure.open = true;
     return;
   }
   const context: RenderContext = { readOnly: false, model, values: resolvedValues, root };

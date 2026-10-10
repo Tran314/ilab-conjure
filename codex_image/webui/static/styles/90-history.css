@@ -3022,9 +3022,7 @@ body.history-lightbox-open {
 }
 
 @media (min-width: 1101px) {
-  .history-management-button {
-    display: none;
-  }
+  .history-management-button { display: grid; }
 }
 
 @media (max-width: 1100px) {
@@ -3289,3 +3287,18 @@ body.history-lightbox-open {
     animation: none;
   }
 }
+
+/* Browsing owns the canvas; details and management open on demand. */
+@media (min-width: 1101px) {
+  .history-page:not(.history-detail-open) { grid-template-columns: clamp(220px, var(--history-sidebar-width), 420px) minmax(360px, 1fr); }
+  .history-page:not(.history-detail-open) .history-detail,
+  .history-page:not(.history-detail-open) .history-resize-hit-area-right { display: none; }
+}
+.history-task-thumb-frame { position: relative; }
+.history-task-media-state { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; padding: 12px; color: var(--text-secondary); font-size: 14px; line-height: 1.5; text-align: center; background: var(--surface-soft); }
+.history-task-media-state small { font-size: 12px; font-weight: 400; }
+.history-task-thumb-frame[data-media-state="loaded"] .history-task-media-state { display: none; }
+.history-task-thumb-frame:not([data-media-state="loaded"]) img { visibility: hidden; }
+.history-task-list.history-view-list .history-task-media-state { font-size: 11px; padding: 4px; }
+.history-task-list.history-view-list .history-task-media-state small { display: none; }
+.history-task-list.history-view-grid .history-task-stack-layer { opacity: .45; box-shadow: none; }

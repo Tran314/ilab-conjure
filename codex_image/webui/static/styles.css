@@ -5352,7 +5352,7 @@ select.themed-select-native {
 
 .prompt-compose {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--prompt-action-column-width);
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--prompt-action-gap);
   align-items: stretch;
 }
@@ -6867,6 +6867,17 @@ select.themed-select-native {
     width: 100%;
   }
 }
+
+/* Keep the editing surface full width and the primary action next to its summary. */
+.prompt-submit-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; flex: 0 0 auto; }
+.prompt-submit-row .execution-summary { flex: 1 1 0; min-width: 0; margin: 0; line-height: 1.5; }
+.prompt-submit-row .prompt-run-wrap { flex: 0 0 auto; }
+.prompt-submit-row .run-button { width: auto; min-width: 132px; height: 44px; min-height: 44px; border-radius: var(--radius); padding-inline: 20px; }
+.prompt-reference-help { position: relative; font-size: 13px; color: var(--text-secondary); }
+.prompt-reference-help summary { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; list-style: none; }
+.prompt-reference-help summary::-webkit-details-marker { display: none; }
+.prompt-reference-help summary:hover { background: var(--surface-soft); }
+.prompt-reference-help p { position: absolute; z-index: 15; top: 100%; left: -80px; width: min(280px, 65vw); margin: 4px 0 0; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-popover); line-height: 1.6; }
 
 /* source: styles/70-output-settings.css */
 /* Output Settings Lock */
@@ -8781,6 +8792,13 @@ input[type=range].slider:disabled::-moz-range-thumb {
   text-overflow: ellipsis;
 }
 
+.output-advanced { min-width: 0; border-top: 1px solid var(--line); }
+.output-advanced > summary { padding-block: 12px; min-height: 44px; cursor: pointer; color: var(--text-secondary); font-size: 14px; }
+.output-advanced-content { display: grid; gap: 16px; padding-block: 4px 12px; }
+.output-advanced[open] .output-advanced-content { animation: output-disclose var(--motion-base); }
+@keyframes output-disclose { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .output-advanced[open] .output-advanced-content { animation: none; } }
+
 /* source: styles/71-preview-results.css */
 /* Preview Grid */
 .preview-grid {
@@ -9697,10 +9715,11 @@ input[type=range].slider:disabled::-moz-range-thumb {
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  background: var(--surface-soft);
-  border: 1px dashed color-mix(in srgb, var(--text-secondary) 30%, var(--line));
-  border-radius: 8px;
-  font-size: 13px;
+  background: transparent;
+  border: 0;
+  padding: 24px;
+  text-align: center;
+  font-size: 14px;
 }
 
 .error-preview {
@@ -14631,7 +14650,7 @@ button:disabled {
 .output-panel .radio-group { --segmented-control-height: 30px; --segmented-control-padding: 3px; }
 .output-panel #ratioGroup { grid-template-rows: repeat(2, 36px); gap: 6px; padding: 0; border: 0; background: transparent; }
 .output-panel #ratioGroup .radio-btn { height: 36px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-soft); transform: none; }
-.output-panel #ratioGroup .radio-btn.active { background: var(--primary); border-color: var(--primary); }
+.output-panel #ratioGroup .radio-btn.active { background: var(--primary-light); color: var(--primary-strong); border-color: var(--primary); }
 .output-panel #ratioGroup .radio-btn[data-val="1:1"] { height: 100%; }
 .output-panel .moderation-field > span { min-height: 24px; display: flex; align-items: center; }
 .output-panel .size-editors > .custom-size { min-height: 0; max-height: none; }
@@ -14639,6 +14658,22 @@ button:disabled {
 .output-panel .api-direct-settings-notice { min-height: calc(var(--mode-settings-segment-height) + 8px); align-items: center; padding-inline-start: var(--control-label-optical-inset); }
 @container output-settings (max-width: 430px) {
   .output-panel .mode-specific-settings { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Parameter selection is quieter than the generation action. */
+.output-panel .radio-btn.active { color: var(--primary-strong); background: var(--primary-light); }
+.output-panel .segmented-indicator { background: var(--primary-light); }
+.output-panel .radio-group .segmented-indicator { background: var(--primary-light); }
+.output-panel .radio-group.segmented-indicator-host .radio-btn.active { color: var(--primary-strong); }
+.controls-col .prompt-compose { grid-template-columns: minmax(0, 1fr); }
+.compact-reference-toggle { display: inline-flex; }
+.controls-col .image-panel.references-collapsed { flex: 0 0 auto; min-height: 0; height: auto; }
+.image-panel.references-collapsed > .panel-heading { margin-bottom: 0; }
+.references-collapsed .image-input-workspace { display: none; }
+.image-panel .panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+@media (prefers-reduced-motion: no-preference) {
+  .prompt-panel { animation: workbench-enter 180ms ease-out; }
+  @keyframes workbench-enter { from { opacity: .65; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 }
 
 /* source: styles/90-history.css */
@@ -17666,9 +17701,7 @@ body.history-lightbox-open {
 }
 
 @media (min-width: 1101px) {
-  .history-management-button {
-    display: none;
-  }
+  .history-management-button { display: grid; }
 }
 
 @media (max-width: 1100px) {
@@ -17934,6 +17967,21 @@ body.history-lightbox-open {
   }
 }
 
+/* Browsing owns the canvas; details and management open on demand. */
+@media (min-width: 1101px) {
+  .history-page:not(.history-detail-open) { grid-template-columns: clamp(220px, var(--history-sidebar-width), 420px) minmax(360px, 1fr); }
+  .history-page:not(.history-detail-open) .history-detail,
+  .history-page:not(.history-detail-open) .history-resize-hit-area-right { display: none; }
+}
+.history-task-thumb-frame { position: relative; }
+.history-task-media-state { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; padding: 12px; color: var(--text-secondary); font-size: 14px; line-height: 1.5; text-align: center; background: var(--surface-soft); }
+.history-task-media-state small { font-size: 12px; font-weight: 400; }
+.history-task-thumb-frame[data-media-state="loaded"] .history-task-media-state { display: none; }
+.history-task-thumb-frame:not([data-media-state="loaded"]) img { visibility: hidden; }
+.history-task-list.history-view-list .history-task-media-state { font-size: 11px; padding: 4px; }
+.history-task-list.history-view-list .history-task-media-state small { display: none; }
+.history-task-list.history-view-grid .history-task-stack-layer { opacity: .45; box-shadow: none; }
+
 /* source: styles/95-touch.css */
 /* Touch workspaces reuse the desktop controls and state. */
 .mobile-more-button, .mobile-parameter-summary, .mobile-generate-dock, .mobile-return-edit { display: none; }
@@ -18111,7 +18159,7 @@ body.history-lightbox-open {
 .mobile-ui .controls-col .prompt-compose { display: block; }
 .mobile-ui .controls-col .prompt-box { min-height: 160px; height: 160px; font-size: 16px; }
 .mobile-ui .prompt-panel { --prompt-secondary-action-height: 44px; --prompt-secondary-chip-height: 32px; }
-.mobile-ui .prompt-template-row { grid-template-columns: minmax(0, 1fr); margin-top: 8px; }
+.mobile-ui .prompt-template-row { grid-template-columns: minmax(0, 1fr) auto; margin-top: 8px; gap: 8px; }
 .mobile-ui .prompt-run-wrap { display: none; }
 .mobile-ui .prompt-heading { min-height: 28px; }
 .mobile-ui #restoreComposerDraft { min-height: 44px; }
@@ -18304,3 +18352,14 @@ body.history-lightbox-open {
 #mobileParameters #ratioGroup .radio-btn[data-val="16:9"] { grid-column: 2; grid-row: 4; }
 #mobileParameters #ratioGroup .radio-btn[data-val="9:21"] { grid-column: 3; grid-row: 3; }
 #mobileParameters #ratioGroup .radio-btn[data-val="21:9"] { grid-column: 3; grid-row: 4; }
+
+.mobile-ui .prompt-submit-row { display: none; }
+.mobile-ui .prompt-template-recent-dock { display: none; }
+.mobile-ui .prompt-template-entry .prompt-template-button { padding-inline: 8px; }
+.mobile-ui .prompt-reference-help summary { width: 44px; height: 44px; }
+.mobile-ui .controls-col > .status-text[data-idle="true"] { display: none; }
+.mobile-ui .preview-heading { display: flex; align-items: center; flex-wrap: wrap; }
+.mobile-ui .preview-heading h2 { margin-right: auto; }
+.mobile-ui .preview-heading-actions { display: flex; width: auto; }
+.mobile-ui .mobile-return-edit { order: 1; }
+.mobile-ui .history-task-media-state { font-size: 13px; }

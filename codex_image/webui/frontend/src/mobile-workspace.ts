@@ -61,6 +61,12 @@ export function initMobileWorkspace(): void {
   const feedback = document.getElementById("statusText");
   const feedbackOrigin = document.createComment("mobile-feedback-origin");
   feedback?.before(feedbackOrigin);
+  const syncFeedback = () => {
+    if (feedback) feedback.dataset.idle = String(!feedback.classList.contains("error") && feedback.textContent?.trim() === translate("status.waiting"));
+  };
+  if (feedback) new MutationObserver(syncFeedback).observe(feedback, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+  document.addEventListener(LOCALE_CHANGE_EVENT, syncFeedback);
+  syncFeedback();
   const sync = () => {
     sheet.close();
     if (query.matches) {

@@ -70,7 +70,7 @@
 
 .prompt-compose {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--prompt-action-column-width);
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--prompt-action-gap);
   align-items: stretch;
 }
@@ -1585,3 +1585,14 @@
     width: 100%;
   }
 }
+
+/* Keep the editing surface full width and the primary action next to its summary. */
+.prompt-submit-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; flex: 0 0 auto; }
+.prompt-submit-row .execution-summary { flex: 1 1 0; min-width: 0; margin: 0; line-height: 1.5; }
+.prompt-submit-row .prompt-run-wrap { flex: 0 0 auto; }
+.prompt-submit-row .run-button { width: auto; min-width: 132px; height: 44px; min-height: 44px; border-radius: var(--radius); padding-inline: 20px; }
+.prompt-reference-help { position: relative; font-size: 13px; color: var(--text-secondary); }
+.prompt-reference-help summary { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; list-style: none; }
+.prompt-reference-help summary::-webkit-details-marker { display: none; }
+.prompt-reference-help summary:hover { background: var(--surface-soft); }
+.prompt-reference-help p { position: absolute; z-index: 15; top: 100%; left: -80px; width: min(280px, 65vw); margin: 4px 0 0; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-popover); line-height: 1.6; }
