@@ -12,6 +12,20 @@ from fastapi.testclient import TestClient
 
 
 class WebUIFrontendBehaviorTests(unittest.TestCase):
+    def test_history_thumbnail_states(self) -> None:
+        node = shutil.which("node")
+        if node is None or not Path("node_modules/esbuild").exists():
+            self.skipTest("node and npm install are required for frontend behavior tests")
+        with tempfile.TemporaryDirectory() as tmp:
+            output = str(Path(tmp) / "history-thumbnail-state.test.mjs")
+            build = "require('esbuild').buildSync(" + json.dumps({
+                "entryPoints": ["tests/frontend/history_thumbnail_state.test.ts"],
+                "bundle": True, "platform": "node", "format": "esm", "outfile": output,
+            }) + ")"
+            for command in ([node, "-e", build], [node, "--test", output]):
+                result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8")
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_composer_history_navigation(self) -> None:
         node = shutil.which("node")
         esbuild = Path("node_modules/.bin/esbuild")

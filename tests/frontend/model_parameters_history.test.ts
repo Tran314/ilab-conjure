@@ -402,8 +402,8 @@ test("aspect ratio SVG geometry preserves orientation and keeps extreme ratios v
   assert.equal(aspectRatioRect("auto"), null);
 });
 
-test("advanced parameter expansion is manifest driven and history remains expanded", () => {
-  assert.equal(advancedParametersAreExpanded({ ...model, expand_advanced_parameters: true }, false), true);
+test("advanced parameters start collapsed for editing and stay expanded for history", () => {
+  assert.equal(advancedParametersAreExpanded({ ...model, expand_advanced_parameters: true }, false), false);
   assert.equal(advancedParametersAreExpanded({ ...model, expand_advanced_parameters: false }, false), false);
   assert.equal(advancedParametersAreExpanded({ ...model, expand_advanced_parameters: false }, true), true);
 });

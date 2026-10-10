@@ -121,7 +121,7 @@
         });
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=runtime-861" />
+    <link rel="stylesheet" href="/static/styles.css?v=runtime-862" />
   </head>
   <body>
     <div class="layout-container">
@@ -348,7 +348,7 @@
           <div id="taskHistoryLibrarySlot" class="task-history-library-slot">
             <a class="task-history-library-card" href="/history">
               <span data-i18n="footer.historyLibrary">历史库</span>
-              <small data-i18n="historyLibrary.openFull">打开完整历史库</small>
+
             </a>
           </div>
         </div>
@@ -438,7 +438,7 @@
           <div class="dashboard-col controls-col">
             <input id="model" type="hidden" value="gpt-image-2" />
             <!-- Image Input -->
-            <section class="panel image-panel">
+            <section class="panel image-panel references-collapsed">
               <div class="panel-heading">
                 <h2 data-i18n="imageInput.referenceTitle">参考输入（可选）</h2>
                 <button id="compactReferencesButton" type="button" class="ghost-button text-sm compact-reference-toggle" data-i18n="ux.addReference">添加参考</button>
@@ -543,9 +543,13 @@
                 <div class="prompt-heading-main">
                   <h2 data-i18n="prompt.title">提示词</h2>
                   <span id="charCount" class="prompt-count">0</span>
+                  <details class="prompt-reference-help">
+                    <summary aria-label="提示词快捷引用" data-i18n-attr="aria-label:prompt.referenceHelp">?</summary>
+                    <p data-i18n="prompt.referenceHelpText">输入 @ 引用图库图片，# 插入颜色，~ 引用提示词片段。</p>
+                  </details>
                 </div>
                 <div class="prompt-heading-actions">
-                  <p id="executionSummary" class="execution-summary" aria-live="polite"></p>
+
                   <button id="restoreComposerDraft" type="button" class="ghost-button text-sm" hidden data-i18n="ux.restoreDraft" aria-describedby="restoreComposerInputsHint">恢复输入</button>
                   <span id="restoreComposerInputsHint" class="sr-only" data-i18n="ux.restoreInputsHint">仅恢复提示词和参考输入，生成参数保持当前选择。</span>
                 </div>
@@ -558,7 +562,7 @@
                     contenteditable="true"
                     role="textbox"
                     aria-multiline="true"
-                    data-placeholder="描述你要生成或编辑的图片，输入 @ 可调用图库参考图，输入 # 可插入颜色码，输入 ~ 或 ～ 可调用提示词片段"
+                    data-placeholder="描述你想生成或编辑的图片"
                     aria-label="提示词"
                     data-i18n-attr="aria-label:prompt.editorLabel;data-placeholder:prompt.placeholder"
                   ></div>
@@ -566,9 +570,7 @@
                   <div id="mentionSuggest" class="mention-suggest hidden"></div>
                   <div id="colorSuggest" class="color-suggest hidden" aria-label="颜色码选择器"></div>
                 </div>
-                <div class="prompt-run-wrap">
-                  <button id="runButton" class="run-button prompt-run-button" type="button" aria-keyshortcuts="Meta+Enter" title="开始生成（Cmd+Enter）" data-i18n="prompt.run" data-i18n-attr="title:prompt.runTitle">开始生成</button>
-                </div>
+
               </div>
               <p id="promptValidationError" class="field-error" role="alert" hidden></p>
               <div class="prompt-template-row">
@@ -609,6 +611,12 @@
                   </button>
                 </div>
               </div>
+              <div class="prompt-submit-row">
+                  <p id="executionSummary" class="execution-summary" aria-live="polite"></p>
+                <div class="prompt-run-wrap">
+                  <button id="runButton" class="run-button prompt-run-button" type="button" aria-keyshortcuts="Meta+Enter" title="开始生成（Cmd+Enter）" data-i18n="prompt.run" data-i18n-attr="title:prompt.runTitle">开始生成</button>
+                </div>
+              </div>
             </section>
 
             <!-- Output Settings -->
@@ -643,87 +651,6 @@
                     <select id="concreteModelSelect" class="control" aria-label="具体型号" data-i18n-attr="aria-label:modelSelection.concreteModel" disabled></select>
                     <div id="concreteModelOptions" class="radio-group concrete-model-options hidden" role="group" aria-label="具体型号" data-i18n-attr="aria-label:modelSelection.concreteModel"></div>
                   </div>
-                  <div id="modeSettingsSlot" class="mode-settings-slot full-width">
-                    <div id="modeSpecificSettings" class="mode-specific-settings mode-transition">
-                      <div class="model-tool-row">
-                        <div id="mainModelField" class="field main-model-field">
-                          <div class="output-field-heading">
-                            <label for="mainModel" id="mainModelLabel" data-i18n="output.mainModel">主模型</label>
-                            <div id="webSearchField" class="field web-search-field">
-                              <label class="web-search-toggle" title="先联网搜索并用于本次生成" data-i18n-attr="title:output.webSearchTitle">
-
-                                <input id="webSearch" type="checkbox" aria-labelledby="webSearchLabel" />
-                                <span class="web-search-toggle-track" aria-hidden="true"></span>
-                                <span id="webSearchLabel" class="generation-option-label" data-i18n="output.webSearch">联网搜索</span>
-                              </label>
-                            </div>
-                          </div>
-                          <div
-                            id="mainModelCombobox"
-                            class="model-combobox"
-                            role="combobox"
-                            aria-labelledby="mainModelLabel"
-                            aria-haspopup="listbox"
-                            aria-expanded="false"
-                            aria-owns="mainModelOptions"
-                            >
-                            <input
-                            id="mainModel"
-                            aria-labelledby="mainModelLabel"
-                            class="control model-combobox-input"
-                            type="text"
-                            value="gpt-6-luna"
-                              autocomplete="off"
-                              aria-autocomplete="list"
-                              aria-controls="mainModelOptions"
-                              aria-expanded="false"
-                              />
-                              <button id="mainModelToggle" class="model-combobox-toggle" type="button" aria-label="选择主模型" aria-controls="mainModelOptions" tabindex="-1" data-i18n-attr="aria-label:output.selectMainModel">
-                              <span class="model-combobox-caret" aria-hidden="true"></span>
-                            </button>
-                            <div id="mainModelOptions" class="model-combobox-options hidden" role="listbox"></div>
-                          </div>
-                        </div>
-
-                        <p id="apiDirectSettingsNotice" class="api-direct-settings-notice mode-transition mode-collapsed hidden" role="note" aria-hidden="true" data-i18n="output.mainModelUnused">直接使用所选图像模型生成</p>
-
-
-                      </div>
-
-                      <div id="promptFidelityField" class="field">
-                        <div class="prompt-fidelity-label">
-                          <span data-i18n="output.promptMode">提示词处理</span>
-                          <button
-                            id="promptFidelityHelpButton"
-                            class="prompt-fidelity-help-button"
-                            type="button"
-                            aria-label="查看提示词处理说明"
-                            aria-controls="promptFidelityHelpPopover"
-                            aria-describedby="promptFidelityHelpPopover"
-                            aria-expanded="false"
-                            data-i18n-attr="aria-label:output.promptHelp"
-                            >
-                            <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-                            <circle cx="10" cy="10" r="7.25"></circle>
-                            <path d="M7.9 7.7a2.35 2.35 0 0 1 4.55.8c0 1.65-1.75 1.95-2.25 3.1"></path>
-                              <circle cx="10" cy="14.25" r=".7" class="prompt-fidelity-help-dot"></circle>
-                            </svg>
-                          </button>
-                        </div>
-                        <div class="radio-group" id="promptFidelityGroup" role="group" aria-label="提示词处理模式" data-i18n-attr="aria-label:output.promptMode">
-                          <button class="radio-btn" data-val="original" type="button" data-i18n="output.modeOriginal">原文</button>
-                          <button class="radio-btn" data-val="strict" type="button" data-i18n="output.modeStrict">保真</button>
-                          <button class="radio-btn active" data-val="off" type="button" data-i18n="output.modeCreative">自动</button>
-                        </div>
-                        <select id="promptFidelity" class="hidden">
-                          <option value="original" data-i18n="output.modeOriginal">原文</option>
-                          <option value="strict" data-i18n="output.modeStrict">保真</option>
-                          <option value="off" selected data-i18n="output.modeCreative">自动</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
                   <div id="modelParameterGrid" class="model-parameter-grid hidden full-width" aria-live="polite"></div>
 
                   <div id="outputSizeSettings" class="output-size-settings full-width">
@@ -907,6 +834,90 @@
                         </select>
                       </div>
                     </div>
+                    <details id="outputAdvancedSettings" class="output-advanced full-width">
+                      <summary data-i18n="apiSettings.advancedSettings">高级设置</summary>
+                      <div class="output-advanced-content">
+                  <div id="modeSettingsSlot" class="mode-settings-slot full-width">
+                    <div id="modeSpecificSettings" class="mode-specific-settings mode-transition">
+                      <div class="model-tool-row">
+                        <div id="mainModelField" class="field main-model-field">
+                          <div class="output-field-heading">
+                            <label for="mainModel" id="mainModelLabel" data-i18n="output.mainModel">主模型</label>
+                            <div id="webSearchField" class="field web-search-field">
+                              <label class="web-search-toggle" title="先联网搜索并用于本次生成" data-i18n-attr="title:output.webSearchTitle">
+
+                                <input id="webSearch" type="checkbox" aria-labelledby="webSearchLabel" />
+                                <span class="web-search-toggle-track" aria-hidden="true"></span>
+                                <span id="webSearchLabel" class="generation-option-label" data-i18n="output.webSearch">联网搜索</span>
+                              </label>
+                            </div>
+                          </div>
+                          <div
+                            id="mainModelCombobox"
+                            class="model-combobox"
+                            role="combobox"
+                            aria-labelledby="mainModelLabel"
+                            aria-haspopup="listbox"
+                            aria-expanded="false"
+                            aria-owns="mainModelOptions"
+                            >
+                            <input
+                            id="mainModel"
+                            aria-labelledby="mainModelLabel"
+                            class="control model-combobox-input"
+                            type="text"
+                            value="gpt-6-luna"
+                              autocomplete="off"
+                              aria-autocomplete="list"
+                              aria-controls="mainModelOptions"
+                              aria-expanded="false"
+                              />
+                              <button id="mainModelToggle" class="model-combobox-toggle" type="button" aria-label="选择主模型" aria-controls="mainModelOptions" tabindex="-1" data-i18n-attr="aria-label:output.selectMainModel">
+                              <span class="model-combobox-caret" aria-hidden="true"></span>
+                            </button>
+                            <div id="mainModelOptions" class="model-combobox-options hidden" role="listbox"></div>
+                          </div>
+                        </div>
+
+                        <p id="apiDirectSettingsNotice" class="api-direct-settings-notice mode-transition mode-collapsed hidden" role="note" aria-hidden="true" data-i18n="output.mainModelUnused">直接使用所选图像模型生成</p>
+
+
+                      </div>
+
+                      <div id="promptFidelityField" class="field">
+                        <div class="prompt-fidelity-label">
+                          <span data-i18n="output.promptMode">提示词处理</span>
+                          <button
+                            id="promptFidelityHelpButton"
+                            class="prompt-fidelity-help-button"
+                            type="button"
+                            aria-label="查看提示词处理说明"
+                            aria-controls="promptFidelityHelpPopover"
+                            aria-describedby="promptFidelityHelpPopover"
+                            aria-expanded="false"
+                            data-i18n-attr="aria-label:output.promptHelp"
+                            >
+                            <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                            <circle cx="10" cy="10" r="7.25"></circle>
+                            <path d="M7.9 7.7a2.35 2.35 0 0 1 4.55.8c0 1.65-1.75 1.95-2.25 3.1"></path>
+                              <circle cx="10" cy="14.25" r=".7" class="prompt-fidelity-help-dot"></circle>
+                            </svg>
+                          </button>
+                        </div>
+                        <div class="radio-group" id="promptFidelityGroup" role="group" aria-label="提示词处理模式" data-i18n-attr="aria-label:output.promptMode">
+                          <button class="radio-btn" data-val="original" type="button" data-i18n="output.modeOriginal">原文</button>
+                          <button class="radio-btn" data-val="strict" type="button" data-i18n="output.modeStrict">保真</button>
+                          <button class="radio-btn active" data-val="off" type="button" data-i18n="output.modeCreative">自动</button>
+                        </div>
+                        <select id="promptFidelity" class="hidden">
+                          <option value="original" data-i18n="output.modeOriginal">原文</option>
+                          <option value="strict" data-i18n="output.modeStrict">保真</option>
+                          <option value="off" selected data-i18n="output.modeCreative">自动</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
                     <div id="outputFormatField" class="field output-format-field">
                       <div class="output-field-heading">
                         <span class="output-format-heading">
@@ -960,6 +971,8 @@
                         <option value="low" data-i18n="ux.moderationLow">较宽松</option>
                       </select>
                     </div>
+                      </div>
+                    </details>
                   </div>
                 </div>
               </div>
@@ -1676,7 +1689,7 @@
     </div>
 
     <div id="taskNotificationToastRegion" class="task-notification-toast-region" aria-live="polite"></div>
-  <script src="/static/app.js?v=runtime-864"></script>
+  <script src="/static/app.js?v=runtime-865"></script>
     <script>
       (() => {
         document.querySelectorAll(".radio-group").forEach((group) => {

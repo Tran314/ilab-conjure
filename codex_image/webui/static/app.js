@@ -115,6 +115,14 @@
 
   // codex_image/webui/frontend/src/i18n/en.ts
   var EN_DICTIONARY = {
+    "history.media.details": "Open task for details",
+    "history.media.unavailable": "Image could not load",
+    "history.media.missing": "Original file missing",
+    "history.media.empty": "No images generated",
+    "history.media.failed": "Generation failed",
+    "history.media.loading": "Loading image",
+    "prompt.referenceHelpText": "Use @ for gallery images, # for colors, and ~ for prompt snippets.",
+    "prompt.referenceHelp": "Prompt shortcuts",
     "mobile.taskActions": "Task actions",
     "mobile.photos": "Photos",
     "mobile.files": "Files",
@@ -729,7 +737,7 @@
     "promptGallery.remove": "Remove @{name}",
     "prompt.title": "Prompt",
     "prompt.editorLabel": "Prompt",
-    "prompt.placeholder": "Describe the image you want to generate or edit. Type @ for gallery references, # for color codes, and ~ for prompt snippets.",
+    "prompt.placeholder": "Describe the image you want to create or edit",
     "prompt.run": "Generate",
     "prompt.runEdit": "Start editing",
     "prompt.runTitle": "Generate (Cmd+Enter)",
@@ -848,7 +856,7 @@
     "preview.downloadSelected": "Download selected",
     "preview.deleteUnselected": "Delete unselected",
     "preview.downloadAll": "Download ZIP",
-    "preview.empty": "No images yet",
+    "preview.empty": "Your generated images will appear here",
     "preview.taskFailed": "Task failed",
     "preview.partialFailed": "Some images failed",
     "preview.failedOutput": "Image {index} failed",
@@ -13924,6 +13932,14 @@
 
   // codex_image/webui/frontend/src/i18n/zh-cn.ts
   var ZH_CN_DICTIONARY = {
+    "history.media.details": "\u6253\u5F00\u4EFB\u52A1\u67E5\u770B\u8BE6\u60C5",
+    "history.media.unavailable": "\u56FE\u7247\u52A0\u8F7D\u5931\u8D25",
+    "history.media.missing": "\u539F\u56FE\u7F3A\u5931",
+    "history.media.empty": "\u672A\u751F\u6210\u56FE\u7247",
+    "history.media.failed": "\u751F\u6210\u5931\u8D25",
+    "history.media.loading": "\u6B63\u5728\u52A0\u8F7D\u56FE\u7247",
+    "prompt.referenceHelpText": "\u8F93\u5165 @ \u5F15\u7528\u56FE\u5E93\u56FE\u7247\uFF0C# \u63D2\u5165\u989C\u8272\uFF0C~ \u5F15\u7528\u63D0\u793A\u8BCD\u7247\u6BB5\u3002",
+    "prompt.referenceHelp": "\u63D0\u793A\u8BCD\u5FEB\u6377\u5F15\u7528",
     "mobile.taskActions": "\u4EFB\u52A1\u64CD\u4F5C",
     "mobile.photos": "\u7167\u7247",
     "mobile.files": "\u6587\u4EF6",
@@ -14538,7 +14554,7 @@
     "promptGallery.remove": "\u79FB\u9664 @{name}",
     "prompt.title": "\u63D0\u793A\u8BCD",
     "prompt.editorLabel": "\u63D0\u793A\u8BCD",
-    "prompt.placeholder": "\u63CF\u8FF0\u4F60\u8981\u751F\u6210\u6216\u7F16\u8F91\u7684\u56FE\u7247\uFF0C\u8F93\u5165 @ \u53EF\u8C03\u7528\u56FE\u5E93\u53C2\u8003\u56FE\uFF0C\u8F93\u5165 # \u53EF\u63D2\u5165\u989C\u8272\u7801\uFF0C\u8F93\u5165 ~ \u6216 \uFF5E \u53EF\u8C03\u7528\u63D0\u793A\u8BCD\u7247\u6BB5",
+    "prompt.placeholder": "\u63CF\u8FF0\u4F60\u60F3\u751F\u6210\u6216\u7F16\u8F91\u7684\u56FE\u7247",
     "prompt.run": "\u5F00\u59CB\u751F\u6210",
     "prompt.runEdit": "\u5F00\u59CB\u7F16\u8F91",
     "prompt.runTitle": "\u5F00\u59CB\u751F\u6210\uFF08Cmd+Enter\uFF09",
@@ -14657,7 +14673,7 @@
     "preview.downloadSelected": "\u53EA\u4E0B\u8F7D\u7CBE\u9009",
     "preview.deleteUnselected": "\u5220\u9664\u672A\u7CBE\u9009",
     "preview.downloadAll": "\u6253\u5305\u4E0B\u8F7D",
-    "preview.empty": "\u6682\u65E0\u56FE\u7247",
+    "preview.empty": "\u751F\u6210\u7ED3\u679C\u5C06\u5728\u8FD9\u91CC\u663E\u793A",
     "preview.taskFailed": "\u4EFB\u52A1\u5931\u8D25",
     "preview.partialFailed": "\u90E8\u5206\u56FE\u7247\u751F\u6210\u5931\u8D25",
     "preview.failedOutput": "\u7B2C {index} \u5F20\u5931\u8D25",
@@ -18508,7 +18524,7 @@
     const sync = () => {
       const { state: state33 } = getLegacyBridge();
       toggle.hidden = Boolean(state33.images.length || (state33.referenceFiles || []).length);
-      const collapsed = window.matchMedia("(max-width: 600px), (max-height: 500px)").matches && !expanded && !state33.images.length && !(state33.referenceFiles || []).length;
+      const collapsed = !expanded && !state33.images.length && !(state33.referenceFiles || []).length;
       panel.classList.toggle("references-collapsed", collapsed);
       toggle.setAttribute("aria-expanded", String(!collapsed));
       toggle.textContent = translate(collapsed ? "ux.addReference" : "ux.collapseReference");
@@ -18694,6 +18710,12 @@
     const feedback2 = document.getElementById("statusText");
     const feedbackOrigin = document.createComment("mobile-feedback-origin");
     feedback2?.before(feedbackOrigin);
+    const syncFeedback = () => {
+      if (feedback2) feedback2.dataset.idle = String(!feedback2.classList.contains("error") && feedback2.textContent?.trim() === translate("status.waiting"));
+    };
+    if (feedback2) new MutationObserver(syncFeedback).observe(feedback2, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+    document.addEventListener(LOCALE_CHANGE_EVENT, syncFeedback);
+    syncFeedback();
     const sync = () => {
       sheet.close();
       if (query.matches) {
@@ -37928,8 +37950,8 @@ ${hint}` : hint;
     object_presets: renderObjectPresets,
     aspect_ratio_grid: renderAspectRatioGrid
   };
-  function advancedParametersAreExpanded(model, readOnly) {
-    return readOnly || model.expand_advanced_parameters === true;
+  function advancedParametersAreExpanded(_model, readOnly) {
+    return readOnly;
   }
   function legacyParameterVisibility(modelId, sizeMode) {
     const legacyGpt = isGptImageModel(modelId);
@@ -37992,7 +38014,10 @@ ${hint}` : hint;
     const resolvedValues = resolvedParameterValues(model, values);
     const visibleDefinitions = visibleParameterDefinitions(model, resolvedValues, operation);
     if (visibleDefinitions.some((definition) => definition.group === "advanced")) {
+      const wasOpen = root.querySelector("details.model-parameter-advanced")?.open;
       renderParameterDefinitionsInto(root, model, values, { readOnly: false, operation });
+      const disclosure = root.querySelector("details.model-parameter-advanced");
+      if (disclosure && wasOpen) disclosure.open = true;
       return;
     }
     const context = { readOnly: false, model, values: resolvedValues, root };

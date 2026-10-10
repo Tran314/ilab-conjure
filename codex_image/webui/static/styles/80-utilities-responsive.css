@@ -1201,7 +1201,7 @@ button:disabled {
 .output-panel .radio-group { --segmented-control-height: 30px; --segmented-control-padding: 3px; }
 .output-panel #ratioGroup { grid-template-rows: repeat(2, 36px); gap: 6px; padding: 0; border: 0; background: transparent; }
 .output-panel #ratioGroup .radio-btn { height: 36px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-soft); transform: none; }
-.output-panel #ratioGroup .radio-btn.active { background: var(--primary); border-color: var(--primary); }
+.output-panel #ratioGroup .radio-btn.active { background: var(--primary-light); color: var(--primary-strong); border-color: var(--primary); }
 .output-panel #ratioGroup .radio-btn[data-val="1:1"] { height: 100%; }
 .output-panel .moderation-field > span { min-height: 24px; display: flex; align-items: center; }
 .output-panel .size-editors > .custom-size { min-height: 0; max-height: none; }
@@ -1209,4 +1209,20 @@ button:disabled {
 .output-panel .api-direct-settings-notice { min-height: calc(var(--mode-settings-segment-height) + 8px); align-items: center; padding-inline-start: var(--control-label-optical-inset); }
 @container output-settings (max-width: 430px) {
   .output-panel .mode-specific-settings { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Parameter selection is quieter than the generation action. */
+.output-panel .radio-btn.active { color: var(--primary-strong); background: var(--primary-light); }
+.output-panel .segmented-indicator { background: var(--primary-light); }
+.output-panel .radio-group .segmented-indicator { background: var(--primary-light); }
+.output-panel .radio-group.segmented-indicator-host .radio-btn.active { color: var(--primary-strong); }
+.controls-col .prompt-compose { grid-template-columns: minmax(0, 1fr); }
+.compact-reference-toggle { display: inline-flex; }
+.controls-col .image-panel.references-collapsed { flex: 0 0 auto; min-height: 0; height: auto; }
+.image-panel.references-collapsed > .panel-heading { margin-bottom: 0; }
+.references-collapsed .image-input-workspace { display: none; }
+.image-panel .panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+@media (prefers-reduced-motion: no-preference) {
+  .prompt-panel { animation: workbench-enter 180ms ease-out; }
+  @keyframes workbench-enter { from { opacity: .65; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 }

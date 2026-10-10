@@ -2,6 +2,7 @@ import { historyCardTagsHtml, historyFavoriteButtonHtml } from "./history-organi
 import { escapeHtml, facetDisplayValue, formatDate, formatHistorySizeLabel, historyTaskAccessibleLabel, historyTaskGeneratedCount, historyTaskSourceLabel, historyTaskStackDepth, historyTaskStackLayers, historyThumbnailRatioStyle, historyThumbnailUrl } from "./history-presentation";
 import type { HistoryTask } from "./history-types";
 import { translate } from "./i18n";
+import { historyEmptyImageLabel } from "./history-thumbnail-state";
 
 export function historyTaskCardHtml(task: HistoryTask, selection: { selectedTaskIds: ReadonlySet<string>; selectedTaskId: string }): string {
   const taskId = escapeHtml(task.task_id);
@@ -11,7 +12,7 @@ export function historyTaskCardHtml(task: HistoryTask, selection: { selectedTask
   const stackDepth = historyTaskStackDepth(imageCount);
   const stackLayers = historyTaskStackLayers(stackDepth);
   const thumb = thumbnailUrl
-    ? `<img class="transparency-grid" src="${escapeHtml(thumbnailUrl)}" alt="" loading="lazy" decoding="async" draggable="false">`
+    ? `<img data-history-thumbnail class="transparency-grid" src="${escapeHtml(thumbnailUrl)}" alt="" loading="lazy" decoding="async" draggable="false">`
     : "";
   const counts = `${task.generated_count || 0}/${task.total_count || 0}`;
   const selected = selection.selectedTaskIds.has(task.task_id)
@@ -38,7 +39,7 @@ export function historyTaskCardHtml(task: HistoryTask, selection: { selectedTask
   const metaItems = [
     { kind: "date", value: formatDate(task.created_at) },
     { kind: "status", value: task.status },
-    { kind: "size", value: formatHistorySizeLabel(task.size || task.ratio || task.orientation || "") },
+    { kind: "size", value: formatHistorySizeLabel(task.size && task.size !== "auto" ? task.size : task.ratio || "") },
     { kind: "prompt-mode", value: promptMode },
     { kind: "quality", value: quality },
     { kind: "source", value: source },
@@ -59,7 +60,13 @@ export function historyTaskCardHtml(task: HistoryTask, selection: { selectedTask
       <button class="history-task-open" type="button" data-history-task-id="${taskId}" aria-label="${escapeHtml(accessibleLabel)}" aria-pressed="${selected ? "true" : "false"}">
         <span class="history-task-thumb">
           ${stackLayers}
-          <span class="history-task-thumb-frame">${thumb}</span>
+          <span class="history-task-thumb-frame" data-media-state="${thumbnailUrl ? "loading" : "empty"}">
+            <span class="history-task-media-state">
+              <span data-history-media-label>${escapeHtml(thumbnailUrl ? translate("history.media.loading") : historyEmptyImageLabel(task))}</span>
+              <small>${escapeHtml(translate("history.media.details"))}</small>
+            </span>
+            ${thumb}
+          </span>
         </span>
         <span class="history-task-copy">
           <span class="history-task-title">${escapeHtml(task.prompt_preview || task.mode || task.task_id)}</span>

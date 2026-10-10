@@ -1,6 +1,14 @@
 import type { TranslationDictionary } from "./types";
 
 export const EN_DICTIONARY: TranslationDictionary = {
+    "history.media.details": "Open task for details",
+    "history.media.unavailable": "Image could not load",
+    "history.media.missing": "Original file missing",
+    "history.media.empty": "No images generated",
+    "history.media.failed": "Generation failed",
+    "history.media.loading": "Loading image",
+    "prompt.referenceHelpText": "Use @ for gallery images, # for colors, and ~ for prompt snippets.",
+    "prompt.referenceHelp": "Prompt shortcuts",
     "mobile.taskActions": "Task actions",
     "mobile.photos": "Photos",
     "mobile.files": "Files",
@@ -615,7 +623,7 @@ export const EN_DICTIONARY: TranslationDictionary = {
     "promptGallery.remove": "Remove @{name}",
     "prompt.title": "Prompt",
     "prompt.editorLabel": "Prompt",
-    "prompt.placeholder": "Describe the image you want to generate or edit. Type @ for gallery references, # for color codes, and ~ for prompt snippets.",
+    "prompt.placeholder": "Describe the image you want to create or edit",
     "prompt.run": "Generate",
     "prompt.runEdit": "Start editing",
     "prompt.runTitle": "Generate (Cmd+Enter)",
@@ -734,7 +742,7 @@ export const EN_DICTIONARY: TranslationDictionary = {
     "preview.downloadSelected": "Download selected",
     "preview.deleteUnselected": "Delete unselected",
     "preview.downloadAll": "Download ZIP",
-    "preview.empty": "No images yet",
+    "preview.empty": "Your generated images will appear here",
     "preview.taskFailed": "Task failed",
     "preview.partialFailed": "Some images failed",
     "preview.failedOutput": "Image {index} failed",

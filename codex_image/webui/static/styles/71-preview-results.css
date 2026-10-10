@@ -913,10 +913,11 @@
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  background: var(--surface-soft);
-  border: 1px dashed color-mix(in srgb, var(--text-secondary) 30%, var(--line));
-  border-radius: 8px;
-  font-size: 13px;
+  background: transparent;
+  border: 0;
+  padding: 24px;
+  text-align: center;
+  font-size: 14px;
 }
 
 .error-preview {

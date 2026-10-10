@@ -57,7 +57,7 @@ export function initCompactWorkspace(): void {
   const sync = () => {
     const { state } = getLegacyBridge();
     toggle.hidden = Boolean(state.images.length || (state.referenceFiles || []).length);
-    const collapsed = window.matchMedia("(max-width: 600px), (max-height: 500px)").matches && !expanded && !state.images.length && !(state.referenceFiles || []).length;
+    const collapsed = !expanded && !state.images.length && !(state.referenceFiles || []).length;
     panel.classList.toggle("references-collapsed", collapsed);
     toggle.setAttribute("aria-expanded", String(!collapsed));
     toggle.textContent = translate(collapsed ? "ux.addReference" : "ux.collapseReference");

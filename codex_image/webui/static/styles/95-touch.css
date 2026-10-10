@@ -174,7 +174,7 @@
 .mobile-ui .controls-col .prompt-compose { display: block; }
 .mobile-ui .controls-col .prompt-box { min-height: 160px; height: 160px; font-size: 16px; }
 .mobile-ui .prompt-panel { --prompt-secondary-action-height: 44px; --prompt-secondary-chip-height: 32px; }
-.mobile-ui .prompt-template-row { grid-template-columns: minmax(0, 1fr); margin-top: 8px; }
+.mobile-ui .prompt-template-row { grid-template-columns: minmax(0, 1fr) auto; margin-top: 8px; gap: 8px; }
 .mobile-ui .prompt-run-wrap { display: none; }
 .mobile-ui .prompt-heading { min-height: 28px; }
 .mobile-ui #restoreComposerDraft { min-height: 44px; }
@@ -367,3 +367,14 @@
 #mobileParameters #ratioGroup .radio-btn[data-val="16:9"] { grid-column: 2; grid-row: 4; }
 #mobileParameters #ratioGroup .radio-btn[data-val="9:21"] { grid-column: 3; grid-row: 3; }
 #mobileParameters #ratioGroup .radio-btn[data-val="21:9"] { grid-column: 3; grid-row: 4; }
+
+.mobile-ui .prompt-submit-row { display: none; }
+.mobile-ui .prompt-template-recent-dock { display: none; }
+.mobile-ui .prompt-template-entry .prompt-template-button { padding-inline: 8px; }
+.mobile-ui .prompt-reference-help summary { width: 44px; height: 44px; }
+.mobile-ui .controls-col > .status-text[data-idle="true"] { display: none; }
+.mobile-ui .preview-heading { display: flex; align-items: center; flex-wrap: wrap; }
+.mobile-ui .preview-heading h2 { margin-right: auto; }
+.mobile-ui .preview-heading-actions { display: flex; width: auto; }
+.mobile-ui .mobile-return-edit { order: 1; }
+.mobile-ui .history-task-media-state { font-size: 13px; }

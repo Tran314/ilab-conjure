@@ -1909,3 +1909,10 @@ input[type=range].slider:disabled::-moz-range-thumb {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.output-advanced { min-width: 0; border-top: 1px solid var(--line); }
+.output-advanced > summary { padding-block: 12px; min-height: 44px; cursor: pointer; color: var(--text-secondary); font-size: 14px; }
+.output-advanced-content { display: grid; gap: 16px; padding-block: 4px 12px; }
+.output-advanced[open] .output-advanced-content { animation: output-disclose var(--motion-base); }
+@keyframes output-disclose { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .output-advanced[open] .output-advanced-content { animation: none; } }

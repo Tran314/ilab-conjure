@@ -3,6 +3,7 @@ import {
   type HistoryDetailMode
 } from "./history-action-panel";
 import { historyTaskCardHtml } from "./history-card-view";
+import { bindHistoryThumbnailStates } from "./history-thumbnail-state";
 import { createHistoryContextMenu } from "./history-context-menu";
 import { createHistoryDetailController } from "./history-detail-controller";
 import { createHistoryFiltersController } from "./history-filters-controller";
@@ -45,6 +46,8 @@ import { LOCALE_CHANGE_EVENT, formatTranslation, translate } from "./i18n";
 import { webAppDocumentTitle } from "./web-app-title";
 
 const lifetime = new AbortController();
+const thumbnailRoot = document.getElementById("historyTaskList");
+if (thumbnailRoot) bindHistoryThumbnailStates(thumbnailRoot, lifetime.signal);
 let eventsBound = false;
 
 const els = {
