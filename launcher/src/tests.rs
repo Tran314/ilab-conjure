@@ -2,9 +2,12 @@ use super::*;
 
 #[test]
 fn launcher_urls_match_fixed_local_webui_port() {
+    let root = env::temp_dir().join(format!("ilab-launcher-url-test-{}", std::process::id()));
+    fs::create_dir_all(root.join("source")).unwrap();
+    fs::create_dir_all(root.join("data")).unwrap();
+    let canonical_data = root.join("data").canonicalize().unwrap();
     let config =
-        LauncherConfig::from_dirs(PathBuf::from("/app"), PathBuf::from("/data"), DEFAULT_PORT)
-            .unwrap();
+        LauncherConfig::from_dirs(root.join("source"), root.join("data"), DEFAULT_PORT).unwrap();
 
     assert_eq!(config.url(), WEBUI_URL);
     assert_eq!(config.health_url(), "http://127.0.0.1:8787/api/health");
@@ -12,8 +15,10 @@ fn launcher_urls_match_fixed_local_webui_port() {
     assert_eq!(config.history_url(), "http://127.0.0.1:8787/history");
     assert_eq!(
         config.log_path,
-        PathBuf::from("/data/webui-outputs/webui-server.log")
+        canonical_data.join("webui-outputs").join(LOG_FILE_NAME)
     );
+    assert_eq!(config.data_dir, canonical_data);
+    fs::remove_dir_all(root).unwrap();
 }
 
 #[test]
@@ -502,14 +507,20 @@ fn portable_updater_path_resolves_from_bundle_root() {
     {
         let updater = root.join("Update WebUI Portable.command");
         fs::write(&updater, "#!/bin/zsh\n").unwrap();
-        assert_eq!(portable_updater_path(&config), Some(updater));
+        assert_eq!(
+            portable_updater_path(&config),
+            Some(updater.canonicalize().unwrap())
+        );
     }
 
     #[cfg(target_os = "windows")]
     {
         let updater = root.join("Update WebUI Portable.bat");
         fs::write(&updater, "@echo off\n").unwrap();
-        assert_eq!(portable_updater_path(&config), Some(updater));
+        assert_eq!(
+            portable_updater_path(&config),
+            Some(updater.canonicalize().unwrap())
+        );
     }
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]

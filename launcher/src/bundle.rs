@@ -125,15 +125,21 @@ mod tests {
     use super::*;
     #[test]
     fn xdg_requires_absolute_path_and_preserves_legacy_storage_name() {
-        let home = Path::new("/home/test");
+        // Exercise the absolute-path contract with host-native paths too: a Unix
+        // root such as /home has no drive prefix and is not absolute on Windows.
+        let root = env::temp_dir();
+        assert!(root.is_absolute());
+        let home = root.join("ilab-xdg-test-home");
+        let xdg = root.join("ilab-xdg-test-data");
         assert_eq!(
-            linux_data_dir(Some(Path::new("/custom/data")), Some(home)).unwrap(),
-            PathBuf::from("/custom/data/iLab GPT CONJURE")
+            linux_data_dir(Some(&xdg), Some(&home)).unwrap(),
+            xdg.join(super::super::LEGACY_DATA_DIR_NAME)
         );
         for invalid in ["", "relative/path", "~/data"] {
             assert_eq!(
-                linux_data_dir(Some(Path::new(invalid)), Some(home)).unwrap(),
-                PathBuf::from("/home/test/.local/share/iLab GPT CONJURE")
+                linux_data_dir(Some(Path::new(invalid)), Some(&home)).unwrap(),
+                home.join(".local/share")
+                    .join(super::super::LEGACY_DATA_DIR_NAME)
             );
         }
         assert!(linux_data_dir(None, Some(Path::new("relative"))).is_err());
@@ -143,12 +149,17 @@ mod tests {
         let root = env::temp_dir().join(format!("ilab-absolute-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(root.join("real")).unwrap();
+        let canonical_real = root.join("real").canonicalize().unwrap();
+        assert_eq!(
+            absolute_path(&root.join("real/new/data")).unwrap(),
+            canonical_real.join("new/data")
+        );
         #[cfg(unix)]
         {
             std::os::unix::fs::symlink(root.join("real"), root.join("link")).unwrap();
             assert_eq!(
                 absolute_path(&root.join("link/new/data")).unwrap(),
-                root.join("real/new/data")
+                canonical_real.join("new/data")
             );
         }
         fs::remove_dir_all(root).unwrap();

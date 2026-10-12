@@ -81,9 +81,13 @@ fn download_with(
             .write(true)
             .create_new(true)
             .open(&temp)?;
+        // FlushFileBuffers on Windows requires a writable handle. Retain a
+        // clone of the original writer instead of reopening the file read-only.
+        let durability_handle = file.try_clone()?;
         transfer(file)?;
         verify_sha256_file(&temp, hash)?;
-        File::open(&temp)?.sync_all()?;
+        durability_handle.sync_all()?;
+        drop(durability_handle); // Close every local file handle before promotion.
         fs::rename(&temp, destination).context("Could not save the verified update")?;
         Ok(())
     })();
@@ -117,6 +121,22 @@ mod tests {
         assert_eq!(fs::read_dir(&dir).unwrap().count(), 1);
         fs::remove_dir_all(dir).unwrap();
     }
+    #[test]
+    fn verified_download_replaces_existing_file_without_partial_files() {
+        let dir = directory("replace-verified");
+        let target = dir.join("package.deb");
+        fs::write(&target, b"previous verified version").unwrap();
+        let hash = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
+        download_with(&target, hash, |mut file| {
+            file.write_all(b"abc")?;
+            Ok(())
+        })
+        .unwrap();
+        assert_eq!(fs::read(&target).unwrap(), b"abc");
+        assert_eq!(fs::read_dir(&dir).unwrap().count(), 1);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
     #[test]
     fn corrupt_or_failed_download_leaves_existing_package_unchanged() {
         let dir = directory("tampered");

@@ -7,6 +7,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import textwrap
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -135,6 +136,50 @@ class LinuxPackagingTests(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/release-portable.yml").read_text()
         for value in ("linux-packages:", "linux-package-runtime:", "ubuntu-22.04", "ubuntu-24.04", "packaging/linux/build-portable.sh", "packaging/linux/build-app.sh", "packaging/linux/verify-runtime.py", "dist/*.tar.gz", "dist/*.deb", '-name "*.tar.gz"', '-name "*.deb"', "      - linux-packages", "      - linux-package-runtime"):
             self.assertIn(value, workflow)
+
+
+@unittest.skipUnless(shutil.which("bash"), "GitHub Actions version bootstrap uses bash")
+class LinuxPackagingVersionBootstrapTests(unittest.TestCase):
+    @staticmethod
+    def version_step() -> str:
+        workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+        step = workflow.split("      - name: Read package version\n", 1)[1].split("\n      - name:", 1)[0]
+        return textwrap.dedent(step.split("        run: |\n", 1)[1])
+
+    def run_version_step(self, source: str) -> tuple[subprocess.CompletedProcess, str | None]:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            package = root / "codex_image"
+            package.mkdir()
+            (package / "__init__.py").write_text("raise RuntimeError('package must not be imported during bootstrap')\n")
+            (package / "version.py").write_text(source, encoding="utf-8")
+            output = root / "github-output"
+            result = subprocess.run(
+                ["bash", "-c", self.version_step()], cwd=root,
+                env={**os.environ, "GITHUB_OUTPUT": str(output)}, capture_output=True, text=True,
+            )
+            return result, output.read_text() if output.exists() else None
+
+    def test_version_bootstrap_does_not_import_package_or_site_packages(self) -> None:
+        source = (ROOT / "codex_image/version.py").read_text(encoding="utf-8")
+        source += "\nimport sys\nassert 'site' not in sys.modules\nassert 'codex_image' not in sys.modules\nassert 'httpx' not in sys.modules\n"
+        result, output = self.run_version_step(source)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertRegex(output, r"^version=[0-9]+\.[0-9]+\.[0-9]+\n$")
+
+    def test_version_read_failure_stops_before_writing_step_output(self) -> None:
+        result, output = self.run_version_step("raise RuntimeError('version read failed')\n")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("version read failed", result.stderr)
+        self.assertIsNone(output)
+
+    def test_invalid_version_stops_before_writing_step_output(self) -> None:
+        for version in ("", "None", "0.9.7\nother=value"):
+            with self.subTest(version=version):
+                result, output = self.run_version_step(f"APP_VERSION = {version!r}\n")
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("Invalid application version", result.stderr)
+                self.assertIsNone(output)
 
 
 class LinuxVersionTests(unittest.TestCase):
