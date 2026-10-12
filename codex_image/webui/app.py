@@ -111,6 +111,7 @@ from .schemas import (
 )
 from .shutdown_control import ShutdownCoordinator
 from .network_egress import NetworkEgressManager, NetworkEgressSettings
+from .generation_presets import GenerationPresetSettings
 from .prompt_snippets import expand_prompt_snippets
 from .prompt_template_assets import (
     PromptTemplateAssetStorage,
@@ -283,6 +284,7 @@ def create_app(
     color_settings_path: Path | str = DEFAULT_WEBUI_COLOR_SETTINGS_PATH,
     prompt_snippets_path: Path | str = DEFAULT_WEBUI_PROMPT_SNIPPETS_PATH,
     prompt_templates_path: Path | str = DEFAULT_WEBUI_PROMPT_TEMPLATES_PATH,
+    generation_presets_path: Path | str | None = None,
     webui_settings_path: Path | str = DEFAULT_WEBUI_SETTINGS_PATH,
     queue_path: Path | str | None = None,
     history_export_temp_root: Path | str | None = None,
@@ -350,6 +352,11 @@ def create_app(
     color_settings = ColorPaletteSettings(Path(color_settings_path))
     prompt_snippet_settings = PromptSnippetSettings(Path(prompt_snippets_path))
     prompt_template_settings = PromptTemplateSettings(Path(prompt_templates_path))
+    generation_preset_settings = GenerationPresetSettings(
+        Path(generation_presets_path)
+        if generation_presets_path is not None
+        else source_data_path / "generation-presets.json"
+    )
     history_export_service = HistoryExportService(
         storage,
         temp_root=history_export_temp_root,
@@ -391,6 +398,7 @@ def create_app(
         auth_settings=auth_settings,
         provider_settings=api_settings,
         network_egress_settings=network_egress_settings,
+        generation_preset_settings=generation_preset_settings,
     )
     user_config_backup_export_service = UserConfigBackupExportService(
         user_config_backup_planner,
@@ -433,6 +441,7 @@ def create_app(
         color_settings=color_settings,
         prompt_snippet_settings=prompt_snippet_settings,
         prompt_template_settings=prompt_template_settings,
+        generation_preset_settings=generation_preset_settings,
         prompt_template_asset_storage=prompt_template_asset_storage,
         prompt_template_thumbnail_resolver=prompt_template_thumbnail_resolver,
         history_export_service=history_export_service,

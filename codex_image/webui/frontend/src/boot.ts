@@ -18,6 +18,7 @@ export function bootWebUI(state: WebUIState, els: WebUIElements, methods: Legacy
   call(methods, "refreshColorPalette");
   call(methods, "refreshPromptSnippets");
   call(methods, "refreshPromptTemplates");
+  call(methods, "refreshGenerationPresets");
   call(methods, "renderGalleryCategoryControls");
   call(methods, "restoreLegacyArchivedTasks");
   call(methods, "restoreExpandedTaskGroupKey");

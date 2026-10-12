@@ -7,7 +7,7 @@ export const USER_CONFIG_TRANSFER_STORAGE_KEY = "ilab-user-config-transfer";
 export type UserConfigSection = typeof USER_CONFIG_SECTIONS[number];
 export type UserConfigRestoreGroup =
   | "colors" | "prompt_snippets" | "gallery_items"
-  | "prompt_templates" | "settings";
+  | "prompt_templates" | "settings" | "generation_presets";
 export type UserConfigRestoreMode = "incremental" | "replace";
 export type UserConfigBackupStatus =
   | "queued" | "planning" | "packing" | "ready"

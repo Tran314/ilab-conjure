@@ -115,6 +115,97 @@
 
   // codex_image/webui/frontend/src/i18n/en.ts
   var EN_DICTIONARY = {
+    "generationPreview.needsPrompt": "Enter a prompt to resolve the final summary.",
+    "generationPresets.retainedOptions": "This preset omits some prompt-processing options; those current values were retained and are shown in the final summary.",
+    "user_config_restore_generation_presets_invalid": "The backup contains invalid generation presets. No settings were restored.",
+    "user_config_restore_generation_presets_unavailable": "Generation preset storage is unavailable. Retry after restarting the app.",
+    "user_config_restore_generation_presets_merge_invalid": "Generation presets could not be merged safely. Review the backup and current presets.",
+    "user_config_restore_generation_presets_preserved": "This older backup does not include generation presets. Your current presets will be kept.",
+    "user_config_restore_generation_presets_merge_limit": "Merging these presets would exceed the 200-preset limit. Choose replacement or remove unneeded local presets.",
+    "generationPresets.clearRules": "Clear active reference rules",
+    "generationPresets.rulesCleared": "Reference constraints cleared; inputs and generation settings are unchanged.",
+    "generationPresets.title": "Generation presets",
+    "generationPresets.hint": "Save model, provider and generation settings. Combine with prompt templates; applying preserves your current prompt and references.",
+    "generationPresets.privacy": "Only settings and reference rules are saved. Prompts, keys, paths and images are never saved. Reference order is preserved.",
+    "generationPresets.choose": "Choose a preset",
+    "generationPresets.empty": "No presets yet. Name and save your current settings.",
+    "generationPresets.apply": "Apply",
+    "generationPresets.refresh": "Reload",
+    "generationPresets.name": "Name",
+    "generationPresets.save": "Save current settings",
+    "generationPresets.rename": "Rename",
+    "generationPresets.delete": "Delete",
+    "generationPresets.cancel": "Cancel",
+    "generationPresets.confirmDelete": "Confirm deletion",
+    "generationPresets.imageRule": "Image reference rule",
+    "generationPresets.fileRule": "File reference rule",
+    "generationPresets.preserve": "Optional; preserve current inputs",
+    "generationPresets.require": "At least one required",
+    "generationPresets.forbid": "No references allowed",
+    "generationPresets.failed": "Preset request failed",
+    "generationPresets.invalidName": "Use a name of 1\u2013120 characters, without control characters.",
+    "generationPresets.duplicateName": "That name is already in use. Choose another name.",
+    "generationPresets.unavailable": "Unavailable",
+    "generationPresets.loading": "Loading presets\u2026",
+    "generationPresets.loadFailed": "Could not load presets. Reload to try again",
+    "generationPresets.unknownModel": "This preset\u2019s model or operation is unavailable. Your settings were not changed.",
+    "generationPresets.unknownProvider": "This preset\u2019s exact provider binding is unavailable. No substitute was selected.",
+    "generationPresets.invalidParameter": "Incompatible preset parameter: {parameter}. Your settings were not changed.",
+    "generationPresets.invalidRules": "Unsupported reference rules. Your settings were not changed.",
+    "generationPresets.incompatible": "The preset could not be applied without changing parameters. Your previous settings were restored.",
+    "generationPresets.changedDuringApply": "Your inputs changed while applying. Apply the preset again if you still want it.",
+    "generationPresets.applying": "Checking and applying preset\u2026",
+    "generationPresets.applied": "Applied \u201C{name}\u201D. Prompt and references were preserved. Review the updated summary before generating.",
+    "generationPresets.saved": "Preset saved.",
+    "generationPresets.deleteQuestion": "Delete \u201C{name}\u201D? This removes the saved preset only.",
+    "generationPresets.deleted": "Preset deleted.",
+    "generationPresets.generate": "Generate",
+    "generationPresets.edit": "Edit",
+    "generationPreview.title": "Final submission summary",
+    "generationPreview.hint": "Resolved by the server without calling generation services. Changes to settings or references require a fresh review. Null values are decided by the provider.",
+    "generationPreview.ready": "Ready to review",
+    "generationPreview.stale": "Settings changed; previous summary is no longer valid.",
+    "generationPreview.loading": "Resolving final settings\u2026",
+    "generationPreview.failed": "Could not resolve the final summary",
+    "generationPreview.reviewAgain": "Review the updated summary, then click Generate again to submit.",
+    "generationPreview.notReady": "No valid final summary. Resolve the errors and review again before submitting.",
+    "generationPreview.refresh": "Refresh summary",
+    "generationPreview.operation": "Operation",
+    "generationPreview.model": "Model",
+    "generationPreview.provider": "Provider",
+    "generationPreview.binding": "Binding / remote model / protocol",
+    "generationPreview.output": "Resolved dimensions",
+    "generationPreview.quality": "Resolved quality",
+    "generationPreview.parameters": "Effective parameters",
+    "generationPreview.requestOptions": "Prompt processing / main model",
+    "generationPreview.requestedParameters": "Requested canonical parameters",
+    "generationPreview.counts": "Work to submit",
+    "generationPreview.countValues": "{images} images \xB7 {tasks} task \xB7 {requests} generation requests (excluding retries)",
+    "generationPreview.queue": "Concurrency and queue limits",
+    "generationPreview.queueValues": "Provider queue slots: {provider} (max {max}); requests within this task: {task}; queue auto-start: {auto}",
+    "generationPreview.yes": "Yes",
+    "generationPreview.no": "No",
+    "generationPreview.imageOrder": "Actual image reference order",
+    "generationPreview.fileOrder": "Actual file reference order",
+    "generationPreview.referenceRules": "Reference rules",
+    "generationPreview.referenceLimits": "Reference limits",
+    "generationPreview.limitValues": "Images: {images}; reference files: {files}; mask: {mask}",
+    "generationPreview.ordering": "Image ordering / deduplication",
+    "generationPreview.orderExplicit": "Current reference order; only the first occurrence of identical content is used.",
+    "generationPreview.orderDefault": "Uploads, recent assets, then gallery; repeated inputs are deduplicated.",
+    "generationPreview.fileOrdering": "File ordering / deduplication",
+    "generationPreview.fileOrderRule": "Uploaded files, then saved files; only first occurrences are used.",
+    "generationPreview.none": "None",
+    "generationPreview.providerDecides": "Decided by provider",
+    "generationPreview.mask": "Mask",
+    "generationPreview.present": "Present",
+    "generationPreview.warning": "Compatibility notice",
+    "generationPreview.source.upload": "Upload",
+    "generationPreview.source.asset": "Recent image",
+    "generationPreview.source.gallery": "Gallery",
+    "generationPreview.source.file": "Saved file",
+    "userConfigBackup.groupGenerationPresets": "Generation presets",
+    "userConfigBackup.warningGenerationPresetsPreserved": "This older backup does not include generation presets. Your current presets will be kept.",
     "userConfigBackup.previewComparisonCounts": "Identical: {identical} \xB7 conflicts: {conflicts} \xB7 missing assets: {missing}",
     "recovery.unknownStatus": "Result unknown",
     "recovery.resultUnknown": "The provider may have accepted this request and may still charge for it. Check its status before generating again.",
@@ -12589,6 +12680,97 @@
 
   // codex_image/webui/frontend/src/i18n/vi.ts
   var VI_DICTIONARY = {
+    "generationPreview.needsPrompt": "Nh\u1EADp l\u1EDDi nh\u1EAFc \u0111\u1EC3 ph\xE2n t\xEDch b\u1EA3n t\xF3m t\u1EAFt cu\u1ED1i c\xF9ng.",
+    "generationPresets.retainedOptions": "C\u1EA5u h\xECnh n\xE0y kh\xF4ng l\u01B0u m\u1ED9t s\u1ED1 t\xF9y ch\u1ECDn x\u1EED l\xFD l\u1EDDi nh\u1EAFc; c\xE1c gi\xE1 tr\u1ECB hi\u1EC7n t\u1EA1i \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i v\xE0 hi\u1EC3n th\u1ECB trong b\u1EA3n t\xF3m t\u1EAFt cu\u1ED1i c\xF9ng.",
+    "user_config_restore_generation_presets_invalid": "B\u1EA3n sao l\u01B0u ch\u1EE9a c\u1EA5u h\xECnh t\u1EA1o \u1EA3nh kh\xF4ng h\u1EE3p l\u1EC7. Ch\u01B0a kh\xF4i ph\u1EE5c c\xE0i \u0111\u1EB7t n\xE0o.",
+    "user_config_restore_generation_presets_unavailable": "Kho c\u1EA5u h\xECnh t\u1EA1o \u1EA3nh kh\xF4ng kh\u1EA3 d\u1EE5ng. H\xE3y kh\u1EDFi \u0111\u1ED9ng l\u1EA1i \u1EE9ng d\u1EE5ng r\u1ED3i th\u1EED l\u1EA1i.",
+    "user_config_restore_generation_presets_merge_invalid": "Kh\xF4ng th\u1EC3 h\u1EE3p nh\u1EA5t an to\xE0n c\xE1c c\u1EA5u h\xECnh t\u1EA1o \u1EA3nh. H\xE3y ki\u1EC3m tra b\u1EA3n sao l\u01B0u v\xE0 c\u1EA5u h\xECnh hi\u1EC7n t\u1EA1i.",
+    "user_config_restore_generation_presets_preserved": "B\u1EA3n sao l\u01B0u c\u0169 n\xE0y kh\xF4ng ch\u1EE9a c\u1EA5u h\xECnh t\u1EA1o \u1EA3nh. C\xE1c c\u1EA5u h\xECnh hi\u1EC7n t\u1EA1i s\u1EBD \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i.",
+    "user_config_restore_generation_presets_merge_limit": "Vi\u1EC7c h\u1EE3p nh\u1EA5t s\u1EBD v\u01B0\u1EE3t gi\u1EDBi h\u1EA1n 200 c\u1EA5u h\xECnh. H\xE3y ch\u1ECDn thay th\u1EBF ho\u1EB7c x\xF3a b\u1EDBt c\u1EA5u h\xECnh c\u1EE5c b\u1ED9 kh\xF4ng c\u1EA7n thi\u1EBFt.",
+    "generationPresets.clearRules": "B\u1ECF quy t\u1EAFc tham chi\u1EBFu \u0111ang \xE1p d\u1EE5ng",
+    "generationPresets.rulesCleared": "\u0110\xE3 b\u1ECF r\xE0ng bu\u1ED9c tham chi\u1EBFu; \u0111\u1EA7u v\xE0o v\xE0 c\xE0i \u0111\u1EB7t t\u1EA1o \u1EA3nh kh\xF4ng thay \u0111\u1ED5i.",
+    "generationPresets.title": "C\u1EA5u h\xECnh t\u1EA1o \u1EA3nh",
+    "generationPresets.hint": "L\u01B0u m\xF4 h\xECnh, nh\xE0 cung c\u1EA5p v\xE0 c\xE0i \u0111\u1EB7t t\u1EA1o \u1EA3nh. C\xF3 th\u1EC3 d\xF9ng c\xF9ng m\u1EABu l\u1EDDi nh\u1EAFc; khi \xE1p d\u1EE5ng, l\u1EDDi nh\u1EAFc v\xE0 t\xE0i li\u1EC7u tham chi\u1EBFu hi\u1EC7n t\u1EA1i \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i.",
+    "generationPresets.privacy": "Ch\u1EC9 l\u01B0u c\xE0i \u0111\u1EB7t v\xE0 quy t\u1EAFc tham chi\u1EBFu. Kh\xF4ng l\u01B0u l\u1EDDi nh\u1EAFc, kh\xF3a, \u0111\u01B0\u1EDDng d\u1EABn hay \u1EA3nh. Th\u1EE9 t\u1EF1 tham chi\u1EBFu \u0111\u01B0\u1EE3c gi\u1EEF nguy\xEAn.",
+    "generationPresets.choose": "Ch\u1ECDn c\u1EA5u h\xECnh",
+    "generationPresets.empty": "Ch\u01B0a c\xF3 c\u1EA5u h\xECnh. \u0110\u1EB7t t\xEAn v\xE0 l\u01B0u c\xE0i \u0111\u1EB7t hi\u1EC7n t\u1EA1i.",
+    "generationPresets.apply": "\xC1p d\u1EE5ng",
+    "generationPresets.refresh": "T\u1EA3i l\u1EA1i",
+    "generationPresets.name": "T\xEAn",
+    "generationPresets.save": "L\u01B0u c\xE0i \u0111\u1EB7t hi\u1EC7n t\u1EA1i",
+    "generationPresets.rename": "\u0110\u1ED5i t\xEAn",
+    "generationPresets.delete": "X\xF3a",
+    "generationPresets.cancel": "H\u1EE7y",
+    "generationPresets.confirmDelete": "X\xE1c nh\u1EADn x\xF3a",
+    "generationPresets.imageRule": "Quy t\u1EAFc \u1EA3nh tham chi\u1EBFu",
+    "generationPresets.fileRule": "Quy t\u1EAFc t\u1EC7p tham chi\u1EBFu",
+    "generationPresets.preserve": "T\xF9y ch\u1ECDn; gi\u1EEF \u0111\u1EA7u v\xE0o hi\u1EC7n t\u1EA1i",
+    "generationPresets.require": "C\u1EA7n \xEDt nh\u1EA5t m\u1ED9t m\u1EE5c",
+    "generationPresets.forbid": "Kh\xF4ng cho ph\xE9p tham chi\u1EBFu",
+    "generationPresets.failed": "Thao t\xE1c v\u1EDBi c\u1EA5u h\xECnh th\u1EA5t b\u1EA1i",
+    "generationPresets.invalidName": "T\xEAn ph\u1EA3i c\xF3 1\u2013120 k\xFD t\u1EF1 v\xE0 kh\xF4ng ch\u1EE9a k\xFD t\u1EF1 \u0111i\u1EC1u khi\u1EC3n.",
+    "generationPresets.duplicateName": "T\xEAn n\xE0y \u0111\xE3 \u0111\u01B0\u1EE3c s\u1EED d\u1EE5ng. H\xE3y ch\u1ECDn t\xEAn kh\xE1c.",
+    "generationPresets.unavailable": "Kh\xF4ng kh\u1EA3 d\u1EE5ng",
+    "generationPresets.loading": "\u0110ang t\u1EA3i c\u1EA5u h\xECnh\u2026",
+    "generationPresets.loadFailed": "Kh\xF4ng th\u1EC3 t\u1EA3i c\u1EA5u h\xECnh. H\xE3y t\u1EA3i l\u1EA1i \u0111\u1EC3 th\u1EED l\u1EA1i",
+    "generationPresets.unknownModel": "M\xF4 h\xECnh ho\u1EB7c thao t\xE1c c\u1EE7a c\u1EA5u h\xECnh n\xE0y kh\xF4ng kh\u1EA3 d\u1EE5ng. C\xE0i \u0111\u1EB7t c\u1EE7a b\u1EA1n ch\u01B0a thay \u0111\u1ED5i.",
+    "generationPresets.unknownProvider": "Li\xEAn k\u1EBFt nh\xE0 cung c\u1EA5p \u0111\u01B0\u1EE3c ch\u1EC9 \u0111\u1ECBnh trong c\u1EA5u h\xECnh kh\xF4ng kh\u1EA3 d\u1EE5ng. Ch\u01B0a ch\u1ECDn nh\xE0 cung c\u1EA5p thay th\u1EBF.",
+    "generationPresets.invalidParameter": "Tham s\u1ED1 c\u1EA5u h\xECnh kh\xF4ng t\u01B0\u01A1ng th\xEDch: {parameter}. C\xE0i \u0111\u1EB7t c\u1EE7a b\u1EA1n ch\u01B0a thay \u0111\u1ED5i.",
+    "generationPresets.invalidRules": "Quy t\u1EAFc tham chi\u1EBFu kh\xF4ng \u0111\u01B0\u1EE3c h\u1ED7 tr\u1EE3. C\xE0i \u0111\u1EB7t c\u1EE7a b\u1EA1n ch\u01B0a thay \u0111\u1ED5i.",
+    "generationPresets.incompatible": "Kh\xF4ng th\u1EC3 \xE1p d\u1EE5ng c\u1EA5u h\xECnh m\xE0 kh\xF4ng thay \u0111\u1ED5i tham s\u1ED1. \u0110\xE3 kh\xF4i ph\u1EE5c c\xE0i \u0111\u1EB7t tr\u01B0\u1EDBc \u0111\xF3.",
+    "generationPresets.changedDuringApply": "\u0110\u1EA7u v\xE0o ho\u1EB7c c\xE0i \u0111\u1EB7t \u0111\xE3 thay \u0111\u1ED5i trong khi \xE1p d\u1EE5ng. H\xE3y \xE1p d\u1EE5ng l\u1EA1i n\u1EBFu b\u1EA1n v\u1EABn mu\u1ED1n d\xF9ng c\u1EA5u h\xECnh n\xE0y.",
+    "generationPresets.applying": "\u0110ang ki\u1EC3m tra v\xE0 \xE1p d\u1EE5ng c\u1EA5u h\xECnh\u2026",
+    "generationPresets.applied": "\u0110\xE3 \xE1p d\u1EE5ng \u201C{name}\u201D. L\u1EDDi nh\u1EAFc v\xE0 tham chi\u1EBFu \u0111\u01B0\u1EE3c gi\u1EEF nguy\xEAn. H\xE3y ki\u1EC3m tra b\u1EA3n t\xF3m t\u1EAFt m\u1EDBi tr\u01B0\u1EDBc khi t\u1EA1o \u1EA3nh.",
+    "generationPresets.saved": "\u0110\xE3 l\u01B0u c\u1EA5u h\xECnh.",
+    "generationPresets.deleteQuestion": "X\xF3a \u201C{name}\u201D? Thao t\xE1c n\xE0y ch\u1EC9 x\xF3a c\u1EA5u h\xECnh \u0111\xE3 l\u01B0u.",
+    "generationPresets.deleted": "\u0110\xE3 x\xF3a c\u1EA5u h\xECnh.",
+    "generationPresets.generate": "T\u1EA1o \u1EA3nh",
+    "generationPresets.edit": "Ch\u1EC9nh s\u1EEDa",
+    "generationPreview.title": "T\xF3m t\u1EAFt cu\u1ED1i c\xF9ng tr\u01B0\u1EDBc khi g\u1EEDi",
+    "generationPreview.hint": "M\xE1y ch\u1EE7 ph\xE2n t\xEDch m\xE0 kh\xF4ng g\u1ECDi d\u1ECBch v\u1EE5 t\u1EA1o \u1EA3nh. Khi c\xE0i \u0111\u1EB7t ho\u1EB7c tham chi\u1EBFu thay \u0111\u1ED5i, c\u1EA7n ki\u1EC3m tra l\u1EA1i. Gi\xE1 tr\u1ECB ch\u01B0a ch\u1EC9 \u0111\u1ECBnh do nh\xE0 cung c\u1EA5p quy\u1EBFt \u0111\u1ECBnh.",
+    "generationPreview.ready": "S\u1EB5n s\xE0ng ki\u1EC3m tra",
+    "generationPreview.stale": "C\xE0i \u0111\u1EB7t \u0111\xE3 thay \u0111\u1ED5i; b\u1EA3n t\xF3m t\u1EAFt tr\u01B0\u1EDBc kh\xF4ng c\xF2n hi\u1EC7u l\u1EF1c.",
+    "generationPreview.loading": "\u0110ang ph\xE2n t\xEDch c\xE0i \u0111\u1EB7t cu\u1ED1i c\xF9ng\u2026",
+    "generationPreview.failed": "Kh\xF4ng th\u1EC3 ph\xE2n t\xEDch b\u1EA3n t\xF3m t\u1EAFt cu\u1ED1i c\xF9ng",
+    "generationPreview.reviewAgain": "Ki\u1EC3m tra b\u1EA3n t\xF3m t\u1EAFt m\u1EDBi, r\u1ED3i nh\u1EA5n T\u1EA1o \u1EA3nh l\u1EA7n n\u1EEFa \u0111\u1EC3 g\u1EEDi.",
+    "generationPreview.notReady": "Ch\u01B0a c\xF3 b\u1EA3n t\xF3m t\u1EAFt cu\u1ED1i c\xF9ng h\u1EE3p l\u1EC7. H\xE3y kh\u1EAFc ph\u1EE5c l\u1ED7i v\xE0 ki\u1EC3m tra l\u1EA1i tr\u01B0\u1EDBc khi g\u1EEDi.",
+    "generationPreview.refresh": "C\u1EADp nh\u1EADt b\u1EA3n t\xF3m t\u1EAFt",
+    "generationPreview.operation": "Thao t\xE1c",
+    "generationPreview.model": "M\xF4 h\xECnh",
+    "generationPreview.provider": "Nh\xE0 cung c\u1EA5p",
+    "generationPreview.binding": "Li\xEAn k\u1EBFt / m\xF4 h\xECnh t\u1EEB xa / giao th\u1EE9c",
+    "generationPreview.output": "K\xEDch th\u01B0\u1EDBc \u0111\xE3 x\xE1c \u0111\u1ECBnh",
+    "generationPreview.quality": "Ch\u1EA5t l\u01B0\u1EE3ng \u0111\xE3 x\xE1c \u0111\u1ECBnh",
+    "generationPreview.parameters": "Tham s\u1ED1 c\xF3 hi\u1EC7u l\u1EF1c",
+    "generationPreview.requestOptions": "X\u1EED l\xFD l\u1EDDi nh\u1EAFc / m\xF4 h\xECnh ch\xEDnh",
+    "generationPreview.requestedParameters": "Tham s\u1ED1 chu\u1EA9n \u0111\u01B0\u1EE3c y\xEAu c\u1EA7u",
+    "generationPreview.counts": "Kh\u1ED1i l\u01B0\u1EE3ng s\u1EBD g\u1EEDi",
+    "generationPreview.countValues": "{images} \u1EA3nh \xB7 {tasks} t\xE1c v\u1EE5 \xB7 {requests} y\xEAu c\u1EA7u t\u1EA1o \u1EA3nh (kh\xF4ng t\xEDnh l\u1EA7n th\u1EED l\u1EA1i)",
+    "generationPreview.queue": "Gi\u1EDBi h\u1EA1n \u0111\u1ED3ng th\u1EDDi v\xE0 h\xE0ng \u0111\u1EE3i",
+    "generationPreview.queueValues": "S\u1ED1 v\u1ECB tr\xED h\xE0ng \u0111\u1EE3i c\u1EE7a nh\xE0 cung c\u1EA5p: {provider} (t\u1ED1i \u0111a {max}); y\xEAu c\u1EA7u \u0111\u1ED3ng th\u1EDDi trong t\xE1c v\u1EE5: {task}; t\u1EF1 kh\u1EDFi \u0111\u1ED9ng h\xE0ng \u0111\u1EE3i: {auto}",
+    "generationPreview.yes": "C\xF3",
+    "generationPreview.no": "Kh\xF4ng",
+    "generationPreview.imageOrder": "Th\u1EE9 t\u1EF1 \u1EA3nh tham chi\u1EBFu th\u1EF1c t\u1EBF",
+    "generationPreview.fileOrder": "Th\u1EE9 t\u1EF1 t\u1EC7p tham chi\u1EBFu th\u1EF1c t\u1EBF",
+    "generationPreview.referenceRules": "Quy t\u1EAFc tham chi\u1EBFu",
+    "generationPreview.referenceLimits": "Gi\u1EDBi h\u1EA1n tham chi\u1EBFu",
+    "generationPreview.limitValues": "\u1EA2nh: {images}; t\u1EC7p tham chi\u1EBFu: {files}; m\u1EB7t n\u1EA1: {mask}",
+    "generationPreview.ordering": "S\u1EAFp x\u1EBFp / lo\u1EA1i b\u1ECF \u1EA3nh tr\xF9ng l\u1EB7p",
+    "generationPreview.orderExplicit": "Theo th\u1EE9 t\u1EF1 tham chi\u1EBFu hi\u1EC7n t\u1EA1i; n\u1ED9i dung tr\xF9ng l\u1EB7p ch\u1EC9 s\u1EED d\u1EE5ng v\u1ECB tr\xED xu\u1EA5t hi\u1EC7n \u0111\u1EA7u ti\xEAn.",
+    "generationPreview.orderDefault": "\u1EA2nh t\u1EA3i l\xEAn, t\xE0i nguy\xEAn g\u1EA7n \u0111\xE2y, r\u1ED3i th\u01B0 vi\u1EC7n; lo\u1EA1i b\u1ECF \u0111\u1EA7u v\xE0o tr\xF9ng l\u1EB7p.",
+    "generationPreview.fileOrdering": "S\u1EAFp x\u1EBFp / lo\u1EA1i b\u1ECF t\u1EC7p tr\xF9ng l\u1EB7p",
+    "generationPreview.fileOrderRule": "T\u1EC7p t\u1EA3i l\xEAn tr\u01B0\u1EDBc, r\u1ED3i t\u1EC7p \u0111\xE3 l\u01B0u; ch\u1EC9 s\u1EED d\u1EE5ng l\u1EA7n xu\u1EA5t hi\u1EC7n \u0111\u1EA7u ti\xEAn.",
+    "generationPreview.none": "Kh\xF4ng c\xF3",
+    "generationPreview.providerDecides": "Do nh\xE0 cung c\u1EA5p quy\u1EBFt \u0111\u1ECBnh",
+    "generationPreview.mask": "M\u1EB7t n\u1EA1",
+    "generationPreview.present": "C\xF3",
+    "generationPreview.warning": "L\u01B0u \xFD v\u1EC1 kh\u1EA3 n\u0103ng t\u01B0\u01A1ng th\xEDch",
+    "generationPreview.source.upload": "T\u1EA3i l\xEAn",
+    "generationPreview.source.asset": "\u1EA2nh g\u1EA7n \u0111\xE2y",
+    "generationPreview.source.gallery": "Th\u01B0 vi\u1EC7n",
+    "generationPreview.source.file": "T\u1EC7p \u0111\xE3 l\u01B0u",
+    "userConfigBackup.groupGenerationPresets": "C\u1EA5u h\xECnh t\u1EA1o \u1EA3nh",
+    "userConfigBackup.warningGenerationPresetsPreserved": "B\u1EA3n sao l\u01B0u c\u0169 n\xE0y kh\xF4ng ch\u1EE9a c\u1EA5u h\xECnh t\u1EA1o \u1EA3nh. C\xE1c c\u1EA5u h\xECnh hi\u1EC7n t\u1EA1i s\u1EBD \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i.",
     "userConfigBackup.previewComparisonCounts": "Tr\xF9ng kh\u1EDBp: {identical} \xB7 xung \u0111\u1ED9t: {conflicts} \xB7 t\xE0i nguy\xEAn thi\u1EBFu: {missing}",
     "recovery.unknownStatus": "Ch\u01B0a r\xF5 k\u1EBFt qu\u1EA3",
     "recovery.resultUnknown": "Nh\xE0 cung c\u1EA5p c\xF3 th\u1EC3 \u0111\xE3 nh\u1EADn y\xEAu c\u1EA7u v\xE0 v\u1EABn t\xEDnh ph\xED. H\xE3y ki\u1EC3m tra tr\u1EA1ng th\xE1i tr\u01B0\u1EDBc khi t\u1EA1o l\u1EA1i.",
@@ -14020,6 +14202,97 @@
 
   // codex_image/webui/frontend/src/i18n/zh-cn.ts
   var ZH_CN_DICTIONARY = {
+    "generationPreview.needsPrompt": "\u8F93\u5165\u63D0\u793A\u8BCD\u540E\uFF0C\u5C06\u89E3\u6790\u63D0\u4EA4\u524D\u7684\u6700\u7EC8\u6458\u8981\u3002",
+    "generationPresets.retainedOptions": "\u6B64\u9884\u8BBE\u672A\u4FDD\u5B58\u90E8\u5206\u63D0\u793A\u8BCD\u5904\u7406\u9009\u9879\uFF0C\u8FD9\u4E9B\u9009\u9879\u4FDD\u7559\u5F53\u524D\u503C\uFF0C\u5E76\u4F1A\u5728\u6700\u7EC8\u6458\u8981\u4E2D\u5217\u51FA\u3002",
+    "user_config_restore_generation_presets_invalid": "\u5907\u4EFD\u4E2D\u7684\u751F\u6210\u9884\u8BBE\u683C\u5F0F\u6216\u5B57\u6BB5\u65E0\u6548\uFF0C\u672A\u6062\u590D\u8BBE\u7F6E\u3002",
+    "user_config_restore_generation_presets_unavailable": "\u751F\u6210\u9884\u8BBE\u5B58\u50A8\u4E0D\u53EF\u7528\uFF0C\u8BF7\u91CD\u542F\u5E94\u7528\u540E\u91CD\u8BD5\u3002",
+    "user_config_restore_generation_presets_merge_invalid": "\u65E0\u6CD5\u5B89\u5168\u5408\u5E76\u751F\u6210\u9884\u8BBE\uFF0C\u8BF7\u68C0\u67E5\u5907\u4EFD\u4E0E\u5F53\u524D\u9884\u8BBE\u3002",
+    "user_config_restore_generation_presets_preserved": "\u6B64\u65E7\u5907\u4EFD\u4E0D\u542B\u751F\u6210\u9884\u8BBE\uFF0C\u5C06\u4FDD\u7559\u73B0\u6709\u9884\u8BBE\u3002",
+    "user_config_restore_generation_presets_merge_limit": "\u589E\u91CF\u5408\u5E76\u5C06\u8D85\u8FC7 200 \u4E2A\u9884\u8BBE\u4E0A\u9650\uFF0C\u8BF7\u6539\u9009\u66FF\u6362\u6216\u5148\u6574\u7406\u672C\u5730\u9884\u8BBE\u3002",
+    "generationPresets.clearRules": "\u89E3\u9664\u5F53\u524D\u53C2\u8003\u89C4\u5219",
+    "generationPresets.rulesCleared": "\u5DF2\u89E3\u9664\u53C2\u8003\u89C4\u5219\uFF0C\u5F53\u524D\u8F93\u5165\u4E0E\u751F\u6210\u53C2\u6570\u4FDD\u6301\u4E0D\u53D8\u3002",
+    "generationPresets.title": "\u751F\u6210\u9884\u8BBE",
+    "generationPresets.hint": "\u4FDD\u5B58\u6A21\u578B\u3001\u670D\u52A1\u5546\u548C\u751F\u6210\u53C2\u6570\uFF0C\u53EF\u4E0E\u63D0\u793A\u8BCD\u6A21\u677F\u642D\u914D\u3002\u5E94\u7528\u65F6\u4FDD\u7559\u5F53\u524D\u63D0\u793A\u8BCD\u4E0E\u53C2\u8003\u7D20\u6750\u3002",
+    "generationPresets.privacy": "\u4EC5\u4FDD\u5B58\u8BBE\u7F6E\u4E0E\u53C2\u8003\u89C4\u5219\uFF0C\u4E0D\u4FDD\u5B58\u63D0\u793A\u8BCD\u3001\u5BC6\u94A5\u3001\u8DEF\u5F84\u6216\u56FE\u7247\u3002\u53C2\u8003\u56FE\u987A\u5E8F\u59CB\u7EC8\u4FDD\u7559\u3002",
+    "generationPresets.choose": "\u9009\u62E9\u9884\u8BBE",
+    "generationPresets.empty": "\u6682\u65E0\u9884\u8BBE\u3002\u8F93\u5165\u540D\u79F0\u5373\u53EF\u4FDD\u5B58\u5F53\u524D\u8BBE\u7F6E\u3002",
+    "generationPresets.apply": "\u5E94\u7528",
+    "generationPresets.refresh": "\u91CD\u65B0\u52A0\u8F7D",
+    "generationPresets.name": "\u540D\u79F0",
+    "generationPresets.save": "\u4FDD\u5B58\u5F53\u524D\u8BBE\u7F6E",
+    "generationPresets.rename": "\u91CD\u547D\u540D",
+    "generationPresets.delete": "\u5220\u9664",
+    "generationPresets.cancel": "\u53D6\u6D88",
+    "generationPresets.confirmDelete": "\u786E\u8BA4\u5220\u9664",
+    "generationPresets.imageRule": "\u53C2\u8003\u56FE\u89C4\u5219",
+    "generationPresets.fileRule": "\u53C2\u8003\u6587\u4EF6\u89C4\u5219",
+    "generationPresets.preserve": "\u53EF\u9009\uFF0C\u4FDD\u7559\u5F53\u524D\u8F93\u5165",
+    "generationPresets.require": "\u81F3\u5C11\u9700\u8981\u4E00\u4E2A",
+    "generationPresets.forbid": "\u4E0D\u5141\u8BB8\u53C2\u8003\u8F93\u5165",
+    "generationPresets.failed": "\u9884\u8BBE\u64CD\u4F5C\u5931\u8D25",
+    "generationPresets.invalidName": "\u540D\u79F0\u987B\u4E3A 1\u2013120 \u4E2A\u5B57\u7B26\uFF0C\u4E14\u4E0D\u80FD\u542B\u63A7\u5236\u5B57\u7B26\u3002",
+    "generationPresets.duplicateName": "\u5DF2\u6709\u540C\u540D\u9884\u8BBE\uFF0C\u8BF7\u6362\u4E00\u4E2A\u540D\u79F0\u3002",
+    "generationPresets.unavailable": "\u4E0D\u53EF\u7528",
+    "generationPresets.loading": "\u6B63\u5728\u52A0\u8F7D\u9884\u8BBE\u2026",
+    "generationPresets.loadFailed": "\u9884\u8BBE\u52A0\u8F7D\u5931\u8D25\uFF0C\u53EF\u70B9\u51FB\u91CD\u65B0\u52A0\u8F7D",
+    "generationPresets.unknownModel": "\u6B64\u9884\u8BBE\u7684\u6A21\u578B\u6216\u64CD\u4F5C\u4E0D\u53EF\u7528\uFF0C\u5F53\u524D\u8BBE\u7F6E\u672A\u66F4\u6539\u3002",
+    "generationPresets.unknownProvider": "\u6B64\u9884\u8BBE\u6307\u5B9A\u7684\u670D\u52A1\u5546\u6216\u6A21\u578B\u7ED1\u5B9A\u4E0D\u53EF\u7528\uFF0C\u672A\u5207\u6362\u81F3\u5176\u4ED6\u670D\u52A1\u5546\u3002",
+    "generationPresets.invalidParameter": "\u9884\u8BBE\u53C2\u6570\u4E0D\u517C\u5BB9\uFF1A{parameter}\u3002\u5F53\u524D\u8BBE\u7F6E\u672A\u66F4\u6539\u3002",
+    "generationPresets.invalidRules": "\u4E0D\u652F\u6301\u6B64\u53C2\u8003\u89C4\u5219\uFF0C\u5F53\u524D\u8BBE\u7F6E\u672A\u66F4\u6539\u3002",
+    "generationPresets.incompatible": "\u65E0\u6CD5\u5B8C\u6574\u5E94\u7528\u9884\u8BBE\u53C2\u6570\uFF0C\u5DF2\u6062\u590D\u4E4B\u524D\u7684\u8BBE\u7F6E\u3002",
+    "generationPresets.changedDuringApply": "\u5E94\u7528\u671F\u95F4\u8F93\u5165\u6216\u8BBE\u7F6E\u5DF2\u53D8\u5316\u3002\u5982\u4ECD\u9700\u4F7F\u7528\uFF0C\u8BF7\u91CD\u65B0\u5E94\u7528\u9884\u8BBE\u3002",
+    "generationPresets.applying": "\u6B63\u5728\u6821\u9A8C\u5E76\u5E94\u7528\u9884\u8BBE\u2026",
+    "generationPresets.applied": "\u5DF2\u5E94\u7528\u201C{name}\u201D\uFF0C\u63D0\u793A\u8BCD\u548C\u53C2\u8003\u7D20\u6750\u5DF2\u4FDD\u7559\u3002\u751F\u6210\u524D\u8BF7\u6838\u5BF9\u66F4\u65B0\u540E\u7684\u6458\u8981\u3002",
+    "generationPresets.saved": "\u9884\u8BBE\u5DF2\u4FDD\u5B58\u3002",
+    "generationPresets.deleteQuestion": "\u786E\u8BA4\u5220\u9664\u201C{name}\u201D\uFF1F\u4EC5\u5220\u9664\u5DF2\u4FDD\u5B58\u7684\u9884\u8BBE\u3002",
+    "generationPresets.deleted": "\u9884\u8BBE\u5DF2\u5220\u9664\u3002",
+    "generationPresets.generate": "\u751F\u6210",
+    "generationPresets.edit": "\u7F16\u8F91",
+    "generationPreview.title": "\u63D0\u4EA4\u524D\u6700\u7EC8\u53C2\u6570\u6458\u8981",
+    "generationPreview.hint": "\u7531\u670D\u52A1\u5668\u89E3\u6790\uFF0C\u4E0D\u8C03\u7528\u751F\u6210\u670D\u52A1\u3002\u66F4\u6539\u8BBE\u7F6E\u6216\u53C2\u8003\u7D20\u6750\u540E\u9700\u8981\u91CD\u65B0\u786E\u8BA4\u3002\u672A\u6307\u5B9A\u7684\u53C2\u6570\u7531\u670D\u52A1\u5546\u51B3\u5B9A\u3002",
+    "generationPreview.ready": "\u6458\u8981\u5DF2\u66F4\u65B0",
+    "generationPreview.stale": "\u8BBE\u7F6E\u5DF2\u53D8\u5316\uFF0C\u4E4B\u524D\u7684\u6458\u8981\u5DF2\u5931\u6548\u3002",
+    "generationPreview.loading": "\u6B63\u5728\u89E3\u6790\u6700\u7EC8\u53C2\u6570\u2026",
+    "generationPreview.failed": "\u65E0\u6CD5\u89E3\u6790\u6700\u7EC8\u6458\u8981",
+    "generationPreview.reviewAgain": "\u8BF7\u6838\u5BF9\u66F4\u65B0\u540E\u7684\u6700\u7EC8\u6458\u8981\uFF0C\u518D\u70B9\u51FB\u751F\u6210\u63D0\u4EA4\u3002",
+    "generationPreview.notReady": "\u5C1A\u65E0\u6709\u6548\u7684\u6700\u7EC8\u6458\u8981\uFF0C\u8BF7\u89E3\u51B3\u9519\u8BEF\u5E76\u91CD\u65B0\u786E\u8BA4\u540E\u63D0\u4EA4\u3002",
+    "generationPreview.refresh": "\u91CD\u65B0\u89E3\u6790\u6458\u8981",
+    "generationPreview.operation": "\u64CD\u4F5C",
+    "generationPreview.model": "\u6A21\u578B",
+    "generationPreview.provider": "\u670D\u52A1\u5546",
+    "generationPreview.binding": "\u7ED1\u5B9A / \u8FDC\u7A0B\u6A21\u578B / \u534F\u8BAE",
+    "generationPreview.output": "\u89E3\u6790\u540E\u7684\u5C3A\u5BF8",
+    "generationPreview.quality": "\u89E3\u6790\u540E\u7684\u8D28\u91CF",
+    "generationPreview.parameters": "\u6700\u7EC8\u751F\u6548\u53C2\u6570",
+    "generationPreview.requestOptions": "\u63D0\u793A\u8BCD\u5904\u7406 / \u4E3B\u6A21\u578B",
+    "generationPreview.requestedParameters": "\u8BF7\u6C42\u7684\u6807\u51C6\u53C2\u6570",
+    "generationPreview.counts": "\u63D0\u4EA4\u89C4\u6A21",
+    "generationPreview.countValues": "{images} \u5F20\u56FE\u7247 \xB7 {tasks} \u4E2A\u4EFB\u52A1 \xB7 {requests} \u6B21\u751F\u6210\u8BF7\u6C42\uFF08\u4E0D\u542B\u91CD\u8BD5\uFF09",
+    "generationPreview.queue": "\u5E76\u53D1\u4E0E\u961F\u5217\u9650\u5236",
+    "generationPreview.queueValues": "\u670D\u52A1\u5546\u961F\u5217\u69FD\u4F4D\uFF1A{provider}\uFF08\u4E0A\u9650 {max}\uFF09\uFF1B\u4EFB\u52A1\u5185\u8BF7\u6C42\u5E76\u53D1\uFF1A{task}\uFF1B\u961F\u5217\u81EA\u52A8\u542F\u52A8\uFF1A{auto}",
+    "generationPreview.yes": "\u662F",
+    "generationPreview.no": "\u5426",
+    "generationPreview.imageOrder": "\u5B9E\u9645\u53C2\u8003\u56FE\u987A\u5E8F",
+    "generationPreview.fileOrder": "\u5B9E\u9645\u53C2\u8003\u6587\u4EF6\u987A\u5E8F",
+    "generationPreview.referenceRules": "\u53C2\u8003\u89C4\u5219",
+    "generationPreview.referenceLimits": "\u53C2\u8003\u8F93\u5165\u9650\u5236",
+    "generationPreview.limitValues": "\u53C2\u8003\u56FE\u4E0A\u9650\uFF1A{images}\uFF1B\u53C2\u8003\u6587\u4EF6\uFF1A{files}\uFF1B\u8499\u7248\uFF1A{mask}",
+    "generationPreview.ordering": "\u53C2\u8003\u56FE\u6392\u5E8F / \u53BB\u91CD\u89C4\u5219",
+    "generationPreview.orderExplicit": "\u6309\u5F53\u524D\u53C2\u8003\u987A\u5E8F\uFF0C\u91CD\u590D\u5185\u5BB9\u4EC5\u4F7F\u7528\u7B2C\u4E00\u6B21\u51FA\u73B0\u7684\u4F4D\u7F6E\u3002",
+    "generationPreview.orderDefault": "\u4E0A\u4F20\u56FE\u7247\u3001\u6700\u8FD1\u7D20\u6750\u3001\u56FE\u5E93\u4F9D\u6B21\u6392\u5E8F\uFF0C\u5E76\u53BB\u9664\u91CD\u590D\u8F93\u5165\u3002",
+    "generationPreview.fileOrdering": "\u53C2\u8003\u6587\u4EF6\u6392\u5E8F / \u53BB\u91CD\u89C4\u5219",
+    "generationPreview.fileOrderRule": "\u4E0A\u4F20\u6587\u4EF6\u4F18\u5148\uFF0C\u5DF2\u4FDD\u5B58\u6587\u4EF6\u968F\u540E\uFF1B\u91CD\u590D\u5185\u5BB9\u4EC5\u4FDD\u7559\u9996\u6B21\u51FA\u73B0\u3002",
+    "generationPreview.none": "\u65E0",
+    "generationPreview.providerDecides": "\u7531\u670D\u52A1\u5546\u51B3\u5B9A",
+    "generationPreview.mask": "\u8499\u7248",
+    "generationPreview.present": "\u6709",
+    "generationPreview.warning": "\u517C\u5BB9\u6027\u63D0\u793A",
+    "generationPreview.source.upload": "\u4E0A\u4F20",
+    "generationPreview.source.asset": "\u6700\u8FD1\u56FE\u7247",
+    "generationPreview.source.gallery": "\u56FE\u5E93",
+    "generationPreview.source.file": "\u5DF2\u4FDD\u5B58\u6587\u4EF6",
+    "userConfigBackup.groupGenerationPresets": "\u751F\u6210\u9884\u8BBE",
+    "userConfigBackup.warningGenerationPresetsPreserved": "\u6B64\u65E7\u5907\u4EFD\u4E0D\u542B\u751F\u6210\u9884\u8BBE\uFF0C\u5C06\u4FDD\u7559\u73B0\u6709\u9884\u8BBE\u3002",
     "userConfigBackup.previewComparisonCounts": "\u76F8\u540C\uFF1A{identical} \xB7 \u51B2\u7A81\uFF1A{conflicts} \xB7 \u7F3A\u5931\u8D44\u6E90\uFF1A{missing}",
     "recovery.unknownStatus": "\u7ED3\u679C\u672A\u77E5",
     "recovery.resultUnknown": "\u670D\u52A1\u5546\u53EF\u80FD\u5DF2\u63A5\u6536\u6B64\u8BF7\u6C42\u5E76\u4EA7\u751F\u8D39\u7528\u3002\u518D\u6B21\u751F\u6210\u524D\uFF0C\u8BF7\u5148\u68C0\u67E5\u670D\u52A1\u5546\u4EFB\u52A1\u72B6\u6001\u3002",
@@ -18624,9 +18897,9 @@
     });
     getLegacyBridge().methods.openCompactTasks = open;
     getLegacyBridge().methods.closeCompactTasks = hide;
-    const preview = document.querySelector(".preview-panel");
+    const preview2 = document.querySelector(".preview-panel");
     const prompt = document.querySelector(".prompt-panel");
-    if (preview && prompt) {
+    if (preview2 && prompt) {
       const jump = document.createElement("button");
       jump.type = "button";
       jump.className = "ghost-button compact-preview-jump";
@@ -18635,10 +18908,10 @@
       };
       labelJump();
       document.addEventListener(LOCALE_CHANGE_EVENT, labelJump);
-      preview.tabIndex = -1;
+      preview2.tabIndex = -1;
       jump.addEventListener("click", () => {
-        preview.scrollIntoView({ block: "start" });
-        preview.focus({ preventScroll: true });
+        preview2.scrollIntoView({ block: "start" });
+        preview2.focus({ preventScroll: true });
       });
       prompt.after(jump);
     }
@@ -18780,8 +19053,8 @@
     const output = document.querySelector(".output-panel");
     const run = document.getElementById("runButton");
     const dashboard = document.querySelector(".dashboard");
-    const preview = document.querySelector(".preview-panel");
-    if (!output || !run || !dashboard || !preview) return;
+    const preview2 = document.querySelector(".preview-panel");
+    if (!output || !run || !dashboard || !preview2) return;
     const query = window.matchMedia(MOBILE_WORKSPACE_QUERY);
     const sheet = createMobileSheet("mobileParameters", "outputSettings.title");
     const lock = document.getElementById("outputSettingsLockButton");
@@ -18814,7 +19087,7 @@
     const back = document.createElement("button");
     back.type = "button";
     back.className = "ghost-button mobile-return-edit";
-    preview.querySelector(".preview-heading")?.append(back);
+    preview2.querySelector(".preview-heading")?.append(back);
     let editorScroll = 0;
     const showPreview = () => {
       if (!query.matches) return;
@@ -18822,8 +19095,8 @@
       editorScroll = dashboard.scrollTop;
       if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
       requestAnimationFrame(() => {
-        preview.scrollIntoView({ block: "start" });
-        preview.focus({ preventScroll: true });
+        preview2.scrollIntoView({ block: "start" });
+        preview2.focus({ preventScroll: true });
       });
     };
     const showEditor = () => {
@@ -19253,6 +19526,7 @@
     call2(methods, "refreshColorPalette");
     call2(methods, "refreshPromptSnippets");
     call2(methods, "refreshPromptTemplates");
+    call2(methods, "refreshGenerationPresets");
     call2(methods, "renderGalleryCategoryControls");
     call2(methods, "restoreLegacyArchivedTasks");
     call2(methods, "restoreExpandedTaskGroupKey");
@@ -33915,11 +34189,11 @@ js: import "konva/skia-backend";
   function paintBucketFillRegion(point) {
     const { workCanvas, brushBoundaryCanvas, color } = imageEditorState;
     if (!workCanvas || !brushBoundaryCanvas) return Promise.resolve(false);
-    const pending = editorFill.fill(point, workCanvas, brushBoundaryCanvas, color, redrawImageEditorBrushOverlay).finally(() => {
-      if (pendingFill === pending) pendingFill = null;
+    const pending2 = editorFill.fill(point, workCanvas, brushBoundaryCanvas, color, redrawImageEditorBrushOverlay).finally(() => {
+      if (pendingFill === pending2) pendingFill = null;
     });
-    pendingFill = pending;
-    return pending;
+    pendingFill = pending2;
+    return pending2;
   }
   var editorPointer = createImageEditorPointer({
     getTool: () => imageEditorState.tool,
@@ -34956,10 +35230,10 @@ ${hint}` : hint;
   function uploadThumbnailUrl(file) {
     const existing = previewByFile.get(file);
     if (existing) return existing;
-    const pending = previousPreview.then(() => createUploadThumbnail(file));
-    previousPreview = pending.then(() => void 0, () => void 0);
-    previewByFile.set(file, pending);
-    return pending;
+    const pending2 = previousPreview.then(() => createUploadThumbnail(file));
+    previousPreview = pending2.then(() => void 0, () => void 0);
+    previewByFile.set(file, pending2);
+    return pending2;
   }
 
   // codex_image/webui/frontend/src/image-strip.ts
@@ -35180,9 +35454,9 @@ ${hint}` : hint;
 
   // codex_image/webui/frontend/src/gallery-drag-preview.ts
   function createGalleryDragPreview(options) {
-    const preview = document.createElement("div");
-    preview.className = `gallery-drag-preview gallery-drag-preview-${options.type}`;
-    preview.setAttribute("aria-hidden", "true");
+    const preview2 = document.createElement("div");
+    preview2.className = `gallery-drag-preview gallery-drag-preview-${options.type}`;
+    preview2.setAttribute("aria-hidden", "true");
     const visual = document.createElement("span");
     visual.className = "gallery-drag-preview-visual";
     if (options.imageUrl) {
@@ -35213,25 +35487,25 @@ ${hint}` : hint;
       subtitle.textContent = options.subtitle;
       copy.append(subtitle);
     }
-    preview.append(visual, copy);
-    document.body.append(preview);
-    return preview;
+    preview2.append(visual, copy);
+    document.body.append(preview2);
+    return preview2;
   }
   function createGalleryElementDragPreview(sourceElement) {
-    const preview = sourceElement.cloneNode(true);
+    const preview2 = sourceElement.cloneNode(true);
     const rect = sourceElement.getBoundingClientRect();
-    preview.classList.add("gallery-drag-preview-clone");
-    preview.setAttribute("aria-hidden", "true");
-    preview.removeAttribute("id");
-    preview.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
-    preview.querySelectorAll("[draggable]").forEach((node) => node.setAttribute("draggable", "false"));
-    preview.querySelectorAll("button, input, select, textarea").forEach((node) => {
+    preview2.classList.add("gallery-drag-preview-clone");
+    preview2.setAttribute("aria-hidden", "true");
+    preview2.removeAttribute("id");
+    preview2.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+    preview2.querySelectorAll("[draggable]").forEach((node) => node.setAttribute("draggable", "false"));
+    preview2.querySelectorAll("button, input, select, textarea").forEach((node) => {
       node.setAttribute("tabindex", "-1");
     });
-    preview.style.width = `${Math.ceil(rect.width)}px`;
-    preview.style.height = `${Math.ceil(rect.height)}px`;
-    document.body.append(preview);
-    return preview;
+    preview2.style.width = `${Math.ceil(rect.width)}px`;
+    preview2.style.height = `${Math.ceil(rect.height)}px`;
+    document.body.append(preview2);
+    return preview2;
   }
   function clampDragImageOffset(value, size) {
     if (!Number.isFinite(value) || !Number.isFinite(size) || size <= 0) return 0;
@@ -35241,13 +35515,13 @@ ${hint}` : hint;
     const dataTransfer = event.dataTransfer;
     if (!dataTransfer || typeof dataTransfer.setDragImage !== "function") return;
     const sourceElement = options.sourceElement || null;
-    const preview = sourceElement ? createGalleryElementDragPreview(sourceElement) : createGalleryDragPreview(options);
-    const rect = preview.getBoundingClientRect();
+    const preview2 = sourceElement ? createGalleryElementDragPreview(sourceElement) : createGalleryDragPreview(options);
+    const rect = preview2.getBoundingClientRect();
     const sourceRect = sourceElement?.getBoundingClientRect();
     const offsetX = sourceRect ? clampDragImageOffset(event.clientX - sourceRect.left, sourceRect.width) : 22;
     const offsetY = sourceRect ? clampDragImageOffset(event.clientY - sourceRect.top, sourceRect.height) : Math.max(18, Math.round(rect.height / 2));
-    dataTransfer.setDragImage(preview, offsetX, offsetY);
-    window.setTimeout(() => preview.remove(), 0);
+    dataTransfer.setDragImage(preview2, offsetX, offsetY);
+    window.setTimeout(() => preview2.remove(), 0);
   }
 
   // codex_image/webui/frontend/src/gallery-categories.ts
@@ -37677,13 +37951,13 @@ ${hint}` : hint;
     return new Set(definition.object_presets?.flatMap((preset) => Object.keys(preset.value)) || []);
   }
   function matchingObjectPreset(definition, value) {
-    const presets = definition.object_presets || [];
+    const presets2 = definition.object_presets || [];
     const managedKeys = managedPresetKeys(definition);
     const presentManagedKeys = [...managedKeys].filter((key2) => key2 in value);
     if (presentManagedKeys.length === 0) {
-      return presets.find((preset) => preset.matches_empty) || null;
+      return presets2.find((preset) => preset.matches_empty) || null;
     }
-    return presets.find((preset) => [...managedKeys].every((key2) => key2 in value && key2 in preset.value && value[key2] === preset.value[key2])) || null;
+    return presets2.find((preset) => [...managedKeys].every((key2) => key2 in value && key2 in preset.value && value[key2] === preset.value[key2])) || null;
   }
   function nextObjectPresetValue(definition, value, preset) {
     if (!definition.object_presets?.some((item) => item.id === preset.id)) return { ...value };
@@ -38356,6 +38630,7 @@ ${hint}` : hint;
     }));
   }
   function saveCurrentModelParameterDraft() {
+    if (getLegacyBridge().state.generationPresetApplying) return;
     const { state: state33, methods } = getLegacyBridge();
     const model = state33.generationCatalog?.models.find((item) => item.id === state33.selectedModelId);
     if (!model || typeof methods.currentTaskParams !== "function") return;
@@ -40101,19 +40376,19 @@ ${hint}` : hint;
     const layer = document.createElement("div");
     layer.className = "api-provider-sort-drag-layer";
     layer.setAttribute("aria-hidden", "true");
-    const preview = session.row.cloneNode(true);
-    preview.classList.remove("is-dragging");
-    preview.classList.add("api-provider-sort-drag-preview");
-    preview.removeAttribute("role");
-    preview.style.width = `${rect.width}px`;
-    preview.style.height = `${rect.height}px`;
-    preview.querySelectorAll("button, [tabindex]").forEach((element2) => {
+    const preview2 = session.row.cloneNode(true);
+    preview2.classList.remove("is-dragging");
+    preview2.classList.add("api-provider-sort-drag-preview");
+    preview2.removeAttribute("role");
+    preview2.style.width = `${rect.width}px`;
+    preview2.style.height = `${rect.height}px`;
+    preview2.querySelectorAll("button, [tabindex]").forEach((element2) => {
       element2.setAttribute("tabindex", "-1");
     });
-    layer.append(preview);
+    layer.append(preview2);
     document.body.append(layer);
     session.layer = layer;
-    session.preview = preview;
+    session.preview = preview2;
     session.offsetX = session.startX - rect.left;
     session.offsetY = session.startY - rect.top;
     session.row.classList.add("is-dragging");
@@ -40485,6 +40760,7 @@ ${hint}` : hint;
     }
     getLegacyBridge().methods.renderCurrentModelParameters?.();
     getLegacyBridge().methods.updateModeSpecificSettings?.();
+    getLegacyBridge().methods.invalidateExecutionSummary?.();
     getLegacyBridge().methods.updateRequestPreview?.();
   }
   function initModelCatalogFeature() {
@@ -40516,10 +40792,10 @@ ${hint}` : hint;
     const content = document.createElement("div");
     content.setAttribute("role", "status");
     content.setAttribute("aria-live", "polite");
-    let pending = false;
+    let pending2 = false;
     async function load() {
-      if (pending) return;
-      pending = true;
+      if (pending2) return;
+      pending2 = true;
       refresh.disabled = true;
       content.textContent = translate("diagnostics.loading");
       try {
@@ -40552,7 +40828,7 @@ ${hint}` : hint;
       } catch {
         content.textContent = translate("diagnostics.failed");
       } finally {
-        pending = false;
+        pending2 = false;
         refresh.disabled = false;
       }
     }
@@ -40935,9 +41211,9 @@ ${hint}` : hint;
     const provider = state9.apiProviderDraft || activeApiProvider();
     const baseUrl = apiBaseUrlForEndpoint(els10.apiBaseUrl?.value || provider?.base_url);
     const bindingCount = readProviderBindingCards(els10.apiProviderBindings).length || provider?.bindings?.length || 0;
-    const preview = `${baseUrl} \xB7 ${bindingCount} \xB7 ${translate("apiSettings.modelBindings")}`;
-    els10.apiRequestEndpointPreview.textContent = preview;
-    els10.apiRequestEndpointPreview.title = preview;
+    const preview2 = `${baseUrl} \xB7 ${bindingCount} \xB7 ${translate("apiSettings.modelBindings")}`;
+    els10.apiRequestEndpointPreview.textContent = preview2;
+    els10.apiRequestEndpointPreview.title = preview2;
   }
   function providerHasApiKey(provider) {
     return Boolean(provider?.api_key || provider?.api_key_set);
@@ -43454,9 +43730,9 @@ ${hint}` : hint;
     }
     return { create: "primary", download: "secondary" };
   }
-  function emptyUserConfigReplacementGroups(preview, sections) {
+  function emptyUserConfigReplacementGroups(preview2, sections) {
     const selected = new Set(sections);
-    return preview.sections.flatMap((section) => {
+    return preview2.sections.flatMap((section) => {
       if (!selected.has(section.section)) return [];
       return section.groups.filter((group) => group.archive_count === 0 && group.current_count > 0).map((group) => ({
         section: section.section,
@@ -43705,20 +43981,20 @@ ${hint}` : hint;
     const clearTimeoutFn = options.clearTimeout ?? ((handle) => globalThis.clearTimeout(handle));
     let backupJobId = null;
     let restoreSessionId = null;
-    let timer = null;
+    let timer2 = null;
     let disposed = false;
     let generation = 0;
     let delay = 750;
     const persist = () => writeStoredIds(storage, backupJobId, restoreSessionId);
     const clearTimer = () => {
-      if (timer !== null) clearTimeoutFn(timer);
-      timer = null;
+      if (timer2 !== null) clearTimeoutFn(timer2);
+      timer2 = null;
     };
     const stableError = (error) => error instanceof UserConfigTransferApiError ? error : new UserConfigTransferApiError("user_config_transfer_network_error", 0);
     const schedule = (token, poll) => {
-      if (disposed || token !== generation || timer !== null) return;
-      timer = setTimeoutFn(async () => {
-        timer = null;
+      if (disposed || token !== generation || timer2 !== null) return;
+      timer2 = setTimeoutFn(async () => {
+        timer2 = null;
         if (!disposed && token === generation) await poll();
       }, delay);
       delay = Math.min(2500, Math.round(delay * 1.5));
@@ -43817,7 +44093,8 @@ ${hint}` : hint;
     prompt_snippets: "userConfigBackup.groupPromptSnippets",
     gallery_items: "userConfigBackup.groupGalleryItems",
     prompt_templates: "userConfigBackup.groupPromptTemplates",
-    settings: "userConfigBackup.groupSettings"
+    settings: "userConfigBackup.groupSettings",
+    generation_presets: "userConfigBackup.groupGenerationPresets"
   };
   var initialized4 = false;
   var currentBackupJob = null;
@@ -44030,17 +44307,17 @@ ${hint}` : hint;
       restorePane.setAttribute("aria-hidden", mode === "restore" ? "false" : "true");
     }
   }
-  function renderRestorePreview(preview) {
-    currentPreview = preview;
+  function renderRestorePreview(preview2) {
+    currentPreview = preview2;
     restoreMode = "incremental";
     confirmation = createReplacementConfirmation(
-      preview.archive_sha256,
-      preview.sections.map((section) => section.section),
+      preview2.archive_sha256,
+      preview2.sections.map((section) => section.section),
       restoreMode
     );
     const list = bridgeElement("userConfigRestoreSectionList");
     list?.replaceChildren();
-    for (const section of preview.sections) {
+    for (const section of preview2.sections) {
       const label = document.createElement("label");
       label.className = "user-config-section-row";
       const input = document.createElement("input");
@@ -44099,16 +44376,16 @@ ${hint}` : hint;
     }
     const meta = bridgeElement("userConfigRestoreArchiveMeta");
     if (meta) meta.textContent = formatTranslation("userConfigBackup.archiveMeta", {
-      count: preview.sections.length,
-      version: preview.format_version
+      count: preview2.sections.length,
+      version: preview2.format_version
     });
     setRestoreMode("incremental");
     setHidden(bridgeElement("userConfigRestorePreview"), false);
     setHidden(bridgeElement("userConfigReplaceConfirmation"), true);
     setHidden(bridgeElement("userConfigRestoreResult"), true);
-    setStatus11("userConfigRestoreStatus", preview.restorable ? translate("userConfigBackup.validationReady") : translate("userConfigBackup.versionUnsupported"), preview.restorable ? "ok" : "error");
+    setStatus11("userConfigRestoreStatus", preview2.restorable ? translate("userConfigBackup.validationReady") : translate("userConfigBackup.versionUnsupported"), preview2.restorable ? "ok" : "error");
     const start = bridgeElement("startUserConfigRestoreButton");
-    if (start) start.disabled = !preview.restorable;
+    if (start) start.disabled = !preview2.restorable;
   }
   async function chooseRestoreFile(event) {
     const input = event.currentTarget;
@@ -44329,6 +44606,8 @@ ${hint}` : hint;
     if (result.sections.includes("templates")) call3("refreshPromptTemplates");
     if (result.sections.includes("settings")) {
       call3("refreshSettings");
+      call3("refreshGenerationPresets");
+      call3("invalidateExecutionSummary");
       call3("refreshNetworkEgress");
       call3("populateApiSettingsForm");
     }
@@ -46446,11 +46725,11 @@ ${hint}` : hint;
     const form = els15.promptTemplateForm?.querySelector(".prompt-template-form");
     if (!form) return;
     const picker = form.querySelector("[data-prompt-template-thumbnail-picker]");
-    const preview = form.querySelector("[data-prompt-template-thumbnail-preview]");
+    const preview2 = form.querySelector("[data-prompt-template-thumbnail-preview]");
     const input = form.querySelector("[data-prompt-template-thumbnail-url]");
     if (input) input.value = selectedUrl;
-    if (preview) {
-      preview.innerHTML = selectedUrl ? `<img src="${escapeHtml11(selectedUrl)}" alt=""><span>${escapeHtml11(promptTemplatePreview(selectedUrl, 30))}</span>` : `<span>${escapeHtml11(translate("templates.thumbnailNone"))}</span>`;
+    if (preview2) {
+      preview2.innerHTML = selectedUrl ? `<img src="${escapeHtml11(selectedUrl)}" alt=""><span>${escapeHtml11(promptTemplatePreview(selectedUrl, 30))}</span>` : `<span>${escapeHtml11(translate("templates.thumbnailNone"))}</span>`;
     }
     if (!picker) return;
     const thumbnails = historyTemplateThumbnails();
@@ -48485,54 +48764,223 @@ ${hint}` : hint;
     sync();
   }
 
-  // codex_image/webui/frontend/src/generation-request.ts
-  function sortedRecord(values) {
-    return Object.fromEntries(Object.keys(values).sort().map((key2) => [key2, values[key2]]));
+  // codex_image/webui/frontend/src/generation-preview-state.ts
+  var previewInputFileIds = /* @__PURE__ */ new WeakMap();
+  var nextFileId = 0;
+  function fileId(file) {
+    if (!previewInputFileIds.has(file)) previewInputFileIds.set(file, ++nextFileId);
+    return previewInputFileIds.get(file);
   }
-  function currentGenerationSelection() {
-    const { state: state33, methods } = getLegacyBridge();
-    const model = state33.generationCatalog?.models.find((item) => item.id === state33.selectedModelId);
-    if (!model || !state33.selectedProviderId) {
-      return { canonicalModelId: "", providerId: "", bindingId: "", parameters: {} };
+  function submissionSnapshotKey(snapshot2) {
+    return JSON.stringify([snapshot2.endpoint, Array.from(snapshot2.form.entries()).map(([key2, value]) => [
+      key2,
+      typeof value === "string" ? value : [value.name, value.type, value.size]
+    ]), (snapshot2.inputFiles || []).map(fileId)]);
+  }
+  var GenerationPreviewState = class {
+    constructor() {
+      __publicField(this, "revision", 0);
+      __publicField(this, "key", "");
+      __publicField(this, "result", null);
+      __publicField(this, "resolvedAt", 0);
     }
-    let draft = state33.parameterDraftsByModel[model.id] || {};
-    if (isGptImageModel(model.id) && typeof methods.currentTaskParams === "function") {
-      draft = {
-        ...draft,
-        ...canonicalControlValues(methods.currentTaskParams(), selectedProviderBinding()?.protocol_profile || "")
-      };
-      state33.parameterDraftsByModel[model.id] = draft;
+    invalidate(key2 = "") {
+      this.revision += 1;
+      this.key = key2;
+      this.result = null;
+      this.resolvedAt = 0;
     }
-    return {
-      canonicalModelId: model.id,
-      providerId: state33.selectedProviderId,
-      bindingId: selectedProviderBinding()?.id || "",
-      parameters: activeParameterValuesFor(model, state33.mode, draft)
-    };
-  }
-  function appendCanonicalGenerationFields(form, selection) {
-    form.append("canonical_model_id", selection.canonicalModelId);
-    form.append("provider_id", selection.providerId);
-    form.append("binding_id", selection.bindingId);
-    form.append("parameters_json", JSON.stringify(sortedRecord(selection.parameters)));
-  }
+    begin(key2) {
+      this.invalidate(key2);
+      return this.revision;
+    }
+    accept(revision, key2, result) {
+      if (revision !== this.revision || key2 !== this.key) return false;
+      this.result = result;
+      this.resolvedAt = Date.now();
+      return true;
+    }
+    current(key2) {
+      return key2 === this.key && Date.now() - this.resolvedAt < 24e4 ? this.result : null;
+    }
+  };
 
   // codex_image/webui/frontend/src/execution-summary.ts
-  function updateExecutionSummary() {
+  var preview = new GenerationPreviewState();
+  var timer = null;
+  var pending = null;
+  function summaryStatus(message, kind) {
     const element2 = document.getElementById("executionSummary");
-    if (!element2) return;
-    const selection = currentGenerationSelection();
-    const { state: state33 } = getLegacyBridge();
-    const model = state33.generationCatalog?.models.find((item) => item.id === selection.canonicalModelId);
-    const provider = state33.generationCatalog?.providers.find((item) => item.id === selection.providerId);
-    const p = selection.parameters;
-    const size = String(p["canvas.size"] || p["canvas.aspect_ratio"] || "");
-    const resolution = String(p["output.resolution"] || p["canvas.resolution"] || "");
-    element2.textContent = [translate("ux.execution"), model?.display_name || translate("modelSelection.providerUnavailable"), provider?.name, size, resolution, formatTranslation("ux.imageCount", { count: Number(p["output.count"] || 1) }), p["gpt.background"] === "transparent" ? translate("output.transparentBackground") : ""].filter(Boolean).join(" \xB7 ");
-    element2.title = element2.textContent;
-    element2.dataset.modelId = selection.canonicalModelId;
-    element2.dataset.providerId = selection.providerId;
-    element2.dataset.parameters = JSON.stringify(p);
+    if (element2) {
+      element2.textContent = message;
+      element2.title = message;
+      element2.dataset.previewState = kind;
+      delete element2.dataset.parameters;
+    }
+    const details = document.getElementById("executionSummaryDetails");
+    if (details) details.dataset.previewState = kind;
+  }
+  function clearSummaryDetails() {
+    document.getElementById("executionSummaryValues")?.replaceChildren();
+  }
+  function summaryLine(label, value) {
+    const list = document.getElementById("executionSummaryValues");
+    if (!list || value === void 0 || value === null || value === "") return;
+    const item = document.createElement("li");
+    item.textContent = `${translate(label)}: ${typeof value === "object" ? JSON.stringify(value) : String(value)}`;
+    list.append(item);
+  }
+  function renderFinalSummary(result) {
+    const s = result.summary;
+    clearSummaryDetails();
+    summaryStatus([
+      translate("generationPreview.ready"),
+      s.model?.name || s.model?.id,
+      s.provider?.name || s.provider?.id,
+      formatTranslation("ux.imageCount", { count: s.output_count })
+    ].filter(Boolean).join(" \xB7 "), "ready");
+    summaryLine("generationPreview.operation", translate(s.operation === "edit" ? "generationPresets.edit" : "generationPresets.generate"));
+    summaryLine("generationPreview.model", `${s.model?.name || s.model?.id || ""} (${s.model?.id || ""})`);
+    summaryLine("generationPreview.provider", `${s.provider?.name || s.provider?.id || ""} (${s.provider?.id || ""})`);
+    summaryLine("generationPreview.binding", [s.binding?.id, s.binding?.remote_model_id, s.binding?.protocol_profile].filter(Boolean).join(" \xB7 "));
+    const decided = translate("generationPreview.providerDecides");
+    const dimensions2 = s.dimensions || {};
+    summaryLine("generationPreview.output", [dimensions2.size, dimensions2.aspect_ratio, dimensions2.resolution].filter((value) => value !== null && value !== void 0 && value !== "").join(" \xB7 ") || decided);
+    summaryLine("generationPreview.quality", s.quality ?? decided);
+    const model = getLegacyBridge().state.generationCatalog?.models.find((item) => item.id === s.model?.id);
+    for (const [key2, value] of Object.entries(s.effective_parameters || {})) {
+      const definition = model?.parameters.find((item) => item.id === key2);
+      summaryLine(definition?.label_key || key2, value === null ? decided : value);
+    }
+    summaryLine("generationPreview.requestOptions", s.request_options);
+    summaryLine("generationPreview.counts", formatTranslation("generationPreview.countValues", { images: s.output_count, tasks: s.task_count, requests: s.request_count }));
+    const queue = s.queue || {};
+    summaryLine("generationPreview.queue", formatTranslation("generationPreview.queueValues", {
+      provider: queue.provider_concurrency,
+      max: queue.max_provider_concurrency,
+      task: queue.task_request_concurrency,
+      auto: translate(queue.auto_start ? "generationPreview.yes" : "generationPreview.no")
+    }));
+    const refs = s.references || {};
+    summaryLine("generationPreview.imageOrder", (refs.images || []).map((ref) => `${ref.position}. ${translate(`generationPreview.source.${ref.kind}`)} #${Number(ref.source_index ?? ref.index ?? 0) + 1}`).join(" \u2192 ") || translate("generationPreview.none"));
+    summaryLine("generationPreview.fileOrder", (refs.files || []).map((ref) => `${ref.position}. ${translate(`generationPreview.source.${ref.kind}`)} #${Number(ref.source_index ?? ref.index ?? 0) + 1}`).join(" \u2192 ") || translate("generationPreview.none"));
+    const rules = s.reference_rules || refs.rules || getLegacyBridge().state.generationReferenceRules;
+    if (rules) summaryLine("generationPreview.referenceRules", `${translate("generationPresets.imageRule")}: ${translate(`generationPresets.${rules.images}`)}; ${translate("generationPresets.fileRule")}: ${translate(`generationPresets.${rules.files}`)}`);
+    const limits = refs.limits || {};
+    summaryLine("generationPreview.referenceLimits", formatTranslation("generationPreview.limitValues", {
+      images: limits.max_images,
+      files: translate(limits.supports_reference_files ? "generationPreview.yes" : "generationPreview.no"),
+      mask: translate(limits.supports_mask ? "generationPreview.yes" : "generationPreview.no")
+    }));
+    summaryLine("generationPreview.ordering", translate(refs.ordering === "explicit_first_occurrence" ? "generationPreview.orderExplicit" : "generationPreview.orderDefault"));
+    summaryLine("generationPreview.fileOrdering", translate("generationPreview.fileOrderRule"));
+    if (refs.mask_present) summaryLine("generationPreview.mask", translate("generationPreview.present"));
+    (s.warnings || []).forEach((warning) => summaryLine("generationPreview.warning", warning.message || warning));
+  }
+  function summarySnapshot() {
+    const { state: state33, methods } = getLegacyBridge();
+    if (!state33.generationCatalog || !state33.selectedModelId || !state33.selectedProviderId || state33.generationPresetApplying || state33.generationPresetPending) return null;
+    return methods.buildSubmissionRequest?.() || null;
+  }
+  function invalidateExecutionSummary() {
+    if (timer) clearTimeout(timer);
+    timer = null;
+    pending?.controller.abort();
+    pending = null;
+    preview.invalidate();
+    clearSummaryDetails();
+    summaryStatus(translate("generationPreview.stale"), "stale");
+  }
+  function summaryErrorMessage(error) {
+    return error instanceof Error ? error.message : translate("generationPreview.failed");
+  }
+  async function requestFinalPreview(request) {
+    if (!String(request.form.get("prompt") || "").trim()) {
+      invalidateExecutionSummary();
+      summaryStatus(translate("generationPreview.needsPrompt"), "stale");
+      return null;
+    }
+    const key2 = submissionSnapshotKey(request);
+    if (pending?.key === key2) return pending.promise;
+    pending?.controller.abort();
+    const revision = preview.begin(key2);
+    const controller = new AbortController();
+    clearSummaryDetails();
+    summaryStatus(translate("generationPreview.loading"), "loading");
+    const timeout = setTimeout(() => controller.abort(), 3e4);
+    const promise = (async () => {
+      try {
+        const response = await fetch(`${request.endpoint}/preview`, { method: "POST", body: request.form, signal: controller.signal });
+        const data = await response.json();
+        if (!response.ok) throw new Error(String(data.detail?.message || data.detail || translate("generationPreview.failed")).replace(/[\u0000-\u001f\u007f]/g, " ").slice(0, 500));
+        if (!data.preview_token || !data.summary || typeof data.summary !== "object") throw new Error(translate("generationPreview.failed"));
+        const latest = summarySnapshot();
+        if (!latest || submissionSnapshotKey(latest) !== key2) return null;
+        if (!preview.accept(revision, key2, data)) return null;
+        renderFinalSummary(data);
+        return data;
+      } catch (error) {
+        if (revision === preview.revision) {
+          clearSummaryDetails();
+          summaryStatus(`${translate("generationPreview.failed")}: ${summaryErrorMessage(error)}`, "error");
+        }
+        return null;
+      } finally {
+        clearTimeout(timeout);
+        if (pending?.controller === controller) pending = null;
+      }
+    })();
+    pending = { key: key2, promise, controller };
+    return promise;
+  }
+  function updateExecutionSummary() {
+    if (getLegacyBridge().state.generationPresetApplying) return;
+    const request = summarySnapshot();
+    if (!request) {
+      invalidateExecutionSummary();
+      return;
+    }
+    const key2 = submissionSnapshotKey(request);
+    if (!String(request.form.get("prompt") || "").trim()) {
+      invalidateExecutionSummary();
+      summaryStatus(translate("generationPreview.needsPrompt"), "stale");
+      return;
+    }
+    if (preview.current(key2) || pending?.key === key2) return;
+    invalidateExecutionSummary();
+    timer = setTimeout(() => {
+      timer = null;
+      void requestFinalPreview(request);
+    }, 450);
+  }
+  async function ensureExecutionPreview(request) {
+    const key2 = submissionSnapshotKey(request);
+    const current = preview.current(key2);
+    if (current) return current.preview_token;
+    if (timer) clearTimeout(timer);
+    timer = null;
+    const result = await requestFinalPreview(request);
+    if (result) {
+      const details = document.getElementById("executionSummaryDetails");
+      if (details) details.open = true;
+      getLegacyBridge().methods.setStatus?.(translate("generationPreview.reviewAgain"), "");
+    } else {
+      getLegacyBridge().methods.setStatus?.(translate("generationPreview.notReady"), "error");
+    }
+    return null;
+  }
+  function initExecutionSummaryFeature() {
+    Object.assign(getLegacyBridge().methods, { ensureExecutionPreview, invalidateExecutionSummary });
+    document.getElementById("refreshExecutionSummary")?.addEventListener("click", () => {
+      invalidateExecutionSummary();
+      const request = summarySnapshot();
+      if (request) void requestFinalPreview(request);
+    });
+    document.addEventListener(LOCALE_CHANGE_EVENT, () => {
+      const current = summarySnapshot();
+      if (current && preview.current(submissionSnapshotKey(current))) renderFinalSummary(preview.result);
+      else updateExecutionSummary();
+    });
   }
 
   // codex_image/webui/frontend/src/output-controls.ts
@@ -48604,6 +49052,7 @@ ${hint}` : hint;
     });
   }
   function updateRequestPreview10() {
+    if (getLegacyBridge().state.generationPresetApplying) return;
     updateExecutionSummary();
     if (!els23.requestJson) return;
     els23.requestJson.textContent = JSON.stringify(buildPreviewRequest(), null, 2);
@@ -51122,8 +51571,8 @@ ${hint}` : hint;
     }
     function captureTaskListScrollAnchor2(scroller, root, { retryMissingTask = false } = {}) {
       if (!scroller || !root) return null;
-      const pending = pendingScrollRestorations.get(scroller)?.anchor;
-      if (pending?.root === root) return pending;
+      const pending2 = pendingScrollRestorations.get(scroller)?.anchor;
+      if (pending2?.root === root) return pending2;
       const scrollerRect = scroller.getBoundingClientRect();
       const cards = Array.from(root.querySelectorAll(".task-card[data-task-id]"));
       const visibleCard = cards.find((card) => {
@@ -51148,11 +51597,11 @@ ${hint}` : hint;
     }
     function restoreTaskListScrollAnchor2(anchor) {
       if (!anchor?.scroller) return;
-      const pending = { anchor };
-      pendingScrollRestorations.set(anchor.scroller, pending);
+      const pending2 = { anchor };
+      pendingScrollRestorations.set(anchor.scroller, pending2);
       let attempts = 12;
       const restore = () => {
-        if (pendingScrollRestorations.get(anchor.scroller) !== pending) return;
+        if (pendingScrollRestorations.get(anchor.scroller) !== pending2) return;
         if (!anchor.scroller.isConnected) {
           pendingScrollRestorations.delete(anchor.scroller);
           return;
@@ -51502,9 +51951,9 @@ ${hint}` : hint;
     updateTaskElapsedDisplays: (...args) => updateTaskElapsedDisplays2(...args),
     cancelActiveTaskQueueReorder: (options) => getLegacyBridge().methods.cancelActiveTaskQueueReorder?.(options),
     consumeExpansionAnimation: () => {
-      const pending = state19.expandedTaskGroupAnimationPending === true;
+      const pending2 = state19.expandedTaskGroupAnimationPending === true;
       state19.expandedTaskGroupAnimationPending = false;
-      return pending;
+      return pending2;
     }
   });
   function renderTasks2(options = {}) {
@@ -51590,9 +52039,9 @@ ${hint}` : hint;
   function updateTaskSelectionVisuals(taskId = state19.selectedTaskId) {
     const root = taskCardRoot();
     if (!root) return;
-    const selectedId = taskId == null ? "" : String(taskId);
+    const selectedId2 = taskId == null ? "" : String(taskId);
     root.querySelectorAll(".task-card.active").forEach((card) => {
-      if (String(card.dataset.taskId || "") !== selectedId) {
+      if (String(card.dataset.taskId || "") !== selectedId2) {
         card.classList.remove("active");
         card.removeAttribute("aria-current");
       }
@@ -53364,7 +53813,7 @@ ${hint}` : hint;
   }
   function prepareSubmissionIdentity(endpoint, form, storage = window.localStorage) {
     const fields = [];
-    const pending = [];
+    const pending2 = [];
     Array.from(new Set(form.keys())).sort().forEach((key2) => {
       if (key2 === "client_request_id") return;
       form.getAll(key2).forEach((value) => {
@@ -53374,16 +53823,48 @@ ${hint}` : hint;
         }
         const details = { filename: value.name, content_type: value.type, sha256: "" };
         fields.push([key2, details]);
-        pending.push(value.arrayBuffer().then((bytes) => {
+        pending2.push(value.arrayBuffer().then((bytes) => {
           details.sha256 = hex(new Uint8Array(bytes));
         }));
       });
     });
-    return pending.length ? Promise.all(pending).then(() => remember(endpoint, fields, storage)) : remember(endpoint, fields, storage);
+    return pending2.length ? Promise.all(pending2).then(() => remember(endpoint, fields, storage)) : remember(endpoint, fields, storage);
   }
   function completeSubmissionIdentity(identity, storage = window.localStorage) {
     const key2 = STORAGE_PREFIX + identity.fingerprint;
     if (storage.getItem(key2) === identity.requestId) storage.removeItem(key2);
+  }
+
+  // codex_image/webui/frontend/src/generation-request.ts
+  function sortedRecord(values) {
+    return Object.fromEntries(Object.keys(values).sort().map((key2) => [key2, values[key2]]));
+  }
+  function currentGenerationSelection() {
+    const { state: state33, methods } = getLegacyBridge();
+    const model = state33.generationCatalog?.models.find((item) => item.id === state33.selectedModelId);
+    if (!model || !state33.selectedProviderId) {
+      return { canonicalModelId: "", providerId: "", bindingId: "", parameters: {} };
+    }
+    let draft = state33.parameterDraftsByModel[model.id] || {};
+    if (isGptImageModel(model.id) && typeof methods.currentTaskParams === "function") {
+      draft = {
+        ...draft,
+        ...canonicalControlValues(methods.currentTaskParams(), selectedProviderBinding()?.protocol_profile || "")
+      };
+      state33.parameterDraftsByModel[model.id] = draft;
+    }
+    return {
+      canonicalModelId: model.id,
+      providerId: state33.selectedProviderId,
+      bindingId: selectedProviderBinding()?.id || "",
+      parameters: activeParameterValuesFor(model, state33.mode, draft)
+    };
+  }
+  function appendCanonicalGenerationFields(form, selection) {
+    form.append("canonical_model_id", selection.canonicalModelId);
+    form.append("provider_id", selection.providerId);
+    form.append("binding_id", selection.bindingId);
+    form.append("parameters_json", JSON.stringify(sortedRecord(selection.parameters)));
   }
 
   // codex_image/webui/frontend/src/task-submit.ts
@@ -53701,10 +54182,7 @@ ${hint}` : hint;
   function addQueuedTask(task) {
     replacePendingTask2(state24.pendingTaskId || task.task_id, task);
   }
-  async function runTask() {
-    if (taskSubmissionPending) return;
-    syncPromptFromEditor6();
-    syncGalleryInputsFromPrompt3();
+  function buildSubmissionRequest() {
     const prompt = getPromptText9();
     const promptForModel = currentPromptForModel2();
     const uploads = uploadInputs2();
@@ -53712,6 +54190,46 @@ ${hint}` : hint;
     const assets = referenceAssetInputs2();
     const fileUploads = referenceFileUploads2();
     const storedFiles = storedReferenceFileInputs2();
+    const form = new FormData();
+    form.append("prompt", prompt);
+    form.append("prompt_for_model", promptForModel);
+    const galleryContext = galleryPrompt();
+    if (galleryContext) form.append("gallery_prompt", JSON.stringify(galleryContext));
+    form.append("ui_language", currentLocaleCode());
+    appendCanonicalGenerationFields(form, currentGenerationSelection());
+    if (!state24.generationCatalog || isGptImageModel(state24.selectedModelId)) {
+      form.append("main_model", currentMainModel2());
+      form.append("prompt_fidelity", currentPromptFidelity4());
+    }
+    galleries.forEach((source) => form.append("gallery_image_ids", source.id));
+    assets.forEach((source) => form.append("reference_asset_ids", source.id));
+    form.append("reference_image_order", JSON.stringify(referenceImageOrder()));
+    fileUploads.forEach((source) => form.append("reference_files", source.file));
+    storedFiles.forEach((source) => form.append("reference_file_ids", source.id));
+    if (state24.mode === "generate") {
+      uploads.forEach((source) => form.append("reference_images", source.file));
+    } else {
+      uploads.forEach((source) => form.append("images", source.file));
+    }
+    if (state24.generationReferenceRules) form.append("reference_rules", JSON.stringify(state24.generationReferenceRules));
+    return {
+      endpoint: state24.mode === "edit" ? "/api/edit" : "/api/generate",
+      form,
+      inputFiles: [...uploads, ...fileUploads].map((source) => source.file)
+    };
+  }
+  async function runTask() {
+    if (taskSubmissionPending) return;
+    if (state24.generationPresetPending || state24.generationPresetApplying) {
+      setStatus19(translate("generationPresets.applying"), "");
+      return;
+    }
+    syncPromptFromEditor6();
+    syncGalleryInputsFromPrompt3();
+    const prompt = getPromptText9();
+    const uploads = uploadInputs2();
+    const galleries = galleryInputs4();
+    const assets = referenceAssetInputs2();
     if (missingGalleryInputs2().length) {
       setStatus19(translate("status.missingGalleryReference"), "error");
       return;
@@ -53752,26 +54270,24 @@ ${hint}` : hint;
       setStatus19(customSizeError, "error");
       return;
     }
-    const form = new FormData();
-    form.append("prompt", prompt);
-    form.append("prompt_for_model", promptForModel);
-    const galleryContext = galleryPrompt();
-    if (galleryContext) form.append("gallery_prompt", JSON.stringify(galleryContext));
-    form.append("ui_language", currentLocaleCode());
-    appendCanonicalGenerationFields(form, currentGenerationSelection());
-    if (!state24.generationCatalog || isGptImageModel(state24.selectedModelId)) {
-      form.append("main_model", currentMainModel2());
-      form.append("prompt_fidelity", currentPromptFidelity4());
+    const request = buildSubmissionRequest();
+    const form = request.form;
+    taskSubmissionPending = true;
+    let previewToken;
+    try {
+      const reviewing = legacyMethod36("ensureExecutionPreview", request);
+      previewToken = reviewing instanceof Promise ? await reviewing : reviewing;
+    } catch (error) {
+      setStatus19(errorMessage4(error, translate("generationPreview.notReady")), "error");
+      return;
+    } finally {
+      taskSubmissionPending = false;
     }
-    galleries.forEach((source) => form.append("gallery_image_ids", source.id));
-    assets.forEach((source) => form.append("reference_asset_ids", source.id));
-    form.append("reference_image_order", JSON.stringify(referenceImageOrder()));
-    fileUploads.forEach((source) => form.append("reference_files", source.file));
-    storedFiles.forEach((source) => form.append("reference_file_ids", source.id));
-    if (state24.mode === "generate") {
-      uploads.forEach((source) => form.append("reference_images", source.file));
-    } else {
-      uploads.forEach((source) => form.append("images", source.file));
+    if (!previewToken) return;
+    if (submissionSnapshotKey(request) !== submissionSnapshotKey(buildSubmissionRequest())) {
+      getLegacyBridge().methods.invalidateExecutionSummary?.();
+      setStatus19(translate("generationPreview.reviewAgain"), "");
+      return;
     }
     const submittedComposer = composerFingerprint();
     const pendingTask = createPendingTask();
@@ -53787,7 +54303,7 @@ ${hint}` : hint;
     const controller = new AbortController();
     const submitTimeoutId = window.setTimeout(() => controller.abort(), SUBMIT_TASK_TIMEOUT_MS);
     try {
-      const endpoint = state24.mode === "edit" ? "/api/edit" : "/api/generate";
+      const endpoint = request.endpoint;
       try {
         const identity = prepareSubmissionIdentity(endpoint, form);
         submissionIdentity = identity instanceof Promise ? await identity : identity;
@@ -53799,12 +54315,17 @@ ${hint}` : hint;
       const response = await fetch(endpoint, {
         method: "POST",
         body: form,
+        headers: { "X-Generation-Preview-Token": previewToken },
         signal: controller.signal
       });
       const data = await response.json();
       if (!response.ok) {
         knownRejection = response.status >= 400 && response.status < 500 && !["submission_result_unknown", "submission_id_conflict"].includes(data.detail?.code);
         if (knownRejection) completeSubmissionIdentity(submissionIdentity);
+        if (data.detail?.code === "generation_preview_stale") {
+          getLegacyBridge().methods.invalidateExecutionSummary?.();
+          updateRequestPreview11();
+        }
         throw new Error(responseErrorMessage(data.detail));
       }
       accepted = true;
@@ -53848,6 +54369,7 @@ ${hint}` : hint;
       applyTaskOutputParams,
       applyTaskToForm,
       buildPreviewRequest: buildPreviewRequest2,
+      buildSubmissionRequest,
       currentCanonicalParameters,
       createPendingTask,
       addQueuedTask,
@@ -59572,17 +60094,17 @@ ${hint}` : hint;
     hint.classList.remove("is-visible");
     hint.setAttribute("aria-hidden", "false");
     window.requestAnimationFrame(() => hint.classList.add("is-visible"));
-    const timer = window.setTimeout(() => {
+    const timer2 = window.setTimeout(() => {
       hint.classList.remove("is-visible");
       hint.setAttribute("aria-hidden", "true");
       lightboxShortcutHintTimers.delete(root);
     }, LIGHTBOX_SHORTCUT_HINT_DURATION_MS);
-    lightboxShortcutHintTimers.set(root, timer);
+    lightboxShortcutHintTimers.set(root, timer2);
   }
   function hideLightboxShortcutHint(root) {
     if (!root) return;
-    const timer = lightboxShortcutHintTimers.get(root);
-    if (timer) window.clearTimeout(timer);
+    const timer2 = lightboxShortcutHintTimers.get(root);
+    if (timer2) window.clearTimeout(timer2);
     lightboxShortcutHintTimers.delete(root);
     const hint = root.querySelector("[data-lightbox-shortcut-hint]");
     hint?.classList.remove("is-visible");
@@ -60434,6 +60956,321 @@ ${hint}` : hint;
     });
   }
 
+  // codex_image/webui/frontend/src/generation-presets.ts
+  var DEFAULT_RULES = { images: "preserve", files: "preserve", order: "preserve" };
+  var presets = [];
+  var selectedId = "";
+  var applySequence = 0;
+  var loadSequence = 0;
+  var mutationPending = false;
+  var deleteId = "";
+  function presetElement(id) {
+    return document.getElementById(id);
+  }
+  function presetStatus(text, error = false) {
+    const status = presetElement("generationPresetStatus");
+    if (status) {
+      status.textContent = text;
+      status.dataset.kind = error ? "error" : "ok";
+    }
+  }
+  function selectedPreset() {
+    return presets.find((preset) => preset.id === selectedId);
+  }
+  function presetErrorMessage(error) {
+    return (error instanceof Error ? error.message : translate("generationPresets.failed")).replace(/[\u0000-\u001f\u007f]/g, " ").slice(0, 500);
+  }
+  async function presetApi(path = "", options = {}) {
+    const response = await fetch(`/api/generation-presets${path}`, { ...options, headers: { Accept: "application/json", ...options.body ? { "Content-Type": "application/json" } : {} } });
+    const data = await response.json();
+    if (!response.ok) throw new Error(String(data.detail?.message || data.detail || translate("generationPresets.failed")));
+    return data;
+  }
+  function validatePresetName(value, exceptId = "") {
+    const name = value.normalize("NFKC").trim();
+    if (!name || [...name].length > 120 || /[\u0000-\u001f\u007f]/.test(name)) throw new Error(translate("generationPresets.invalidName"));
+    if (presets.some((item) => item.id !== exceptId && item.name.normalize("NFKC").trim().toLocaleLowerCase() === name.toLocaleLowerCase())) throw new Error(translate("generationPresets.duplicateName"));
+    return name;
+  }
+  function presetInputRules() {
+    return {
+      images: presetElement("generationPresetImageRule")?.value || "preserve",
+      files: presetElement("generationPresetFileRule")?.value || "preserve",
+      order: "preserve"
+    };
+  }
+  function currentPresetPayload(name) {
+    const { state: state33, methods } = getLegacyBridge();
+    const selection = currentGenerationSelection();
+    const requestOptions = isGptImageModel(selection.canonicalModelId) ? {
+      prompt_fidelity: methods.currentPromptFidelity?.() || "strict",
+      ...selectedProviderBinding()?.protocol_profile.endsWith("responses") ? { main_model: methods.currentMainModel?.() || "" } : {}
+    } : {};
+    return {
+      name: validatePresetName(name),
+      operation: state33.mode,
+      canonical_model_id: selection.canonicalModelId,
+      provider_id: selection.providerId,
+      binding_id: selection.bindingId,
+      parameters: selection.parameters,
+      reference_rules: presetInputRules(),
+      request_options: requestOptions
+    };
+  }
+  function renderPresetPanel() {
+    const select = presetElement("generationPresetSelect");
+    if (select) {
+      select.replaceChildren();
+      const empty = document.createElement("option");
+      empty.value = "";
+      empty.textContent = translate(presets.length ? "generationPresets.choose" : "generationPresets.empty");
+      select.append(empty);
+      presets.forEach((preset) => {
+        const option2 = document.createElement("option");
+        option2.value = preset.id;
+        option2.textContent = `${preset.name}${preset.availability?.available === false ? ` (${translate("generationPresets.unavailable")})` : ""}`;
+        option2.title = preset.name;
+        select.append(option2);
+      });
+      if (!presets.some((preset) => preset.id === selectedId)) selectedId = "";
+      select.value = selectedId;
+      select.title = selectedPreset()?.name || "";
+      select.disabled = mutationPending;
+    }
+    for (const id of ["applyGenerationPreset", "renameGenerationPreset", "deleteGenerationPreset"]) {
+      const button = presetElement(id);
+      if (button) button.disabled = mutationPending || !selectedPreset();
+    }
+    for (const id of ["confirmGenerationPresetDelete", "cancelGenerationPresetDelete"]) {
+      const button = presetElement(id);
+      if (button) button.disabled = mutationPending;
+    }
+    const save = presetElement("saveGenerationPreset");
+    if (save) save.disabled = mutationPending;
+  }
+  async function refreshGenerationPresets() {
+    const sequence = ++loadSequence;
+    presetStatus(translate("generationPresets.loading"));
+    try {
+      const data = await presetApi();
+      if (sequence !== loadSequence) return;
+      if (!Array.isArray(data.presets)) throw new Error(translate("generationPresets.failed"));
+      presets = data.presets;
+      renderPresetPanel();
+      presetStatus(presets.length ? translate("generationPresets.hint") : translate("generationPresets.empty"));
+    } catch (error) {
+      if (sequence !== loadSequence) return;
+      presetStatus(`${translate("generationPresets.loadFailed")}: ${presetErrorMessage(error)}`, true);
+    }
+  }
+  function selectedPresetDescription() {
+    cancelPresetDelete();
+    const preset = selectedPreset();
+    const name = presetElement("generationPresetName");
+    if (name) name.value = preset?.name || "";
+    if (preset) {
+      const imageRule = presetElement("generationPresetImageRule");
+      const fileRule = presetElement("generationPresetFileRule");
+      if (imageRule) imageRule.value = preset.reference_rules.images;
+      if (fileRule) fileRule.value = preset.reference_rules.files;
+      presetStatus(preset.availability?.available === false ? preset.availability.issues.map((issue) => issue.message).join("; ") : translate("generationPresets.hint"), preset.availability?.available === false);
+    }
+    renderPresetPanel();
+  }
+  function presetMainModelValid(value) {
+    return value.length <= 128 && /^[A-Za-z0-9][A-Za-z0-9_.-]*(?:\/[A-Za-z0-9][A-Za-z0-9_.-]*)*$/.test(value) && value.split("/").every((segment) => !/^sk[-_]/i.test(segment));
+  }
+  function validatePresetForComposer(preset) {
+    const { state: state33 } = getLegacyBridge();
+    const catalog = state33.generationCatalog;
+    const model = catalog?.models.find((item) => item.id === preset.canonical_model_id);
+    if (!catalog || !model || !model.operations.includes(preset.operation)) throw new Error(translate("generationPresets.unknownModel"));
+    const binding = eligibleProviderBindings(catalog, model.id, preset.operation).find((item) => item.provider.id === preset.provider_id && item.binding.id === preset.binding_id);
+    if (!binding) throw new Error(translate("generationPresets.unknownProvider"));
+    const active = activeParameterValuesFor(model, preset.operation, preset.parameters);
+    for (const [key2, value] of Object.entries(preset.parameters)) {
+      const definition = model.parameters.find((item) => item.id === key2);
+      if (!definition || !parameterValueValid(definition, value) || !(key2 in active)) throw new Error(formatTranslation("generationPresets.invalidParameter", { parameter: key2 }));
+    }
+    const options = preset.request_options || {};
+    if (Object.keys(options).some((key2) => !["main_model", "prompt_fidelity"].includes(key2)) || options.main_model !== void 0 && (!isGptImageModel(model.id) || !binding.binding.protocol_profile.endsWith("responses") || !presetMainModelValid(options.main_model)) || options.prompt_fidelity !== void 0 && (!isGptImageModel(model.id) || !["strict", "original", "off"].includes(options.prompt_fidelity))) throw new Error(translate("generationPresets.incompatible"));
+    const rules = preset.reference_rules;
+    if (!rules || !["preserve", "require", "forbid"].includes(rules.images) || !["preserve", "require", "forbid"].includes(rules.files) || rules.order !== "preserve") throw new Error(translate("generationPresets.invalidRules"));
+  }
+  function commitGenerationPreset(preset) {
+    validatePresetForComposer(preset);
+    const { state: state33, els: els44, methods } = getLegacyBridge();
+    const previousOptions = { main_model: els44.mainModel?.value, prompt_fidelity: els44.promptFidelity?.value };
+    const model = state33.generationCatalog.models.find((item) => item.id === preset.canonical_model_id);
+    const fields = ["mode", "selectedModelId", "selectedFamilyId", "selectedProviderId", "selectedProviderBindingId", "authAvailable", "lastModelByFamily", "lastProviderByModel", "lastProviderSelectionByModel", "parameterDraftsByModel", "parameterDraftVersionsByModel", "generationReferenceRules", "appliedGenerationPresetId"];
+    const previous = Object.fromEntries(fields.map((key2) => [key2, state33[key2]]));
+    const redraw = () => {
+      document.querySelectorAll("[data-mode]").forEach((button) => button.classList.toggle("active", button.dataset.mode === state33.mode));
+      methods.renderModelSelectors?.();
+      methods.renderProviderSelection?.();
+      methods.restoreCurrentModelParameterDraft?.();
+      methods.syncRunButtonLabel?.();
+      methods.updateModeSpecificSettings?.();
+      methods.reconcileTaskParameterInspection?.();
+      methods.refreshOutputSettingsLock?.();
+    };
+    state33.generationPresetApplying = true;
+    methods.invalidateExecutionSummary?.();
+    try {
+      Object.assign(state33, {
+        mode: preset.operation,
+        selectedModelId: model.id,
+        selectedFamilyId: model.family_id,
+        selectedProviderId: preset.provider_id,
+        selectedProviderBindingId: preset.binding_id,
+        authAvailable: true,
+        lastModelByFamily: { ...state33.lastModelByFamily, [model.family_id]: model.id },
+        lastProviderByModel: { ...state33.lastProviderByModel, [model.id]: preset.provider_id },
+        lastProviderSelectionByModel: { ...state33.lastProviderSelectionByModel, [model.id]: providerBindingSelectionKey(preset.provider_id, preset.binding_id) },
+        parameterDraftsByModel: { ...state33.parameterDraftsByModel, [model.id]: { ...Object.fromEntries(model.parameters.map((definition) => [definition.id, definition.default])), ...JSON.parse(JSON.stringify(preset.parameters)) } },
+        parameterDraftVersionsByModel: { ...state33.parameterDraftVersionsByModel, [model.id]: model.version },
+        generationReferenceRules: { ...preset.reference_rules },
+        appliedGenerationPresetId: preset.id
+      });
+      if (preset.request_options?.main_model !== void 0 && els44.mainModel) els44.mainModel.value = preset.request_options.main_model;
+      if (preset.request_options?.prompt_fidelity !== void 0 && els44.promptFidelity) els44.promptFidelity.value = preset.request_options.prompt_fidelity;
+      redraw();
+      const actual = currentGenerationSelection();
+      if (actual.canonicalModelId !== model.id || actual.providerId !== preset.provider_id || actual.bindingId !== preset.binding_id || Object.entries(preset.parameters).some(([key2, value]) => JSON.stringify(actual.parameters[key2]) !== JSON.stringify(value))) throw new Error(translate("generationPresets.incompatible"));
+      methods.persistModelSelection?.();
+      if (preset.request_options?.main_model !== void 0) methods.persistMainModel?.();
+    } catch (error) {
+      Object.assign(state33, previous);
+      if (els44.mainModel) els44.mainModel.value = previousOptions.main_model;
+      if (els44.promptFidelity) els44.promptFidelity.value = previousOptions.prompt_fidelity;
+      redraw();
+      throw error;
+    } finally {
+      state33.generationPresetApplying = false;
+      methods.updateRequestPreview?.();
+    }
+  }
+  function presetComposerKey() {
+    const { state: state33, methods } = getLegacyBridge();
+    const request = methods.buildSubmissionRequest?.();
+    return request ? submissionSnapshotKey(request) : JSON.stringify([state33.mode, currentGenerationSelection(), state33.images, state33.referenceFiles]);
+  }
+  async function applyGenerationPreset(id = selectedId) {
+    const preset = presets.find((item) => item.id === id);
+    if (!preset) return;
+    const sequence = ++applySequence;
+    const { state: state33, methods } = getLegacyBridge();
+    methods.syncPromptFromEditor?.();
+    methods.syncGalleryInputsFromPrompt?.();
+    const key2 = presetComposerKey();
+    state33.generationPresetPending = true;
+    methods.invalidateExecutionSummary?.();
+    presetStatus(translate("generationPresets.applying"));
+    try {
+      validatePresetForComposer(preset);
+      const data = await presetApi(`/${encodeURIComponent(id)}/apply`, { method: "POST", body: JSON.stringify({ image_count: state33.images.length, reference_file_count: state33.referenceFiles.length, has_mask: false }) });
+      if (sequence !== applySequence) return;
+      if (key2 !== presetComposerKey()) throw new Error(translate("generationPresets.changedDuringApply"));
+      commitGenerationPreset(data.preset);
+      selectedId = id;
+      const options = data.preset.request_options || {};
+      const retainedOptions = isGptImageModel(data.preset.canonical_model_id) && (!options.prompt_fidelity || selectedProviderBinding()?.protocol_profile.endsWith("responses") && !options.main_model);
+      presetStatus(formatTranslation("generationPresets.applied", { name: data.preset.name }) + (retainedOptions ? ` ${translate("generationPresets.retainedOptions")}` : ""));
+      renderPresetPanel();
+    } catch (error) {
+      if (sequence === applySequence) presetStatus(presetErrorMessage(error), true);
+    } finally {
+      if (sequence === applySequence) {
+        state33.generationPresetPending = false;
+        methods.updateRequestPreview?.();
+      }
+    }
+  }
+  async function saveGenerationPreset(rename = false) {
+    if (mutationPending) return;
+    const preset = selectedPreset();
+    if (rename && !preset) return;
+    try {
+      const name = validatePresetName(presetElement("generationPresetName")?.value || "", rename ? preset.id : "");
+      const body = rename ? { name } : currentPresetPayload(name);
+      mutationPending = true;
+      renderPresetPanel();
+      const data = await presetApi(rename ? `/${encodeURIComponent(preset.id)}` : "", { method: rename ? "PATCH" : "POST", body: JSON.stringify(body) });
+      ++loadSequence;
+      presets = data.presets;
+      selectedId = data.preset.id;
+      presetStatus(translate("generationPresets.saved"));
+    } catch (error) {
+      presetStatus(presetErrorMessage(error), true);
+    } finally {
+      mutationPending = false;
+      renderPresetPanel();
+    }
+  }
+  function requestPresetDelete() {
+    const preset = selectedPreset();
+    if (!preset || mutationPending) return;
+    deleteId = preset.id;
+    const confirmation2 = presetElement("generationPresetDeleteConfirmation");
+    if (confirmation2) confirmation2.hidden = false;
+    const text = presetElement("generationPresetDeleteQuestion");
+    if (text) text.textContent = formatTranslation("generationPresets.deleteQuestion", { name: preset.name });
+    presetElement("cancelGenerationPresetDelete")?.focus();
+  }
+  function cancelPresetDelete() {
+    deleteId = "";
+    const confirmation2 = presetElement("generationPresetDeleteConfirmation");
+    if (confirmation2) confirmation2.hidden = true;
+  }
+  async function confirmPresetDelete() {
+    if (!deleteId || mutationPending) return;
+    const id = deleteId;
+    mutationPending = true;
+    renderPresetPanel();
+    try {
+      const data = await presetApi(`/${encodeURIComponent(id)}?confirm=true`, { method: "DELETE" });
+      ++loadSequence;
+      presets = data.presets;
+      if (selectedId === id) selectedId = "";
+      cancelPresetDelete();
+      presetStatus(translate("generationPresets.deleted"));
+    } catch (error) {
+      presetStatus(presetErrorMessage(error), true);
+    } finally {
+      mutationPending = false;
+      renderPresetPanel();
+    }
+  }
+  function initGenerationPresetsFeature() {
+    Object.assign(getLegacyBridge().methods, { refreshGenerationPresets, applyGenerationPreset });
+    presetElement("generationPresetSelect")?.addEventListener("change", () => {
+      selectedId = presetElement("generationPresetSelect")?.value || "";
+      selectedPresetDescription();
+    });
+    presetElement("applyGenerationPreset")?.addEventListener("click", () => void applyGenerationPreset());
+    presetElement("saveGenerationPreset")?.addEventListener("click", () => void saveGenerationPreset());
+    presetElement("renameGenerationPreset")?.addEventListener("click", () => void saveGenerationPreset(true));
+    presetElement("deleteGenerationPreset")?.addEventListener("click", requestPresetDelete);
+    presetElement("cancelGenerationPresetDelete")?.addEventListener("click", cancelPresetDelete);
+    presetElement("confirmGenerationPresetDelete")?.addEventListener("click", () => void confirmPresetDelete());
+    presetElement("clearGenerationPresetRules")?.addEventListener("click", () => {
+      const { state: state33, methods } = getLegacyBridge();
+      state33.generationReferenceRules = { ...DEFAULT_RULES };
+      state33.appliedGenerationPresetId = "";
+      methods.updateRequestPreview?.();
+      presetStatus(translate("generationPresets.rulesCleared"));
+    });
+    presetElement("refreshGenerationPresets")?.addEventListener("click", () => void refreshGenerationPresets());
+    presetElement("generationPresetsPanel")?.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") cancelPresetDelete();
+    });
+    presetElement("generationPresetsPanel")?.addEventListener("toggle", () => {
+      if (!presetElement("generationPresetsPanel")?.open) cancelPresetDelete();
+    });
+    document.addEventListener(LOCALE_CHANGE_EVENT, renderPresetPanel);
+    renderPresetPanel();
+  }
+
   // codex_image/webui/frontend/src/main.ts
   initReferenceFileInputsFeature();
   initInputSourcesFeature();
@@ -60467,6 +61304,8 @@ ${hint}` : hint;
   initTaskBatchControlsFeature();
   initTaskActionsFeature();
   initTaskSubmitFeature();
+  initExecutionSummaryFeature();
+  initGenerationPresetsFeature();
   initTaskListControlsFeature();
   initTaskCardSwipeFeature();
   initTaskListQueueControlsFeature();

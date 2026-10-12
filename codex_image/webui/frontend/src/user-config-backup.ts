@@ -43,6 +43,7 @@ const GROUP_KEYS: Record<UserConfigRestoreGroup, string> = {
   gallery_items: "userConfigBackup.groupGalleryItems",
   prompt_templates: "userConfigBackup.groupPromptTemplates",
   settings: "userConfigBackup.groupSettings",
+  generation_presets: "userConfigBackup.groupGenerationPresets",
 };
 
 let initialized = false;
@@ -610,6 +611,8 @@ function refreshRestoredSections(result: UserConfigRestoreResult): void {
   if (result.sections.includes("templates")) call("refreshPromptTemplates");
   if (result.sections.includes("settings")) {
     call("refreshSettings");
+    call("refreshGenerationPresets");
+    call("invalidateExecutionSummary");
     call("refreshNetworkEgress");
     call("populateApiSettingsForm");
   }

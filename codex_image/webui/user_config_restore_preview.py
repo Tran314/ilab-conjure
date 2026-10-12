@@ -4,6 +4,11 @@ from __future__ import annotations
 from typing import Any, Mapping
 from urllib.parse import urlsplit
 
+from .generation_presets import MAX_GENERATION_PRESETS
+from .user_config_backup_presets import (
+    GENERATION_PRESETS_MEMBER, plan_generation_presets_merge,
+)
+
 
 def gallery_items(payloads: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {
@@ -57,6 +62,7 @@ def compare_section(
 ) -> tuple[int, int, int, tuple[str, ...]]:
     identical = conflicts = missing = 0
     warnings: list[str] = []
+    preset_conflicts = 0
     if section == "chips":
         archive_colors = imported.get("chips/colors.json", {})
         local_colors = current.get("chips/colors.json", {})
@@ -105,7 +111,20 @@ def compare_section(
         )
         missing += sum(warning.code == "template_thumbnail_missing" for warning in current_warnings)
     elif section == "settings":
+        if GENERATION_PRESETS_MEMBER in imported:
+            merged, _, duplicate, preset_conflicts = plan_generation_presets_merge(
+                imported[GENERATION_PRESETS_MEMBER],
+                current.get(GENERATION_PRESETS_MEMBER, {"version": 1, "presets": []}),
+            )
+            if len(merged["presets"]) > MAX_GENERATION_PRESETS:
+                warnings.append("user_config_restore_generation_presets_merge_limit")
+            identical += duplicate
+            conflicts += preset_conflicts
+        elif current.get(GENERATION_PRESETS_MEMBER, {}).get("presets"):
+            warnings.append("user_config_restore_generation_presets_preserved")
         for path, payload in imported.items():
+            if path == GENERATION_PRESETS_MEMBER:
+                continue
             if not path.startswith("settings/") or path not in current:
                 continue
             if path == "settings/client-preferences.json":
@@ -120,7 +139,9 @@ def compare_section(
                 identical += 1
             else:
                 conflicts += 1
-    if conflicts:
+    if preset_conflicts:
+        warnings.append("user_config_restore_conflicts_create_copies")
+    if conflicts - preset_conflicts:
         warnings.append(
             "user_config_restore_settings_keep_existing"
             if section == "settings" else "user_config_restore_conflicts_create_copies"

@@ -55,6 +55,7 @@ from .gallery_storage import (
     GalleryProtectionUnavailableError,
 )
 from .user_config_restore_preview import compare_section, gallery_items, gallery_reference_impact
+from .user_config_backup_presets import GENERATION_PRESETS_MEMBER, merge_generation_presets
 from .resource_limits import (
     MAX_USER_CONFIG_BACKUP_COMPRESSION_RATIO,
     MAX_USER_CONFIG_BACKUP_ENTRIES,
@@ -819,6 +820,7 @@ class UserConfigBackupImportService:
         current_webui = self.planner.webui_settings._read_payload()
         current_network = self.planner.network_egress_settings._read_payload()
         current_auth = self.planner.auth_settings.snapshot()
+        preset_candidate, preset_stats = self._prepare_generation_presets(session_id, mode)
 
         if mode == "replace":
             webui_candidate = {
@@ -861,11 +863,46 @@ class UserConfigBackupImportService:
             mode=0o600,
         )
         self.planner.provider_settings.replace_snapshot(imported_providers)
+        if preset_candidate is not None:
+            assert self.planner.generation_preset_settings is not None
+            self.planner.generation_preset_settings.replace_snapshot(preset_candidate)
         after_paths = self.planner.webui_settings.read_paths()
         return (
-            SectionRestoreStats(replaced=5 if mode == "replace" else 0),
+            SectionRestoreStats(
+                added=preset_stats.added,
+                replaced=(5 if mode == "replace" else 0) + preset_stats.replaced,
+                skipped=preset_stats.skipped,
+                recovery_copies=preset_stats.recovery_copies,
+                warnings=preset_stats.warnings,
+            ),
             preferences,
             before_paths != after_paths,
+        )
+
+    def _prepare_generation_presets(self, session_id, mode):
+        assert self.planner is not None
+        staged = self._staging_path(session_id).joinpath(*GENERATION_PRESETS_MEMBER.split("/"))
+        if not staged.is_file():
+            # A pre-presets archive says nothing about this store, even in replace mode.
+            return None, SectionRestoreStats()
+        store = self.planner.generation_preset_settings
+        if store is None:
+            raise ValueError("user_config_restore_generation_presets_unavailable")
+        imported = self._staged_json(session_id, GENERATION_PRESETS_MEMBER)
+        current = store.backup_snapshot()
+        if mode == "replace":
+            return imported, SectionRestoreStats(
+                added=max(0, len(imported["presets"]) - len(current["presets"])),
+                replaced=len(current["presets"]),
+            )
+        try:
+            candidate, added, skipped, copies = merge_generation_presets(imported, current)
+        except ValueError as exc:
+            if str(exc).startswith("user_config_restore_"):
+                raise
+            raise ValueError("user_config_restore_generation_presets_merge_invalid") from exc
+        return candidate, SectionRestoreStats(
+            added=added, skipped=skipped, recovery_copies=copies,
         )
 
     def _merge_providers(self, imported: dict[str, Any]) -> dict[str, Any]:
@@ -980,6 +1017,8 @@ class UserConfigBackupImportService:
                     self.planner.network_egress_settings.path,
                 )
             )
+        if "settings" in sections and self.planner.generation_preset_settings is not None:
+            paths.append(self.planner.generation_preset_settings.path)
         return {
             path: path.read_bytes() if path.exists() else None
             for path in paths
@@ -1140,6 +1179,8 @@ class UserConfigBackupImportService:
                 self.planner.auth_settings.path,
                 self.planner.provider_settings.path,
                 self.planner.network_egress_settings.path,
+                *({self.planner.generation_preset_settings.path}
+                  if self.planner.generation_preset_settings is not None else set()),
             },
             {
                 self.planner.gallery_storage.root,
@@ -1321,6 +1362,9 @@ class UserConfigBackupImportService:
             # Validate both selectable modes against the actual merged bindings.
             self._merge_providers(payloads["settings/providers.json"])
             self._preserve_current_provider_keys(payloads["settings/providers.json"])
+            if (GENERATION_PRESETS_MEMBER in payloads
+                    and self.planner.generation_preset_settings is None):
+                raise ValueError("user_config_restore_generation_presets_unavailable")
         section_previews: list[UserConfigRestoreSectionPreview] = []
         current_fingerprints: dict[str, str] = {}
         history_impact = 0
@@ -1333,6 +1377,9 @@ class UserConfigBackupImportService:
             )
             current_count = _section_archive_count(section, current_payloads, current_members)
             current_groups = _section_group_counts(section, current_payloads, current_members)
+            if section == "settings":
+                # Optional groups absent from an old archive are preserved, not replaced.
+                current_count = sum(current_groups.get(group, 0) for group in archive_groups)
             identical, conflicts, missing, section_warnings = compare_section(
                 section, payloads, current_payloads, members, current_members,
                 contains_secrets=manifest.contains_secrets,
@@ -1630,6 +1677,8 @@ def _section_archive_count(section, payloads, members) -> int:
         return len(templates.get("templates", [])) + sum(
             1 for member in members if member.path.startswith("templates/thumbnails/")
         )
+    if section == "settings":
+        return sum(_section_group_counts(section, payloads, members).values())
     return len(members)
 
 
@@ -1653,7 +1702,10 @@ def _section_group_counts(section, payloads, members) -> dict[str, int]:
     if section == "templates":
         templates = payloads.get("templates/prompt-templates.json", {})
         return {"prompt_templates": len(templates.get("templates", []))}
-    return {"settings": len(members)}
+    groups = {"settings": sum(member.path != GENERATION_PRESETS_MEMBER for member in members)}
+    if GENERATION_PRESETS_MEMBER in payloads:
+        groups["generation_presets"] = len(payloads[GENERATION_PRESETS_MEMBER]["presets"])
+    return groups
 
 
 def _path_field_classifications(webui: Any) -> dict[str, str]:

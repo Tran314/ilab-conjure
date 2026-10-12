@@ -1585,3 +1585,20 @@
     width: 100%;
   }
 }
+
+/* Generation presets and server-resolved submission review share the composer. */
+.generation-presets-panel > summary, .execution-summary-details > summary { cursor: pointer; font-weight: 600; }
+.generation-presets-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: 10px; }
+.generation-presets-toolbar select, .generation-presets-toolbar input { flex: 1 1 180px; min-width: 0; max-width: 100%; }
+.generation-presets-toolbar select { text-overflow: ellipsis; }
+.generation-presets-rules { display: flex; flex-wrap: wrap; gap: 14px; }
+.generation-presets-rules label { display: flex; flex: 1 1 220px; flex-direction: column; gap: 4px; }
+.generation-presets-rules select { max-width: 100%; }
+.generation-presets-hint, .generation-preset-status { color: var(--text-secondary); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.generation-preset-status[data-kind="error"], .execution-summary[data-preview-state="error"] { color: var(--danger, #dc5b5b); }
+.generation-preset-delete { border: 1px solid var(--border-color, #777); padding: 12px; border-radius: 8px; overflow-wrap: anywhere; }
+.generation-preset-delete[hidden] { display: none; }
+.execution-summary-details { margin-block: 10px; font-size: 12px; line-height: 1.6; }
+.execution-summary-details ul { padding-inline-start: 20px; margin-block: 8px; }
+.execution-summary-details li { overflow-wrap: anywhere; white-space: pre-wrap; }
+.execution-summary[data-preview-state="stale"], .execution-summary[data-preview-state="loading"] { font-style: italic; }

@@ -1,3 +1,4 @@
+import { submissionSnapshotKey, type SubmissionSnapshot } from "./generation-preview-state";
 import { prepareSubmissionIdentity, completeSubmissionIdentity, type SubmissionIdentity } from "./submission-identity";
 import { composerFingerprint, markComposerSubmitted } from "./composer-draft";
 import { isGptImageModel } from "./gpt-image-models";
@@ -282,10 +283,7 @@ function addQueuedTask(task: any) {
   replacePendingTask(state.pendingTaskId || task.task_id, task);
 }
 
-async function runTask() {
-  if (taskSubmissionPending) return;
-  syncPromptFromEditor();
-  syncGalleryInputsFromPrompt();
+export function buildSubmissionRequest(): SubmissionSnapshot {
   const prompt = getPromptText();
   const promptForModel = currentPromptForModel();
   const uploads = uploadInputs();
@@ -293,6 +291,49 @@ async function runTask() {
   const assets = referenceAssetInputs();
   const fileUploads = referenceFileUploads();
   const storedFiles = storedReferenceFileInputs();
+  const form = new FormData();
+  form.append("prompt", prompt);
+  form.append("prompt_for_model", promptForModel);
+  const galleryContext = galleryPrompt();
+  if (galleryContext) form.append("gallery_prompt", JSON.stringify(galleryContext));
+  form.append("ui_language", currentLocaleCode());
+  appendCanonicalGenerationFields(form, currentGenerationSelection());
+  if (!state.generationCatalog || isGptImageModel(state.selectedModelId)) {
+    form.append("main_model", currentMainModel());
+    form.append("prompt_fidelity", currentPromptFidelity());
+  }
+  galleries.forEach((source: any) => form.append("gallery_image_ids", source.id));
+  assets.forEach((source: any) => form.append("reference_asset_ids", source.id));
+  form.append("reference_image_order", JSON.stringify(referenceImageOrder()));
+  fileUploads.forEach((source: any) => form.append("reference_files", source.file));
+  storedFiles.forEach((source: any) => form.append("reference_file_ids", source.id));
+
+  if (state.mode === "generate") {
+    uploads.forEach((source: any) => form.append("reference_images", source.file));
+  } else {
+    uploads.forEach((source: any) => form.append("images", source.file));
+  }
+
+  if (state.generationReferenceRules) form.append("reference_rules", JSON.stringify(state.generationReferenceRules));
+  return {
+    endpoint: state.mode === "edit" ? "/api/edit" : "/api/generate",
+    form,
+    inputFiles: [...uploads, ...fileUploads].map((source: any) => source.file),
+  };
+}
+
+async function runTask() {
+  if (taskSubmissionPending) return;
+  if (state.generationPresetPending || state.generationPresetApplying) {
+    setStatus(translate("generationPresets.applying"), "");
+    return;
+  }
+  syncPromptFromEditor();
+  syncGalleryInputsFromPrompt();
+  const prompt = getPromptText();
+  const uploads = uploadInputs();
+  const galleries = galleryInputs();
+  const assets = referenceAssetInputs();
   if (missingGalleryInputs().length) {
     setStatus(translate("status.missingGalleryReference"), "error");
     return;
@@ -331,27 +372,25 @@ async function runTask() {
     return;
   }
 
-  const form = new FormData();
-  form.append("prompt", prompt);
-  form.append("prompt_for_model", promptForModel);
-  const galleryContext = galleryPrompt();
-  if (galleryContext) form.append("gallery_prompt", JSON.stringify(galleryContext));
-  form.append("ui_language", currentLocaleCode());
-  appendCanonicalGenerationFields(form, currentGenerationSelection());
-  if (!state.generationCatalog || isGptImageModel(state.selectedModelId)) {
-    form.append("main_model", currentMainModel());
-    form.append("prompt_fidelity", currentPromptFidelity());
+  const request = buildSubmissionRequest();
+  const form = request.form;
+  // Guard includes the review request: rapid double clicks must not race preview.
+  taskSubmissionPending = true;
+  let previewToken: string | null;
+  try {
+    const reviewing = legacyMethod("ensureExecutionPreview", request);
+    previewToken = reviewing instanceof Promise ? await reviewing : reviewing;
+  } catch (error) {
+    setStatus(errorMessage(error, translate("generationPreview.notReady")), "error");
+    return;
+  } finally {
+    taskSubmissionPending = false;
   }
-  galleries.forEach((source: any) => form.append("gallery_image_ids", source.id));
-  assets.forEach((source: any) => form.append("reference_asset_ids", source.id));
-  form.append("reference_image_order", JSON.stringify(referenceImageOrder()));
-  fileUploads.forEach((source: any) => form.append("reference_files", source.file));
-  storedFiles.forEach((source: any) => form.append("reference_file_ids", source.id));
-
-  if (state.mode === "generate") {
-    uploads.forEach((source: any) => form.append("reference_images", source.file));
-  } else {
-    uploads.forEach((source: any) => form.append("images", source.file));
+  if (!previewToken) return;
+  if (submissionSnapshotKey(request) !== submissionSnapshotKey(buildSubmissionRequest())) {
+    getLegacyBridge().methods.invalidateExecutionSummary?.();
+    setStatus(translate("generationPreview.reviewAgain"), "");
+    return;
   }
 
   const submittedComposer = composerFingerprint();
@@ -369,7 +408,7 @@ async function runTask() {
   const controller = new AbortController();
   const submitTimeoutId = window.setTimeout(() => controller.abort(), SUBMIT_TASK_TIMEOUT_MS);
   try {
-    const endpoint = state.mode === "edit" ? "/api/edit" : "/api/generate";
+    const endpoint = request.endpoint;
     try {
       const identity = prepareSubmissionIdentity(endpoint, form);
       submissionIdentity = identity instanceof Promise ? await identity : identity;
@@ -381,6 +420,7 @@ async function runTask() {
     const response = await fetch(endpoint, {
       method: "POST",
       body: form,
+      headers: { "X-Generation-Preview-Token": previewToken },
       signal: controller.signal,
     });
     const data = await response.json();
@@ -388,6 +428,10 @@ async function runTask() {
       knownRejection = response.status >= 400 && response.status < 500
         && !["submission_result_unknown", "submission_id_conflict"].includes(data.detail?.code);
       if (knownRejection) completeSubmissionIdentity(submissionIdentity);
+      if (data.detail?.code === "generation_preview_stale") {
+        getLegacyBridge().methods.invalidateExecutionSummary?.();
+        updateRequestPreview();
+      }
       throw new Error(responseErrorMessage(data.detail));
     }
     accepted = true;
@@ -431,6 +475,7 @@ export function initTaskSubmitFeature() {
     applyTaskOutputParams,
     applyTaskToForm,
     buildPreviewRequest,
+    buildSubmissionRequest,
     currentCanonicalParameters,
     createPendingTask,
     addQueuedTask,

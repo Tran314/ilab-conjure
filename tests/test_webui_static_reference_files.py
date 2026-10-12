@@ -414,7 +414,14 @@ class ReferenceFileFrontendContractTests(unittest.TestCase):
         script = (ROOT / "codex_image/webui/static/app.js").read_text(encoding="utf-8")
         self.assertIn("function addMixedInputFiles(", script)
         self.assertRegex(script, r'function addImages\(event\)\s*\{\s*legacyMethod\d*\("addMixedInputFiles", event\.target\.files \|\| \[\]\)')
-        self.assertRegex(script, r'function handleImageDrop\(event\)[\s\S]*addMixedInputFiles\(files, \{')
+        # Bind the collected files to the ingestion call without depending on
+        # esbuild's collision suffix (files, files2, ...).
+        self.assertRegex(
+            script,
+            r'function handleImageDrop\(event\)\s*\{[\s\S]*?'
+            r'const (?P<files>files\d*) = dataTransferFiles\(event\.dataTransfer\);'
+            r'\s*const \w+ = addMixedInputFiles\((?P=files), \{',
+        )
 
     def test_reference_file_module_enforces_separate_file_workflow(self) -> None:
         module = (ROOT / "codex_image/webui/frontend/src/reference-file-inputs.ts").read_text(encoding="utf-8")
@@ -500,7 +507,11 @@ class ReferenceFileFrontendContractTests(unittest.TestCase):
         submit = (ROOT / "codex_image/webui/frontend/src/task-submit.ts").read_text(encoding="utf-8")
         runtime = (ROOT / "codex_image/webui/frontend/src/runtime-feedback.ts").read_text(encoding="utf-8")
         self.assertIn('reference_files_require_responses: "referenceFiles.requiresResponses"', submit)
-        catch_block = submit[submit.index("} catch (error) {") : submit.index("} finally {")]
+        # Preview validation has its own earlier catch and does not create a
+        # pending task. Inspect the actual submission's error handler.
+        submission_start = submit.index("const submitTimeoutId =")
+        catch_start = submit.index("} catch (error) {", submission_start)
+        catch_block = submit[catch_start : submit.index("} finally {", catch_start)]
         self.assertIn("markPendingTaskFailed(pendingTask.task_id, message)", catch_block)
         failed = runtime[runtime.index("export function markPendingTaskFailed") : runtime.index("export function startRunFeedback")]
         self.assertIn('task.status = "failed"', failed)

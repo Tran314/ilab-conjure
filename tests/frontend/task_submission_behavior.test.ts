@@ -130,6 +130,8 @@ function resetSubmissionState(): void {
     currentPromptForModel: () => "测试提示词",
     currentTaskParams: () => ({ api_mode: "images", model: "gpt-image-2", n: 1, size: "1024x1024" }),
     customSizeValidationMessage: () => "",
+    // This suite isolates accepted-submission behavior; review races have their own suite.
+    ensureExecutionPreview: () => "fixture-reviewed-token",
     galleryInputs: () => [],
     getPromptText: () => "测试提示词",
     markPendingTaskFailed() {},
@@ -523,4 +525,108 @@ test("a lost submission response keeps its identity and unknown result until ide
   assert.equal(state.tasks[0].task_id,"recovered-request");
   await methods.runTask();
   assert.notEqual(identities[2],identities[1], "an acknowledged successful submission permits intentional new work");
+});
+
+test("submission is gated by a reviewed preview and carries its token without changing the request identity body", async () => {
+  resetSubmissionState();
+  (globalThis as any).document.getElementById = () => null;
+  stored.clear();
+  const summary = await import("../../codex_image/webui/frontend/src/execution-summary");
+  summary.invalidateExecutionSummary();
+  methods.ensureExecutionPreview = summary.ensureExecutionPreview;
+  const calls: Array<{ url: string; options: any }> = [];
+  globalThis.fetch = (async (url: string, options: any) => {
+    calls.push({ url, options });
+    return new Response(JSON.stringify(url.endsWith("/preview")
+      ? { preview_token: "reviewed-token", summary: { output_count: 1, model: { id: "gpt-image-2" }, provider: { id: "provider-a" } } }
+      : { task: { task_id: "reviewed-task", status: "queued" } }));
+  }) as any;
+  await methods.runTask();
+  assert.deepEqual(calls.map(call => call.url), ["/api/generate/preview"]);
+  assert.equal(state.tasks.length, 0);
+  await methods.runTask();
+  assert.deepEqual(calls.map(call => call.url), ["/api/generate/preview", "/api/generate"]);
+  assert.equal(calls[1]!.options.headers["X-Generation-Preview-Token"], "reviewed-token");
+  assert.ok(calls[1]!.options.body.get("client_request_id"));
+  assert.equal(calls[1]!.options.body.has("preview_token"), false);
+});
+
+test("a refreshed preview after a lost submission response keeps the same retry identity", async () => {
+  resetSubmissionState();
+  (globalThis as any).document.getElementById = () => null;
+  stored.clear();
+  const summary = await import("../../codex_image/webui/frontend/src/execution-summary");
+  summary.invalidateExecutionSummary();
+  methods.ensureExecutionPreview = summary.ensureExecutionPreview;
+  let previews = 0;
+  const identities: string[] = [];
+  globalThis.fetch = (async (url: string, options: any) => {
+    if (url.endsWith("/preview")) {
+      previews += 1;
+      return new Response(JSON.stringify({ preview_token: `review-${previews}`, summary: { output_count: 1 } }));
+    }
+    identities.push(options.body.get("client_request_id"));
+    if (identities.length === 1) throw new TypeError("Response was lost after acceptance");
+    return new Response(JSON.stringify({ task: { task_id: "recovered-safe-retry", status: "queued" } }));
+  }) as any;
+  await methods.runTask();
+  await methods.runTask();
+  assert.equal(state.tasks[0].submission_unknown, true);
+  summary.invalidateExecutionSummary();
+  await methods.runTask();
+  await methods.runTask();
+  assert.equal(previews, 2);
+  assert.equal(identities.length, 2);
+  assert.equal(identities[0], identities[1]);
+  assert.equal(state.tasks[0].task_id, "recovered-safe-retry");
+});
+
+test("double clicks share the review gate and changing inputs while reviewing never submits", async () => {
+  resetSubmissionState();
+  (globalThis as any).document.getElementById = () => null;
+  const summary = await import("../../codex_image/webui/frontend/src/execution-summary");
+  summary.invalidateExecutionSummary();
+  methods.ensureExecutionPreview = summary.ensureExecutionPreview;
+  let prompt = "original";
+  methods.getPromptText = () => prompt;
+  methods.currentPromptForModel = () => prompt;
+  let calls = 0;
+  let resolve: (response: Response) => void = () => {};
+  globalThis.fetch = ((url: string) => {
+    assert.equal(url, "/api/generate/preview");
+    calls += 1;
+    return new Promise(done => { resolve = done; });
+  }) as any;
+  const first = methods.runTask();
+  const second = methods.runTask();
+  assert.equal(calls, 1);
+  prompt = "new draft during review";
+  resolve(new Response(JSON.stringify({ preview_token: "outdated", summary: { output_count: 1 } })));
+  await Promise.all([first, second]);
+  assert.equal(state.tasks.length, 0);
+  assert.equal(calls, 1);
+  summary.invalidateExecutionSummary();
+});
+
+test("a rejected reference-file submission marks the pending task failed and renders that failure", async () => {
+  resetSubmissionState();
+  (globalThis as any).document.getElementById = () => null;
+  const previews: any[] = [];
+  const referenceFile = { filename: "reference.txt", file: new Blob(["fixture reference"], { type: "text/plain" }) };
+  methods.referenceFileUploads = () => [referenceFile];
+  methods.markPendingTaskFailed = runtimeFeedback.markPendingTaskFailed;
+  methods.renderTasks = () => {};
+  methods.renderPreview = (task: any) => previews.push({ ...task });
+  globalThis.fetch = (async (url: string) => {
+    assert.equal(url, "/api/generate");
+    return new Response(JSON.stringify({ detail: { code: "reference_files_require_responses" } }), { status: 400 });
+  }) as any;
+  await methods.runTask();
+  assert.equal(state.tasks[0].status, "failed");
+  assert.equal(state.pendingTaskId, null);
+  assert.equal(previews.length, 1);
+  assert.equal(previews[0].task_id, state.tasks[0].task_id);
+  assert.equal(previews[0].status, "failed");
+  assert.match(previews[0].error, /Responses/);
+  assert.notEqual(state.tasks[0].submission_unknown, true);
 });

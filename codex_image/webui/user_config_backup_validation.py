@@ -10,6 +10,7 @@ import unicodedata
 import zipfile
 from .color_settings import _normalize_color_palette_payload
 from .image_uploads import InvalidRasterImage, validate_raster_image
+from .generation_presets import _unique_json_object, validate_generation_presets_payload
 from .prompt_snippets import _normalize_prompt_snippets_payload
 from .provider_validation import validate_v2_payload
 from .user_config_backup_components import ClientPreferences
@@ -31,6 +32,9 @@ _SETTINGS_MEMBERS = frozenset(
         "settings/client-preferences.json",
     }
 )
+
+
+_OPTIONAL_SETTINGS_MEMBERS = frozenset({"settings/generation-presets.json"})
 
 
 _FORBIDDEN_SECRET_KEYS = frozenset(
@@ -79,8 +83,10 @@ def _read_zip_member(
 
 def _json_value(payload: bytes, label: str) -> Any:
     try:
+        if label in {"settings/generation-presets.json", "generation-presets.json"}:
+            return json.loads(payload.decode("utf-8"), object_pairs_hook=_unique_json_object)
         return json.loads(payload.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+    except (UnicodeDecodeError, ValueError, RecursionError) as exc:
         raise ValueError("user_config_restore_json_invalid") from exc
 
 
@@ -364,8 +370,16 @@ class UserConfigArchiveValidator:
     ) -> ClientPreferences | None:
         if "settings" not in manifest.sections:
             return None
-        if set(path for path in payloads if path.startswith("settings/")) != _SETTINGS_MEMBERS:
+        present = {path for path in payloads if path.startswith("settings/")}
+        if not (_SETTINGS_MEMBERS <= present <= _SETTINGS_MEMBERS | _OPTIONAL_SETTINGS_MEMBERS):
             raise ValueError("user_config_restore_settings_members_invalid")
+        if "settings/generation-presets.json" in payloads:
+            try:
+                payloads["settings/generation-presets.json"] = validate_generation_presets_payload(
+                    payloads["settings/generation-presets.json"]
+                )
+            except (ValueError, TypeError) as exc:
+                raise ValueError("user_config_restore_generation_presets_invalid") from exc
         webui = payloads["settings/webui.json"]
         auth = payloads["settings/auth-source.json"]
         providers = payloads["settings/providers.json"]

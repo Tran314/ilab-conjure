@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+import json
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,13 @@ from codex_image.webui.generation_request import (
     generation_command_from_form,
     parse_parameters_json,
     preview_generation_command,
+)
+from codex_image.webui.generation_summary import (
+    GenerationPreviewTokens, PREVIEW_TOKEN_HEADER, PREVIEW_TOKEN_LIFETIME_SECONDS,
+    generation_summary, preview_token_material, reference_file_summary, reference_image_summary,
+)
+from codex_image.webui.generation_presets import (
+    GenerationPresetError, normalize_reference_rules, validate_preset_input_rules,
 )
 from codex_image.webui.image_uploads import (
     InvalidRasterImage,
@@ -117,6 +125,7 @@ class PreparedGenerationSubmission:
     prompt_constraints: Any
     params: dict[str, Any]
     prompt_locale: str
+    summary: dict[str, Any] | None = None
 
 
 def _request_auth_source(ctx: WebUIContext, provider_id: str | None) -> str:
@@ -173,6 +182,18 @@ def _generation_request_error(exc: ValueError) -> HTTPException:
     if message == "transparent_background_requires_png_or_webp":
         code = message
         safe_message = "Transparent backgrounds require PNG or WebP output."
+    elif message.startswith("image_input_limit_exceeded"):
+        code = "image_input_limit_exceeded"
+        safe_message = "Too many reference images for the selected model."
+    elif message == "mask_input_unsupported":
+        code = message
+        safe_message = "The selected model does not support a mask."
+    elif message == "reference_files_unsupported":
+        code = message
+        safe_message = "The selected model does not support reference files."
+    elif "does not support binding" in message:
+        code = "provider_model_binding_missing"
+        safe_message = "The selected provider binding is not available for this model."
     elif "does not support model" in message:
         code = "provider_model_binding_missing"
         safe_message = "The selected provider does not support this model."
@@ -529,6 +550,8 @@ def _persist_generation_submission(
         requested_backend=requested_backend,
         max_attempts=ctx.queue_manager.max_attempts if ctx.queue_manager is not None else 1,
     )
+    if prepared.summary is not None:
+        metadata["generation_summary"] = prepared.summary
     _enqueue_generation(
         ctx,
         task_id=task_id,
@@ -787,9 +810,75 @@ def _gallery_data_urls(
     ]
 
 
+def _prepare_generation_review(
+    ctx: WebUIContext,
+    *, prepared: PreparedGenerationSubmission,
+    uploaded_images: list[ValidatedRasterImage],
+    predicted_assets: list[dict[str, Any]], selected_assets: list[dict[str, Any]],
+    gallery_refs: list[dict[str, Any]], image_order: list[dict[str, str]] | None,
+    raw_image_order: str | None, reference_files: PreparedReferenceFiles,
+    reference_rules: str | None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    try:
+        raw_rules = json.loads(reference_rules) if reference_rules is not None else None
+        rules = normalize_reference_rules(raw_rules)
+        if reference_rules is not None:
+            validate_preset_input_rules({
+                "reference_rules": rules, "operation": prepared.plan.command.operation,
+                "canonical_model_id": prepared.plan.model.id,
+            }, image_count=len(prepared.plan.command.image_inputs),
+               reference_file_count=len(prepared.plan.command.reference_files),
+               has_mask=bool(prepared.plan.command.mask_image))
+    except GenerationPresetError as exc:
+        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code, "message": exc.message}) from exc
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(status_code=400, detail={
+            "code": "reference_rules_invalid", "message": "Reference rules must be a valid JSON object.",
+        }) from exc
+    summary = generation_summary(
+        prepared.plan, params=prepared.params,
+        image_sources=reference_image_summary(
+            uploads=uploaded_images, assets=predicted_assets, selected_assets=selected_assets,
+            galleries=gallery_refs, image_order=image_order, raw_order=raw_image_order,
+        ),
+        file_sources=reference_file_summary(reference_files),
+        explicit_image_order=image_order is not None, reference_rules=rules,
+        auto_start_queue=ctx.auto_start_queue,
+    )
+    material = preview_token_material(
+        prepared.plan, summary, params=prepared.params, prompt_locale=prepared.prompt_locale,
+    )
+    material["reference_identities"] = {
+        "assets": [(item["id"], item.get("sha256")) for item in predicted_assets],
+        "gallery": [(item["id"], item.get("sha256")) for item in gallery_refs],
+        "files": [item["id"] for item in reference_files.records],
+        "order": image_order,
+    }
+    return summary, material
+
+
+def _accept_reviewed_provider(ctx: WebUIContext, plan: Any) -> None:
+    if plan.provider.id == "codex":
+        return
+    # This comparison is the acceptance point for a reviewed provider. The
+    # immutable plan/snapshot is published afterward, so a later settings
+    # change cannot rewrite what was accepted. Release this lock before taking
+    # any task stripe: retry routes already acquire stripe -> provider.
+    with ctx.api_settings.exclusive():
+        current_provider = next((item for item in ctx.api_settings.read_connections()
+                                 if item.id == plan.provider.id), None)
+        if current_provider != plan.provider:
+            raise HTTPException(status_code=409, detail={
+                "code": "generation_preview_stale",
+                "message": "The provider configuration changed during submission. Review the updated summary before submitting again.",
+            })
+
+
 def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
     h = ctx.route_helpers
+    preview_tokens = GenerationPreviewTokens()
 
+    @app.post("/api/generate/preview")
     @app.post("/api/generate")
     async def generate(
         request: Request,
@@ -821,18 +910,20 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
         gallery_image_ids: list[str] | None = Form(None),
         reference_asset_ids: list[str] | None = Form(None),
         reference_image_order: str | None = Form(None),
+        reference_rules: str | None = Form(None),
         reference_file_ids: list[str] | None = Form(None),
         reference_images: list[UploadFile] | None = File(None),
         reference_files: list[UploadFile] | None = File(None),
     ) -> dict[str, Any]:
-        submission = await prepare_submission_identity(ctx, request)
+        is_preview = request.url.path.endswith("/preview")
+        submission = None if is_preview else await prepare_submission_identity(ctx, request)
         if submission is not None:
             replay = submission.replay()
             if replay is not None:
                 return replay
         explicit_form_fields = frozenset(str(key) for key in (await request.form()).keys())
         auth_source = _request_auth_source(ctx, provider_id)
-        if auth_source == "codex" and not ctx.route_helpers["codex_auth_checker"]():
+        if not is_preview and auth_source == "codex" and not ctx.route_helpers["codex_auth_checker"]():
             raise HTTPException(status_code=401, detail="Codex auth is not available")
         main_model = effective_reference_file_main_model(main_model)
 
@@ -942,6 +1033,22 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
             reference_file_inputs=list(prepared_reference_files.response_inputs),
         )
 
+        summary, review_material = _prepare_generation_review(
+            ctx, prepared=prepared_submission, uploaded_images=uploaded_images,
+            predicted_assets=predicted_assets, selected_assets=selected_assets,
+            gallery_refs=gallery_refs, image_order=image_order,
+            raw_image_order=reference_image_order, reference_files=prepared_reference_files,
+            reference_rules=reference_rules,
+        )
+        if is_preview:
+            return {"summary": summary, "preview_token": preview_tokens.issue(review_material),
+                    "expires_in_seconds": PREVIEW_TOKEN_LIFETIME_SECONDS}
+        preview_token = request.headers.get(PREVIEW_TOKEN_HEADER)
+        if preview_token is not None:
+            preview_tokens.verify(preview_token, review_material)
+            _accept_reviewed_provider(ctx, prepared_submission.plan)
+        prepared_submission = replace(prepared_submission, summary=summary)
+
         def commit_submission(task_id: str) -> dict[str, Any]:
             reference_assets = _commit_reference_assets(
                 ctx,
@@ -991,6 +1098,7 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
                 return submission.commit("generate", commit_submission)
             return commit_submission(ctx.storage.create_task("generate").task_id)
 
+    @app.post("/api/edit/preview")
     @app.post("/api/edit")
     async def edit(
         request: Request,
@@ -1023,19 +1131,21 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
         gallery_image_ids: list[str] | None = Form(None),
         reference_asset_ids: list[str] | None = Form(None),
         reference_image_order: str | None = Form(None),
+        reference_rules: str | None = Form(None),
         reference_file_ids: list[str] | None = Form(None),
         images: list[UploadFile] | None = File(None),
         mask: UploadFile | None = File(None),
         reference_files: list[UploadFile] | None = File(None),
     ) -> dict[str, Any]:
-        submission = await prepare_submission_identity(ctx, request)
+        is_preview = request.url.path.endswith("/preview")
+        submission = None if is_preview else await prepare_submission_identity(ctx, request)
         if submission is not None:
             replay = submission.replay()
             if replay is not None:
                 return replay
         explicit_form_fields = frozenset(str(key) for key in (await request.form()).keys())
         auth_source = _request_auth_source(ctx, provider_id)
-        if auth_source == "codex" and not ctx.route_helpers["codex_auth_checker"]():
+        if not is_preview and auth_source == "codex" and not ctx.route_helpers["codex_auth_checker"]():
             raise HTTPException(status_code=401, detail="Codex auth is not available")
         main_model = effective_reference_file_main_model(main_model)
 
@@ -1161,6 +1271,22 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
             mask_data_url=mask_data_url,
             reference_file_inputs=list(prepared_reference_files.response_inputs),
         )
+
+        summary, review_material = _prepare_generation_review(
+            ctx, prepared=prepared_submission, uploaded_images=uploaded_images,
+            predicted_assets=predicted_assets, selected_assets=selected_assets,
+            gallery_refs=gallery_refs, image_order=image_order,
+            raw_image_order=reference_image_order, reference_files=prepared_reference_files,
+            reference_rules=reference_rules,
+        )
+        if is_preview:
+            return {"summary": summary, "preview_token": preview_tokens.issue(review_material),
+                    "expires_in_seconds": PREVIEW_TOKEN_LIFETIME_SECONDS}
+        preview_token = request.headers.get(PREVIEW_TOKEN_HEADER)
+        if preview_token is not None:
+            preview_tokens.verify(preview_token, review_material)
+            _accept_reviewed_provider(ctx, prepared_submission.plan)
+        prepared_submission = replace(prepared_submission, summary=summary)
 
         def commit_submission(task_id: str) -> dict[str, Any]:
             reference_assets = _commit_reference_assets(

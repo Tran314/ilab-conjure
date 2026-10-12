@@ -537,6 +537,50 @@
               </div>
             </section>
 
+            <section class="panel generation-presets-section">
+              <details id="generationPresetsPanel" class="generation-presets-panel">
+                <summary data-i18n="generationPresets.title">生成预设</summary>
+                <p class="generation-presets-hint" data-i18n="generationPresets.hint">保存模型、服务商和生成参数，可与提示词模板搭配。应用时保留当前提示词与参考素材。</p>
+                <div class="generation-presets-toolbar">
+                  <label for="generationPresetSelect" data-i18n="generationPresets.choose">选择预设</label>
+                  <select id="generationPresetSelect" data-native-select></select>
+                  <button id="applyGenerationPreset" class="ghost-button" type="button" data-i18n="generationPresets.apply">应用</button>
+                  <button id="refreshGenerationPresets" class="ghost-button" type="button" data-i18n="generationPresets.refresh">重新加载</button>
+                </div>
+                <div class="generation-presets-toolbar">
+                  <label for="generationPresetName" data-i18n="generationPresets.name">名称</label>
+                  <input id="generationPresetName" type="text" autocomplete="off" aria-describedby="generationPresetStatus">
+                  <button id="saveGenerationPreset" class="ghost-button" type="button" data-i18n="generationPresets.save">保存当前设置</button>
+                  <button id="renameGenerationPreset" class="ghost-button" type="button" data-i18n="generationPresets.rename">重命名</button>
+                  <button id="deleteGenerationPreset" class="ghost-button quiet-danger-button" type="button" data-i18n="generationPresets.delete">删除</button>
+                </div>
+                <div class="generation-presets-rules">
+                  <label><span data-i18n="generationPresets.imageRule">参考图规则</span>
+                    <select id="generationPresetImageRule" data-native-select>
+                      <option value="preserve" data-i18n="generationPresets.preserve">可选，保留当前输入</option>
+                      <option value="require" data-i18n="generationPresets.require">至少需要一个</option>
+                      <option value="forbid" data-i18n="generationPresets.forbid">不允许参考输入</option>
+                    </select>
+                  </label>
+                  <label><span data-i18n="generationPresets.fileRule">参考文件规则</span>
+                    <select id="generationPresetFileRule" data-native-select>
+                      <option value="preserve" data-i18n="generationPresets.preserve">可选，保留当前输入</option>
+                      <option value="require" data-i18n="generationPresets.require">至少需要一个</option>
+                      <option value="forbid" data-i18n="generationPresets.forbid">不允许参考输入</option>
+                    </select>
+                  </label>
+                </div>
+                <p class="generation-presets-hint" data-i18n="generationPresets.privacy">仅保存设置与参考规则，不保存提示词、密钥、路径或图片。参考图顺序始终保留。</p>
+                <button id="clearGenerationPresetRules" class="ghost-button text-sm" type="button" data-i18n="generationPresets.clearRules">解除当前参考规则</button>
+                <p id="generationPresetStatus" class="generation-preset-status" role="status" aria-live="polite"></p>
+                <div id="generationPresetDeleteConfirmation" class="generation-preset-delete" hidden>
+                  <p id="generationPresetDeleteQuestion"></p>
+                  <button id="cancelGenerationPresetDelete" class="ghost-button" type="button" data-i18n="generationPresets.cancel">取消</button>
+                  <button id="confirmGenerationPresetDelete" class="ghost-button quiet-danger-button" type="button" data-i18n="generationPresets.confirmDelete">确认删除</button>
+                </div>
+              </details>
+            </section>
+
             <!-- Prompt -->
             <section class="panel prompt-panel">
               <div class="panel-heading prompt-heading">
@@ -570,6 +614,12 @@
                   <button id="runButton" class="run-button prompt-run-button" type="button" aria-keyshortcuts="Meta+Enter" title="开始生成（Cmd+Enter）" data-i18n="prompt.run" data-i18n-attr="title:prompt.runTitle">开始生成</button>
                 </div>
               </div>
+              <details id="executionSummaryDetails" class="execution-summary-details" data-preview-state="stale">
+                <summary data-i18n="generationPreview.title">提交前最终参数摘要</summary>
+                <p class="generation-presets-hint" data-i18n="generationPreview.hint">由服务器解析，不调用生成服务。更改设置或参考素材后需要重新确认。</p>
+                <ul id="executionSummaryValues"></ul>
+                <button id="refreshExecutionSummary" class="ghost-button text-sm" type="button" data-i18n="generationPreview.refresh">重新解析摘要</button>
+              </details>
               <p id="promptValidationError" class="field-error" role="alert" hidden></p>
               <div class="prompt-template-row">
                 <div class="prompt-template-recent-cell">

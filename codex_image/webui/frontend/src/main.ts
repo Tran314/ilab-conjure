@@ -4,6 +4,7 @@ import { initMobileShell } from "./mobile-shell";
 import { initMobileWorkspace } from "./mobile-workspace";
 import { initComposerDraft } from "./composer-draft";
 import "../legacy-app.js";
+
 import { initReferenceFileInputsFeature } from "./reference-file-inputs";
 import { initInputSourcesFeature } from "./input-sources";
 import { initImageEditorFeature } from "./image-editor";
@@ -61,6 +62,9 @@ import { initModelSelectionFeature } from "./model-selection";
 import { initProviderSelectionFeature } from "./provider-selection";
 import { initThemedSelectFeature } from "./themed-select";
 
+import { initGenerationPresetsFeature } from "./generation-presets";
+import { initExecutionSummaryFeature } from "./execution-summary";
+
 initReferenceFileInputsFeature();
 initInputSourcesFeature();
 initImageEditorFeature();
@@ -93,6 +97,8 @@ initTaskArchiveControlsFeature();
 initTaskBatchControlsFeature();
 initTaskActionsFeature();
 initTaskSubmitFeature();
+initExecutionSummaryFeature();
+initGenerationPresetsFeature();
 initTaskListControlsFeature();
 initTaskCardSwipeFeature();
 initTaskListQueueControlsFeature();
