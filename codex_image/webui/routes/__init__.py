@@ -8,6 +8,7 @@ from .gallery import register_gallery_routes
 from .network_egress import register_network_egress_routes
 from .generation_catalog import register_generation_catalog_routes
 from .generation import register_generation_routes
+from .generation_presets import register_generation_preset_routes
 from .history import register_history_routes
 from .history_backup import register_history_backup_routes
 from .media import register_media_routes
@@ -30,4 +31,5 @@ def register_webui_routes(app: FastAPI, ctx: WebUIContext) -> None:
     register_gallery_routes(app, ctx)
     register_reference_file_routes(app, ctx)
     register_generation_catalog_routes(app, ctx)
+    register_generation_preset_routes(app, ctx)
     register_generation_routes(app, ctx)

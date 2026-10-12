@@ -79,6 +79,7 @@ export function syncRadioButtons(...selects: any[]): void {
 }
 
 export function updateRequestPreview(): void {
+  if (getLegacyBridge().state.generationPresetApplying) return;
   updateExecutionSummary();
   if (!els.requestJson) return;
   els.requestJson.textContent = JSON.stringify(buildPreviewRequest(), null, 2);

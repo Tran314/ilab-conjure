@@ -25,6 +25,7 @@ _SETTINGS_FILENAMES = frozenset({
     "providers.json",
     "network.json",
     "client-preferences.json",
+    "generation-presets.json",
 })
 _ROOT_FIELDS = frozenset({
     "format",

@@ -299,6 +299,7 @@ export interface WebUITask extends GenerationErrorRecord {
   requested_backend?: string;
   backend?: string;
   local_pending?: boolean;
+  client_request_id?: string;
   preview_url?: string;
   output_size?: string;
   queue_position?: number;

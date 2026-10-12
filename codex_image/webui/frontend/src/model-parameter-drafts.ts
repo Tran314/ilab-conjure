@@ -105,6 +105,7 @@ export function canonicalParametersForSubmission(
 }
 
 export function saveCurrentModelParameterDraft(): void {
+  if (getLegacyBridge().state.generationPresetApplying) return;
   const { state, methods } = getLegacyBridge();
   const model = state.generationCatalog?.models.find((item) => item.id === state.selectedModelId);
   if (!model || typeof methods.currentTaskParams !== "function") return;

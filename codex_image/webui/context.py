@@ -18,6 +18,7 @@ from .user_config_backup_components import UserConfigBackupPlanner
 from .user_config_backup_export import UserConfigBackupExportService
 from .user_config_backup_import import UserConfigBackupImportService
 from .network_egress import NetworkEgressManager, NetworkEgressSettings
+from .generation_presets import GenerationPresetSettings
 from .provider_settings import ProviderSettings
 from .prompt_template_assets import (
     PromptTemplateAssetStorage,
@@ -129,6 +130,7 @@ class WebUIContext:
     color_settings: ColorPaletteSettings
     prompt_snippet_settings: PromptSnippetSettings
     prompt_template_settings: PromptTemplateSettings
+    generation_preset_settings: GenerationPresetSettings
     prompt_template_asset_storage: PromptTemplateAssetStorage
     prompt_template_thumbnail_resolver: PromptTemplateThumbnailResolver
     history_export_service: HistoryExportService
@@ -172,6 +174,7 @@ class WebUIContext:
         self.app.state.reference_file_storage = self.reference_file_storage
         self.app.state.queue_storage = self.queue_storage
         self.app.state.webui_settings = self.webui_settings
+        self.app.state.generation_preset_settings = self.generation_preset_settings
         self.app.state.input_root = self.input_root
         self.app.state.output_root = self.output_root
         self.app.state.gallery_root = self.gallery_root

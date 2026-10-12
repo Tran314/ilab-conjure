@@ -320,6 +320,7 @@ export async function refreshGenerationCatalog(): Promise<void> {
   }
   getLegacyBridge().methods.renderCurrentModelParameters?.();
   getLegacyBridge().methods.updateModeSpecificSettings?.();
+  getLegacyBridge().methods.invalidateExecutionSummary?.();
   getLegacyBridge().methods.updateRequestPreview?.();
 }
 

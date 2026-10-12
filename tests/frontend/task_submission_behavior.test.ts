@@ -130,6 +130,8 @@ function resetSubmissionState(): void {
     currentPromptForModel: () => "测试提示词",
     currentTaskParams: () => ({ api_mode: "images", model: "gpt-image-2", n: 1, size: "1024x1024" }),
     customSizeValidationMessage: () => "",
+    // This suite isolates accepted-submission behavior; review races have their own suite.
+    ensureExecutionPreview: () => "fixture-reviewed-token",
     galleryInputs: () => [],
     getPromptText: () => "测试提示词",
     markPendingTaskFailed() {},
@@ -523,4 +525,206 @@ test("a lost submission response keeps its identity and unknown result until ide
   assert.equal(state.tasks[0].task_id,"recovered-request");
   await methods.runTask();
   assert.notEqual(identities[2],identities[1], "an acknowledged successful submission permits intentional new work");
+});
+
+test("submission is gated by a reviewed preview and carries its token without changing the request identity body", async () => {
+  resetSubmissionState();
+  (globalThis as any).document.getElementById = () => null;
+  stored.clear();
+  const summary = await import("../../codex_image/webui/frontend/src/execution-summary");
+  summary.invalidateExecutionSummary();
+  methods.ensureExecutionPreview = summary.ensureExecutionPreview;
+  const calls: Array<{ url: string; options: any }> = [];
+  globalThis.fetch = (async (url: string, options: any) => {
+    calls.push({ url, options });
+    return new Response(JSON.stringify(url.endsWith("/preview")
+      ? { preview_token: "reviewed-token", summary: { output_count: 1, model: { id: "gpt-image-2" }, provider: { id: "provider-a" } } }
+      : { task: { task_id: "reviewed-task", status: "queued" } }));
+  }) as any;
+  await methods.runTask();
+  assert.deepEqual(calls.map(call => call.url), ["/api/generate/preview"]);
+  assert.equal(state.tasks.length, 0);
+  await methods.runTask();
+  assert.deepEqual(calls.map(call => call.url), ["/api/generate/preview", "/api/generate"]);
+  assert.equal(calls[1]!.options.headers["X-Generation-Preview-Token"], "reviewed-token");
+  assert.ok(calls[1]!.options.body.get("client_request_id"));
+  assert.equal(calls[1]!.options.body.has("preview_token"), false);
+});
+
+test("a refreshed preview after a lost submission response keeps the same retry identity", async () => {
+  resetSubmissionState();
+  (globalThis as any).document.getElementById = () => null;
+  stored.clear();
+  const summary = await import("../../codex_image/webui/frontend/src/execution-summary");
+  summary.invalidateExecutionSummary();
+  methods.ensureExecutionPreview = summary.ensureExecutionPreview;
+  let previews = 0;
+  const identities: string[] = [];
+  globalThis.fetch = (async (url: string, options: any) => {
+    if (url.endsWith("/preview")) {
+      previews += 1;
+      return new Response(JSON.stringify({ preview_token: `review-${previews}`, summary: { output_count: 1 } }));
+    }
+    identities.push(options.body.get("client_request_id"));
+    if (identities.length === 1) throw new TypeError("Response was lost after acceptance");
+    return new Response(JSON.stringify({ task: { task_id: "recovered-safe-retry", status: "queued" } }));
+  }) as any;
+  await methods.runTask();
+  await methods.runTask();
+  assert.equal(state.tasks[0].submission_unknown, true);
+  summary.invalidateExecutionSummary();
+  await methods.runTask();
+  await methods.runTask();
+  assert.equal(previews, 2);
+  assert.equal(identities.length, 2);
+  assert.equal(identities[0], identities[1]);
+  assert.equal(state.tasks[0].task_id, "recovered-safe-retry");
+});
+
+test("double clicks share the review gate and changing inputs while reviewing never submits", async () => {
+  resetSubmissionState();
+  (globalThis as any).document.getElementById = () => null;
+  const summary = await import("../../codex_image/webui/frontend/src/execution-summary");
+  summary.invalidateExecutionSummary();
+  methods.ensureExecutionPreview = summary.ensureExecutionPreview;
+  let prompt = "original";
+  methods.getPromptText = () => prompt;
+  methods.currentPromptForModel = () => prompt;
+  let calls = 0;
+  let resolve: (response: Response) => void = () => {};
+  globalThis.fetch = ((url: string) => {
+    assert.equal(url, "/api/generate/preview");
+    calls += 1;
+    return new Promise(done => { resolve = done; });
+  }) as any;
+  const first = methods.runTask();
+  const second = methods.runTask();
+  assert.equal(calls, 1);
+  prompt = "new draft during review";
+  resolve(new Response(JSON.stringify({ preview_token: "outdated", summary: { output_count: 1 } })));
+  await Promise.all([first, second]);
+  assert.equal(state.tasks.length, 0);
+  assert.equal(calls, 1);
+  summary.invalidateExecutionSummary();
+});
+
+test("a rejected reference-file submission marks the pending task failed and renders that failure", async () => {
+  resetSubmissionState();
+  (globalThis as any).document.getElementById = () => null;
+  const previews: any[] = [];
+  const referenceFile = { filename: "reference.txt", file: new Blob(["fixture reference"], { type: "text/plain" }) };
+  methods.referenceFileUploads = () => [referenceFile];
+  methods.markPendingTaskFailed = runtimeFeedback.markPendingTaskFailed;
+  methods.renderTasks = () => {};
+  methods.renderPreview = (task: any) => previews.push({ ...task });
+  globalThis.fetch = (async (url: string) => {
+    assert.equal(url, "/api/generate");
+    return new Response(JSON.stringify({ detail: { code: "reference_files_require_responses" } }), { status: 400 });
+  }) as any;
+  await methods.runTask();
+  assert.equal(state.tasks[0].status, "failed");
+  assert.equal(state.pendingTaskId, null);
+  assert.equal(previews.length, 1);
+  assert.equal(previews[0].task_id, state.tasks[0].task_id);
+  assert.equal(previews[0].status, "failed");
+  assert.match(previews[0].error, /Responses/);
+  assert.notEqual(state.tasks[0].submission_unknown, true);
+});
+
+test("confirmed lost-response replay retires its old unknown placeholder using the real persistent task store", async () => {
+  resetSubmissionState();
+  stored.clear();
+  const revoked: string[] = [];
+  const rendered: string[][] = [];
+  Object.assign(methods, {
+    addPendingTask: runtimeFeedback.addPendingTask,
+    replacePendingTask: runtimeFeedback.replacePendingTask,
+    markPendingTaskFailed: runtimeFeedback.markPendingTaskFailed,
+    renderTasks: () => rendered.push(state.tasks.map((task: any) => task.task_id)),
+    renderPreview() {},
+    revokeTaskUploadPreviewUrls: (task: any) => revoked.push(task.task_id),
+  });
+  const clientIds: string[] = [];
+  let accepted = false;
+  globalThis.fetch = (async (_url: string, options: any) => {
+    clientIds.push(options.body.get("client_request_id"));
+    if (!accepted) throw new TypeError("Accepted by server, but response lost");
+    return new Response(JSON.stringify({ task: { task_id: "single-confirmed-task", status: "queued" } }));
+  }) as any;
+  await methods.runTask();
+  const original = state.tasks[0];
+  assert.equal(original.local_pending, true);
+  assert.equal(original.submission_unknown, true);
+  assert.equal(original.client_request_id, clientIds[0]);
+  // Avoid identical millisecond-based placeholder IDs hiding a duplicate-card bug.
+  await new Promise(resolve => setTimeout(resolve, 2));
+  await methods.runTask();
+  assert.equal(state.tasks.length, 2, "another lost response must not claim either earlier attempt was resolved");
+  assert.ok(state.tasks.every((task: any) => task.local_pending && task.submission_unknown));
+  await new Promise(resolve => setTimeout(resolve, 2));
+  accepted = true;
+  await methods.runTask();
+  assert.equal(clientIds[0], clientIds[1]);
+  assert.equal(clientIds[1], clientIds[2]);
+  assert.ok(rendered.some(ids => ids.length === 2), "retry must exercise preservation of the old local card");
+  assert.deepEqual(state.tasks.map((task: any) => task.task_id), ["single-confirmed-task"]);
+  assert.equal(state.tasks.some((task: any) => task.local_pending), false);
+  assert.equal(state.tasks.some((task: any) => task.submission_unknown), false);
+  assert.ok(revoked.includes(original.task_id));
+  assert.equal(revoked.length, 3, "all retired local placeholders release their preview URLs");
+  assert.equal(state.selectedTaskId, "single-confirmed-task");
+});
+
+test("confirmed replay preserves unrelated, unconfirmed and real server unknown tasks and their input references", () => {
+  resetSubmissionState();
+  const identity = "confirmed-client-request";
+  const retry = { task_id: "pending-retry", local_pending: true, status: "submitting", client_request_id: identity };
+  const recovered = { task_id: "pending-old", local_pending: true, status: "failed", submission_unknown: true, client_request_id: identity };
+  const unrelated = { ...recovered, task_id: "pending-other", client_request_id: "different-client-request" };
+  const uncorrelated = { ...recovered, task_id: "pending-legacy", client_request_id: undefined };
+  const unconfirmed = { ...retry, task_id: "pending-unconfirmed" };
+  const serverUnknown = { task_id: "server-unknown", status: "failed", submission_unknown: true, client_request_id: identity };
+  const latestServer = { task_id: "server-found", status: "running", updated_at: "2026-10-12T20:00:02Z" };
+  const staleReplay = { ...latestServer, status: "queued", updated_at: "2026-10-12T20:00:01Z" };
+  const revoked: string[] = [];
+  Object.assign(methods, { renderTasks() {}, renderPreview() {}, revokeTaskUploadPreviewUrls: (task: any) => revoked.push(task.task_id) });
+  state.tasks = [retry, recovered, unrelated, uncorrelated, unconfirmed, serverUnknown, latestServer];
+  runtimeFeedback.replacePendingTask(retry.task_id, staleReplay as any, identity);
+  assert.equal(state.tasks[0], latestServer, "replay must preserve newer server progress");
+  assert.deepEqual(new Set(state.tasks.slice(1)), new Set([unrelated, uncorrelated, unconfirmed, serverUnknown]));
+  assert.deepEqual(new Set(revoked), new Set([retry.task_id, recovered.task_id]));
+});
+
+test("a response without confirmed identity never retires earlier unknown placeholders", () => {
+  resetSubmissionState();
+  const unknown = { task_id: "pending-old", local_pending: true, status: "failed", submission_unknown: true, client_request_id: "unconfirmed-request" };
+  state.tasks = [{ task_id: "pending-current", local_pending: true, status: "submitting" }, unknown];
+  Object.assign(methods, { renderTasks() {}, renderPreview() {}, revokeTaskUploadPreviewUrls() {} });
+  runtimeFeedback.replacePendingTask("pending-current", { task_id: "new-server-task", status: "queued" } as any);
+  assert.equal(state.tasks.includes(unknown), true);
+});
+
+test("recovered placeholders release only orphaned preview URLs through the real input cleanup", async () => {
+  resetSubmissionState();
+  (globalThis as any).document.addEventListener = () => {};
+  const { initInputSourcesFeature } = await import("../../codex_image/webui/frontend/src/input-sources");
+  initInputSourcesFeature();
+  const originalRevoke = URL.revokeObjectURL;
+  const revoked: string[] = [];
+  URL.revokeObjectURL = (url: string) => { revoked.push(url); };
+  const input = (url: string) => ({ kind: "upload", previewUrl: url });
+  const inputs = [input("blob:orphan"), input("blob:unresolved-reference"), input("blob:composer-reference")];
+  const identity = "recovered-request";
+  const recovered = { task_id: "pending-old", local_pending: true, submission_unknown: true, client_request_id: identity, local_input_files: inputs };
+  const retry = { task_id: "pending-current", local_pending: true, client_request_id: identity, local_input_files: inputs };
+  const unresolved = { task_id: "pending-unrelated", local_pending: true, submission_unknown: true, client_request_id: "different-request", local_input_files: [input("blob:unresolved-reference")] };
+  state.images = [input("blob:composer-reference")];
+  state.tasks = [retry, recovered, unresolved];
+  Object.assign(methods, { renderTasks() {}, renderPreview() {} });
+  try {
+    runtimeFeedback.replacePendingTask(retry.task_id, { task_id: "confirmed-server-task", status: "queued" } as any, identity);
+    assert.deepEqual(new Set(revoked), new Set(["blob:orphan"]));
+    assert.equal(state.tasks.includes(unresolved), true);
+    assert.equal(state.images[0].previewUrl, "blob:composer-reference");
+  } finally { URL.revokeObjectURL = originalRevoke; }
 });

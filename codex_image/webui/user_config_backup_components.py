@@ -14,6 +14,7 @@ from codex_image.version import APP_VERSION
 
 from .color_settings import ColorPaletteSettings
 from .gallery_storage import GallerySnapshot, GalleryStorage
+from .generation_presets import GenerationPresetSettings
 from .image_uploads import InvalidRasterImage, validate_raster_image
 from .network_egress import NetworkEgressSettings
 from .prompt_snippets import PromptSnippetSettings
@@ -115,6 +116,7 @@ class UserConfigBackupPlanner:
         auth_settings: AuthSettings,
         provider_settings: ProviderSettings,
         network_egress_settings: NetworkEgressSettings,
+        generation_preset_settings: GenerationPresetSettings | None = None,
     ) -> None:
         self.color_settings = color_settings
         self.prompt_snippet_settings = prompt_snippet_settings
@@ -126,6 +128,7 @@ class UserConfigBackupPlanner:
         self.auth_settings = auth_settings
         self.provider_settings = provider_settings
         self.network_egress_settings = network_egress_settings
+        self.generation_preset_settings = generation_preset_settings
 
     def summary(self) -> tuple[UserConfigSectionSummary, ...]:
         with self._exclusive(_SECTION_ORDER):
@@ -177,7 +180,9 @@ class UserConfigBackupPlanner:
                 ),
                 UserConfigSectionSummary(
                     "settings",
-                    len(settings_payloads),
+                    len(settings_payloads)
+                    - int("generation-presets.json" in settings_payloads)
+                    + len(settings_payloads.get("generation-presets.json", {}).get("presets", [])),
                     sum(len(_json_bytes(payload)) for payload in settings_payloads.values()),
                     settings_warnings,
                 ),
@@ -294,6 +299,8 @@ class UserConfigBackupPlanner:
                     self.network_egress_settings,
                 )
             )
+        if "settings" in selected and self.generation_preset_settings is not None:
+            stores.append(self.generation_preset_settings)
         with ExitStack() as stack:
             for store in stores:
                 stack.enter_context(store.exclusive())
@@ -448,6 +455,9 @@ class UserConfigBackupPlanner:
                 "auth-source.json": self.auth_settings.snapshot(),
                 "providers.json": providers,
                 "network.json": self.network_egress_settings.snapshot_payload(),
+                **({
+                    "generation-presets.json": self.generation_preset_settings.backup_snapshot(),
+                } if self.generation_preset_settings is not None else {}),
                 "client-preferences.json": {
                     "theme": client_preferences.theme,
                     "notifications_in_app": client_preferences.notifications_in_app,

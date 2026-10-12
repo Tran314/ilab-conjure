@@ -478,12 +478,20 @@ class WebUIRefactorContractTests(unittest.TestCase):
                 ("/api/reference-assets/{asset_id}/image", "GET"),
                 ("/api/reference-files/recent", "GET"),
                 ("/api/generation-catalog", "GET"),
+                ("/api/generation-presets", "GET"),
+                ("/api/generation-presets", "POST"),
+                ("/api/generation-presets/{preset_id}", "PATCH"),
+                ("/api/generation-presets/{preset_id}", "DELETE"),
+                ("/api/generation-presets/{preset_id}/compatibility", "POST"),
+                ("/api/generation-presets/{preset_id}/apply", "POST"),
                 ("/api/tasks/sidebar/groups/{group_key}/position/{task_id}", "GET"),
                 ("/api/network-egress", "GET"),
                 ("/api/network-egress", "PATCH"),
                 ("/api/network-egress/test", "POST"),
                 ("/api/generate", "POST"),
                 ("/api/edit", "POST"),
+                ("/api/generate/preview", "POST"),
+                ("/api/edit/preview", "POST"),
             }
             self.assertEqual(expected_surface, route_surface)
 
@@ -501,6 +509,7 @@ class WebUIRefactorContractTests(unittest.TestCase):
             self.assertTrue(hasattr(app.state, "running_worker_tasks"))
             self.assertIs(app.state.ctx.storage, app.state.storage)
             self.assertIs(app.state.ctx.queue_storage, app.state.queue_storage)
+            self.assertIs(app.state.ctx.generation_preset_settings, app.state.generation_preset_settings)
             self.assertIs(app.state.ctx.queue_manager, app.state.queue_manager)
             self.assertIs(app.state.ctx.history_backup_planner, app.state.history_backup_planner)
             self.assertIs(app.state.ctx.history_backup_export_service, app.state.history_backup_export_service)
