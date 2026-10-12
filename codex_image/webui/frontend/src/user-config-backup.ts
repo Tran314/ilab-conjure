@@ -334,7 +334,19 @@ function renderRestorePreview(preview: UserConfigRestorePreview): void {
     const blocked = section.groups.filter(
       (group) => group.archive_count === 0 && group.current_count > 0,
     );
-    copy.append(title, detail, groups);
+    const comparison = document.createElement("small");
+    comparison.textContent = formatTranslation("userConfigBackup.previewComparisonCounts", {
+      identical: section.identical_count,
+      conflicts: section.conflicts,
+      missing: section.missing_assets,
+    });
+    copy.append(title, detail, groups, comparison);
+    for (const code of section.warnings || []) {
+      const warning = document.createElement("small");
+      warning.className = "user-config-empty-replace-warning";
+      warning.textContent = translate(code);
+      copy.append(warning);
+    }
     if (blocked.length) {
       const warning = document.createElement("small");
       warning.className = "user-config-empty-replace-warning";
@@ -437,8 +449,11 @@ function updateRestoreSelection(): void {
     ? emptyUserConfigReplacementGroups(currentPreview, sections)
     : [];
   const button = bridgeElement("startUserConfigRestoreButton") as HTMLButtonElement | null;
-  if (button) button.disabled = !sections.length || !currentPreview.restorable || blocked.length > 0;
-  if (blocked.length) {
+  const galleryBlocked = restoreMode === "replace" && sections.includes("gallery") && currentPreview.gallery_history_reference_impact > 0;
+  if (button) button.disabled = !sections.length || !currentPreview.restorable || blocked.length > 0 || galleryBlocked;
+  if (galleryBlocked) {
+    setStatus("userConfigRestoreStatus", formatTranslation("userConfigBackup.galleryReferenceImpact", { count: currentPreview.gallery_history_reference_impact }), "error");
+  } else if (blocked.length) {
     const labels = blocked.map((item) => translate(GROUP_KEYS[item.group])).join("、");
     setStatus("userConfigRestoreStatus", formatTranslation(
       "userConfigBackup.emptyReplaceBlocked",
@@ -456,7 +471,7 @@ function renderReplaceConfirmation(): void {
   const sections = selectedRestoreSections();
   if (!sections.length) return;
   const blocked = emptyUserConfigReplacementGroups(currentPreview, sections);
-  if (blocked.length) {
+  if (blocked.length || (sections.includes("gallery") && currentPreview.gallery_history_reference_impact > 0)) {
     updateRestoreSelection();
     return;
   }

@@ -1,3 +1,4 @@
+import { prepareSubmissionIdentity, completeSubmissionIdentity, type SubmissionIdentity } from "./submission-identity";
 import { composerFingerprint, markComposerSubmitted } from "./composer-draft";
 import { isGptImageModel } from "./gpt-image-models";
 import { setBackgroundControl } from "./background-controls";
@@ -362,18 +363,35 @@ async function runTask() {
   startRunFeedback(pendingTask, translate("taskStatus.submitting"));
   taskSubmissionPending = true;
 
+  let submissionIdentity: SubmissionIdentity | null = null;
+  let accepted = false;
+  let knownRejection = false;
   const controller = new AbortController();
   const submitTimeoutId = window.setTimeout(() => controller.abort(), SUBMIT_TASK_TIMEOUT_MS);
   try {
-    const response = await fetch(state.mode === "edit" ? "/api/edit" : "/api/generate", {
+    const endpoint = state.mode === "edit" ? "/api/edit" : "/api/generate";
+    try {
+      const identity = prepareSubmissionIdentity(endpoint, form);
+      submissionIdentity = identity instanceof Promise ? await identity : identity;
+    } catch {
+      knownRejection = true;
+      throw new Error(translate("taskSubmit.identityUnavailable"));
+    }
+    form.append("client_request_id", submissionIdentity.requestId);
+    const response = await fetch(endpoint, {
       method: "POST",
       body: form,
       signal: controller.signal,
     });
     const data = await response.json();
     if (!response.ok) {
+      knownRejection = response.status >= 400 && response.status < 500
+        && !["submission_result_unknown", "submission_id_conflict"].includes(data.detail?.code);
+      if (knownRejection) completeSubmissionIdentity(submissionIdentity);
       throw new Error(responseErrorMessage(data.detail));
     }
+    accepted = true;
+    try { completeSubmissionIdentity(submissionIdentity); } catch { /* Retain ID if cleanup fails: safe dedupe wins. */ }
     addQueuedTask(data.task);
     markComposerSubmitted(submittedComposer);
     if (els.requestJson) {
@@ -387,10 +405,19 @@ async function runTask() {
     getLegacyBridge().methods.showMobilePreview?.();
   } catch (error) {
     stopRunFeedback();
-    const message = error instanceof DOMException && error.name === "AbortError"
-      ? translate("taskSubmit.timeout")
+    const unknown = !accepted && !knownRejection;
+    const message = unknown
+      ? translate("taskSubmit.resultUnknown")
       : errorMessage(error, translate("taskSubmit.failed"));
-    markPendingTaskFailed(pendingTask.task_id, message);
+    if (!accepted) {
+      markPendingTaskFailed(pendingTask.task_id, message);
+      if (unknown) {
+        Object.assign(pendingTask, { submission_unknown: true, result_certainty: "submitted_unknown", safe_retry_action: "none", error: message });
+        const stored = state.tasks.find((item: any) => item.task_id === pendingTask.task_id);
+        if (stored) Object.assign(stored, pendingTask);
+        renderPreview(pendingTask);
+      }
+    }
     setStatus(message, "error");
   } finally {
     window.clearTimeout(submitTimeoutId);

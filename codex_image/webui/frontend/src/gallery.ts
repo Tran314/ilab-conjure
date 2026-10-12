@@ -1,3 +1,4 @@
+import { apiErrorMessage } from "./api-error";
 import { getLegacyBridge } from "./state";
 import { translate } from "./i18n";
 
@@ -63,7 +64,7 @@ async function refreshGallery() {
     const response = await fetch("/api/gallery");
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.detail || translate("gallery.loadFailed"));
+      throw new Error(apiErrorMessage(data.detail, translate("gallery.loadFailed")));
     }
     state.galleryItems = sortGalleryItems(data.items || []);
     state.galleryCategories = normalizeGalleryCategories(data.categories);
@@ -136,7 +137,7 @@ async function persistGalleryItemOrder(category: any, itemIds: string[]) {
       body: JSON.stringify({ category, item_ids: itemIds }),
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.detail || translate("gallery.imageOrderUpdateFailed"));
+    if (!response.ok) throw new Error(apiErrorMessage(data.detail, translate("gallery.imageOrderUpdateFailed")));
     const reorderedIds = new Set(itemIds);
     const reorderedItems = Array.isArray(data.items) ? data.items : [];
     state.galleryItems = sortGalleryItems([

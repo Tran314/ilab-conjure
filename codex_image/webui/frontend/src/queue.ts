@@ -1,3 +1,4 @@
+import { taskResultUnknown } from "./task-recovery";
 import { getEls } from "./dom";
 import { formatTranslation, LOCALE_CHANGE_EVENT, translate } from "./i18n";
 import { getLegacyBridge, getState } from "./state";
@@ -508,7 +509,7 @@ async function performCancelRunningTask(taskId: string): Promise<void> {
     await bridge.methods.refreshTasks();
     bridge.methods.renderPreview();
     bridge.methods.setStatus(
-      data.cancellation_pending ? translate("queue.cancellationPending") : translate("queue.runningCancelled"),
+      data.cancellation_pending ? translate("queue.cancellationPending") : taskResultUnknown(bridge.state.tasks.find((task: any) => task.task_id === taskId)) ? translate("recovery.cancelledUnknown") : translate("queue.runningCancelled"),
       data.cancellation_pending ? "running" : "ok",
     );
   } catch (error: unknown) {

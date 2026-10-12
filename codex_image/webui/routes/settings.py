@@ -7,6 +7,7 @@ from fastapi import Body, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import Response
 
 from codex_image.webui.context import WebUIContext
+from codex_image.webui.diagnostics import diagnostics_payload, service_identity
 from codex_image.webui.app_version import app_version_payload, dismiss_post_update_onboarding, open_portable_updater
 from codex_image.webui.settings_store import (
     MAX_COLOR_IMPORT_BYTES,
@@ -33,6 +34,7 @@ def register_settings_routes(app: FastAPI, ctx: WebUIContext) -> None:
         auth = h["auth_event_payload"]()
         return {
             "ok": True,
+            **service_identity(ctx),
             "auth_available": auth_available,
             "auth": auth,
             "queue": {
@@ -43,6 +45,10 @@ def register_settings_routes(app: FastAPI, ctx: WebUIContext) -> None:
             },
             "queue_worker_running": queue_worker_running,
         }
+
+    @app.get("/api/diagnostics")
+    def get_diagnostics() -> dict[str, Any]:
+        return diagnostics_payload(ctx)
 
     @app.get("/api/app-version")
     def get_app_version() -> dict[str, Any]:

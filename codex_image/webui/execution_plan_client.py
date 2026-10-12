@@ -7,6 +7,7 @@ from threading import Condition
 from typing import Any, Awaitable, Callable
 
 from codex_image.client import ImageResult
+from codex_image.generation.checkpoints import TaskCheckpoints
 from codex_image.generation.service import GenerationService
 from codex_image.generation.types import GeneratedAsset, GenerationResult
 from codex_image.providers.contracts import ExecutionPlan
@@ -125,9 +126,36 @@ class ExecutionPlanImageClient:
         """Set the pending slots before execution without changing the snapshot."""
         self._expected_outputs = count
 
-    async def call_output(self, request: Callable[[], Awaitable[ImageResult]]) -> ImageResult:
+    async def call_output(
+        self, request: Callable[[], Awaitable[ImageResult]], *,
+        checkpoints: TaskCheckpoints | None = None, output_number: int = 1,
+        output_numbers: list[int] | None = None,
+    ) -> ImageResult:
         if self._uses_legacy_client_adapter:
-            return await request()
+            if checkpoints is None:
+                return await request()
+            with checkpoints.operation(output_number, [output_number]).scope():
+                return await request()
+        if checkpoints is not None:
+            async with self._batch_lock:
+                restored = checkpoints.read_result(output_number)
+                if restored is not None:
+                    return restored
+                if self._batch_failure is not None:
+                    raise self._batch_failure
+                operation = checkpoints.operation(0, output_numbers or [output_number])
+                self._checkpoint_batch = (checkpoints, operation.state["slots"])
+                try:
+                    with operation.scope():
+                        await request()
+                    restored = checkpoints.read_result(output_number)
+                    if restored is None:
+                        raise RuntimeError("The provider returned fewer image assets than requested; regeneration requires confirmation.")
+                    return restored
+                except Exception as exc:
+                    self._batch_failure = exc
+                    raise
+
         # Apply transport retries to the batch before distributing its outcome.
         # A cached terminal failure must not enter each slot's retry loop.
         async with self._batch_lock:
@@ -188,6 +216,11 @@ class ExecutionPlanImageClient:
             converted = [
                 self._image_result(result, asset, kwargs) for asset in result.assets
             ]
+            checkpoint_batch = getattr(self, "_checkpoint_batch", None)
+            if checkpoint_batch is not None:
+                checkpoints, slots = checkpoint_batch
+                for index, image_result in zip(slots, converted):
+                    checkpoints.save_result(index, image_result)
         except BaseException:
             with self._condition:
                 self._request_in_flight = False

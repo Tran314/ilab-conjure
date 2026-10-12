@@ -1,0 +1,14 @@
+{
+  "provider": "astral-sh/python-build-standalone",
+  "release": "20261009",
+  "python_version": "3.13.16",
+  "triple": "x86_64-unknown-linux-gnu",
+  "asset": "cpython-3.13.16+20261009-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+  "sha256": "24801ea31c7d406d559a17e2226325c723d50c56900b9c0da7b62adaae2affc9",
+  "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261009/cpython-3.13.16%2B20261009-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+  "verification_sources": [
+    "https://api.github.com/repos/astral-sh/python-build-standalone/releases/tags/20261009",
+    "https://github.com/astral-sh/python-build-standalone/releases/download/20261009/SHA256SUMS"
+  ],
+  "verified_on": "2026-10-12"
+}

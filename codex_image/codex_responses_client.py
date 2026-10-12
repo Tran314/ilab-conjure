@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from codex_image.generation.checkpoints import checkpoint_request
+
 import json
 import re
 import uuid
@@ -392,7 +394,7 @@ class CodexImageClient:
 
     def _responses_request(self, payload: dict[str, Any]) -> HTTPResponse:
         body = json.dumps(payload).encode("utf-8")
-        return self.transport.request(
+        return checkpoint_request(self.transport,
             method="POST",
             url=self.responses_url,
             headers=self._build_headers(),

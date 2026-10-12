@@ -2289,7 +2289,10 @@ class WebUITaskTests(unittest.TestCase):
             )
 
             client = TestClient(app)
-            response = client.post(f"/api/tasks/{task_id}/retry-failed")
+            uncertain = client.post(f"/api/tasks/{task_id}/retry-failed")
+            self.assertEqual(uncertain.status_code, 409, uncertain.text)
+            self.assertEqual(uncertain.json()["detail"]["code"], "regeneration_confirmation_required")
+            response = client.post(f"/api/tasks/{task_id}/retry-failed", json={"confirm_regenerate": True})
             queue_after_retry = app.state.queue_storage.read_state()
 
         self.assertEqual(response.status_code, 200, response.text)

@@ -399,6 +399,54 @@
 
   // codex_image/webui/frontend/src/i18n/en.ts
   var EN_DICTIONARY = {
+    "userConfigBackup.previewComparisonCounts": "Identical: {identical} \xB7 conflicts: {conflicts} \xB7 missing assets: {missing}",
+    "recovery.unknownStatus": "Result unknown",
+    "recovery.resultUnknown": "The provider may have accepted this request and may still charge for it. Check its status before generating again.",
+    "recovery.cancelledUnknown": "Stopped locally. The provider may still finish and charge for this request; its result is unknown.",
+    "recovery.confirmRegenerate": "The earlier request may already have generated images and incurred a charge. Generate again anyway? This sends a new request and may cause another charge.",
+    "recovery.action.retry_submit": "Retry submission",
+    "recovery.action.resume_poll": "Check provider result",
+    "recovery.action.retry_download": "Retry download",
+    "recovery.action.retry_save": "Retry saving",
+    "recovery.action.confirm_regenerate": "Generate again\u2026",
+    "recovery.action.none": "No safe retry available",
+    "recovery.guidance.resume_poll": "Resume checking the existing provider task without submitting another generation.",
+    "recovery.guidance.retry_download": "The image was generated. Retry its download without submitting another generation.",
+    "recovery.guidance.retry_save": "The image was generated. Retry saving it locally without submitting another generation.",
+    "taskSubmit.resultUnknown": "Submission result unknown. Check task history, or retry with the same inputs to recover this submission without creating a duplicate. Changing inputs starts a new request and may incur another charge.",
+    "taskSubmit.identityUnavailable": "Browser storage is unavailable. Enable site storage before submitting so interrupted requests can be recovered safely.",
+    "diagnostics.title": "Local diagnostics",
+    "diagnostics.readOnly": "Read-only checks. No prompts, images, credentials or raw requests are included. Nothing is uploaded or repaired.",
+    "diagnostics.refresh": "Refresh diagnostics",
+    "diagnostics.loading": "Reading diagnostics\u2026",
+    "diagnostics.failed": "Diagnostics could not be read. Check that the local service is running.",
+    "diagnostics.unavailable": "Unavailable",
+    "diagnostics.version": "Version / installation",
+    "diagnostics.runtime": "Runtime",
+    "diagnostics.executable": "Python executable",
+    "diagnostics.service": "Service",
+    "diagnostics.reachable": "Reachable",
+    "diagnostics.directory.data": "Data directory",
+    "diagnostics.directory.input": "Input directory",
+    "diagnostics.directory.output": "Output directory",
+    "diagnostics.directory.source_data": "Task data directory",
+    "diagnostics.writable": "Writable",
+    "diagnostics.notWritable": "Not writable or unavailable",
+    "diagnostics.queue": "Queue",
+    "diagnostics.waiting": "Waiting",
+    "diagnostics.running": "Running",
+    "diagnostics.proxy": "Proxy",
+    "diagnostics.configured": "Configured (address hidden)",
+    "diagnostics.notConfigured": "Not configured",
+    "diagnostics.nextStep": "Next step",
+    "gallery_item_in_use": "This shared image is referenced by historical tasks. Keep it, or explicitly remove those tasks before deleting the image.",
+    "gallery_protection_unavailable": "Historical references could not be checked safely. No image was deleted. Check the task data directory and try again.",
+    "user_config_restore_gallery_references_block_replace": "Replacement would remove or change images used by historical tasks. Use incremental restore to preserve those references.",
+    "user_config_restore_gallery_protection_unavailable": "Historical image references could not be checked. Restore is blocked until task data is readable.",
+    "user_config_restore_conflicts_create_copies": "Conflicting items will be restored as separate copies.",
+    "user_config_restore_settings_keep_existing": "Incremental restore keeps the current settings.",
+    "user_config_restore_missing_assets_review": "Some referenced assets are missing. Review the preview before restoring.",
+    "user_config_restore_client_preferences_unchecked": "Browser preferences cannot be compared here and are not included in change counts.",
     "mobile.taskActions": "Task actions",
     "mobile.photos": "Photos",
     "mobile.files": "Files",
@@ -1460,7 +1508,7 @@
     "userConfigBackup.emptyReplaceBlocked": "Cannot replace: {groups} is empty in the backup but has current data. Deselect it or use incremental restore.",
     "userConfigBackup.archiveMeta": "{count} sections \xB7 format v{version}",
     "userConfigBackup.replaceImpact": "{section}: remove {current} current items, then import {archive} backup items",
-    "userConfigBackup.galleryReferenceImpact": "{count} historical tasks will lose shared-image references",
+    "userConfigBackup.galleryReferenceImpact": "{count} historical image references would be affected. Replacement is blocked; use incremental restore.",
     "userConfigBackup.providerRetention": "{count} providers with credentials will be retained for safety",
     "userConfigBackup.restoring": "Restoring. Keep the WebUI open\u2026",
     "userConfigBackup.restoreComplete": "Restore complete",
@@ -12825,6 +12873,54 @@
 
   // codex_image/webui/frontend/src/i18n/vi.ts
   var VI_DICTIONARY = {
+    "userConfigBackup.previewComparisonCounts": "Tr\xF9ng kh\u1EDBp: {identical} \xB7 xung \u0111\u1ED9t: {conflicts} \xB7 t\xE0i nguy\xEAn thi\u1EBFu: {missing}",
+    "recovery.unknownStatus": "Ch\u01B0a r\xF5 k\u1EBFt qu\u1EA3",
+    "recovery.resultUnknown": "Nh\xE0 cung c\u1EA5p c\xF3 th\u1EC3 \u0111\xE3 nh\u1EADn y\xEAu c\u1EA7u v\xE0 v\u1EABn t\xEDnh ph\xED. H\xE3y ki\u1EC3m tra tr\u1EA1ng th\xE1i tr\u01B0\u1EDBc khi t\u1EA1o l\u1EA1i.",
+    "recovery.cancelledUnknown": "\u0110\xE3 d\u1EEBng c\u1EE5c b\u1ED9. Nh\xE0 cung c\u1EA5p c\xF3 th\u1EC3 v\u1EABn ho\xE0n t\u1EA5t v\xE0 t\xEDnh ph\xED; k\u1EBFt qu\u1EA3 ch\u01B0a x\xE1c \u0111\u1ECBnh.",
+    "recovery.confirmRegenerate": "Y\xEAu c\u1EA7u tr\u01B0\u1EDBc c\xF3 th\u1EC3 \u0111\xE3 t\u1EA1o \u1EA3nh v\xE0 ph\xE1t sinh ph\xED. B\u1EA1n v\u1EABn mu\u1ED1n t\u1EA1o l\u1EA1i? Thao t\xE1c n\xE0y g\u1EEDi y\xEAu c\u1EA7u m\u1EDBi v\xE0 c\xF3 th\u1EC3 b\u1ECB t\xEDnh ph\xED l\u1EA7n n\u1EEFa.",
+    "recovery.action.retry_submit": "Th\u1EED g\u1EEDi l\u1EA1i",
+    "recovery.action.resume_poll": "Ki\u1EC3m tra k\u1EBFt qu\u1EA3",
+    "recovery.action.retry_download": "Th\u1EED t\u1EA3i l\u1EA1i",
+    "recovery.action.retry_save": "Th\u1EED l\u01B0u l\u1EA1i",
+    "recovery.action.confirm_regenerate": "T\u1EA1o l\u1EA1i\u2026",
+    "recovery.action.none": "Ch\u01B0a c\xF3 c\xE1ch th\u1EED l\u1EA1i an to\xE0n",
+    "recovery.guidance.resume_poll": "Ti\u1EBFp t\u1EE5c ki\u1EC3m tra t\xE1c v\u1EE5 hi\u1EC7n c\xF3 m\xE0 kh\xF4ng g\u1EEDi y\xEAu c\u1EA7u t\u1EA1o \u1EA3nh m\u1EDBi.",
+    "recovery.guidance.retry_download": "\u1EA2nh \u0111\xE3 \u0111\u01B0\u1EE3c t\u1EA1o. Th\u1EED t\u1EA3i \u1EA3nh xu\u1ED1ng m\xE0 kh\xF4ng t\u1EA1o l\u1EA1i.",
+    "recovery.guidance.retry_save": "\u1EA2nh \u0111\xE3 \u0111\u01B0\u1EE3c t\u1EA1o. Th\u1EED l\u01B0u \u1EA3nh c\u1EE5c b\u1ED9 m\xE0 kh\xF4ng t\u1EA1o l\u1EA1i.",
+    "taskSubmit.resultUnknown": "Ch\u01B0a r\xF5 k\u1EBFt qu\u1EA3 g\u1EEDi. Ki\u1EC3m tra l\u1ECBch s\u1EED ho\u1EB7c th\u1EED l\u1EA1i v\u1EDBi c\xF9ng \u0111\u1EA7u v\xE0o \u0111\u1EC3 kh\xF4i ph\u1EE5c y\xEAu c\u1EA7u m\xE0 kh\xF4ng t\u1EA1o t\xE1c v\u1EE5 tr\xF9ng. Thay \u0111\u1ED5i \u0111\u1EA7u v\xE0o s\u1EBD t\u1EA1o y\xEAu c\u1EA7u m\u1EDBi v\xE0 c\xF3 th\u1EC3 ph\xE1t sinh th\xEAm ph\xED.",
+    "taskSubmit.identityUnavailable": "B\u1ED9 nh\u1EDB tr\xECnh duy\u1EC7t kh\xF4ng kh\u1EA3 d\u1EE5ng. H\xE3y cho ph\xE9p trang l\u01B0u tr\u1EEF d\u1EEF li\u1EC7u tr\u01B0\u1EDBc khi g\u1EEDi \u0111\u1EC3 c\xF3 th\u1EC3 kh\xF4i ph\u1EE5c an to\xE0n y\xEAu c\u1EA7u b\u1ECB gi\xE1n \u0111o\u1EA1n.",
+    "diagnostics.title": "Ch\u1EA9n \u0111o\xE1n c\u1EE5c b\u1ED9",
+    "diagnostics.readOnly": "Ch\u1EC9 \u0111\u1ECDc. Kh\xF4ng bao g\u1ED3m l\u1EDDi nh\u1EAFc, \u1EA3nh, th\xF4ng tin \u0111\u0103ng nh\u1EADp ho\u1EB7c y\xEAu c\u1EA7u th\xF4. Kh\xF4ng t\u1EA3i l\xEAn hay s\u1EEDa ch\u1EEFa d\u1EEF li\u1EC7u.",
+    "diagnostics.refresh": "L\xE0m m\u1EDBi ch\u1EA9n \u0111o\xE1n",
+    "diagnostics.loading": "\u0110ang \u0111\u1ECDc ch\u1EA9n \u0111o\xE1n\u2026",
+    "diagnostics.failed": "Kh\xF4ng th\u1EC3 \u0111\u1ECDc ch\u1EA9n \u0111o\xE1n. H\xE3y ki\u1EC3m tra d\u1ECBch v\u1EE5 c\u1EE5c b\u1ED9 \u0111ang ch\u1EA1y.",
+    "diagnostics.unavailable": "Kh\xF4ng kh\u1EA3 d\u1EE5ng",
+    "diagnostics.version": "Phi\xEAn b\u1EA3n / ki\u1EC3u c\xE0i \u0111\u1EB7t",
+    "diagnostics.runtime": "M\xF4i tr\u01B0\u1EDDng ch\u1EA1y",
+    "diagnostics.executable": "\u0110\u01B0\u1EDDng d\u1EABn Python",
+    "diagnostics.service": "D\u1ECBch v\u1EE5",
+    "diagnostics.reachable": "C\xF3 th\u1EC3 truy c\u1EADp",
+    "diagnostics.directory.data": "Th\u01B0 m\u1EE5c d\u1EEF li\u1EC7u",
+    "diagnostics.directory.input": "Th\u01B0 m\u1EE5c \u0111\u1EA7u v\xE0o",
+    "diagnostics.directory.output": "Th\u01B0 m\u1EE5c \u0111\u1EA7u ra",
+    "diagnostics.directory.source_data": "Th\u01B0 m\u1EE5c d\u1EEF li\u1EC7u t\xE1c v\u1EE5",
+    "diagnostics.writable": "C\xF3 th\u1EC3 ghi",
+    "diagnostics.notWritable": "Kh\xF4ng th\u1EC3 ghi ho\u1EB7c kh\xF4ng kh\u1EA3 d\u1EE5ng",
+    "diagnostics.queue": "H\xE0ng \u0111\u1EE3i",
+    "diagnostics.waiting": "\u0110ang ch\u1EDD",
+    "diagnostics.running": "\u0110ang ch\u1EA1y",
+    "diagnostics.proxy": "Proxy",
+    "diagnostics.configured": "\u0110\xE3 c\u1EA5u h\xECnh (\u1EA9n \u0111\u1ECBa ch\u1EC9)",
+    "diagnostics.notConfigured": "Ch\u01B0a c\u1EA5u h\xECnh",
+    "diagnostics.nextStep": "B\u01B0\u1EDBc ti\u1EBFp theo",
+    "gallery_item_in_use": "\u1EA2nh d\xF9ng chung n\xE0y \u0111\u01B0\u1EE3c tham chi\u1EBFu trong l\u1ECBch s\u1EED t\xE1c v\u1EE5. Gi\u1EEF \u1EA3nh ho\u1EB7c x\xF3a r\xF5 r\xE0ng c\xE1c t\xE1c v\u1EE5 li\xEAn quan tr\u01B0\u1EDBc khi x\xF3a \u1EA3nh.",
+    "gallery_protection_unavailable": "Kh\xF4ng th\u1EC3 ki\u1EC3m tra an to\xE0n c\xE1c tham chi\u1EBFu l\u1ECBch s\u1EED. Ch\u01B0a x\xF3a \u1EA3nh n\xE0o. Ki\u1EC3m tra th\u01B0 m\u1EE5c d\u1EEF li\u1EC7u t\xE1c v\u1EE5 r\u1ED3i th\u1EED l\u1EA1i.",
+    "user_config_restore_gallery_references_block_replace": "Vi\u1EC7c thay th\u1EBF s\u1EBD x\xF3a ho\u1EB7c \u0111\u1ED5i \u1EA3nh m\xE0 l\u1ECBch s\u1EED t\xE1c v\u1EE5 \u0111ang tham chi\u1EBFu. H\xE3y d\xF9ng kh\xF4i ph\u1EE5c b\u1ED5 sung \u0111\u1EC3 gi\u1EEF c\xE1c tham chi\u1EBFu.",
+    "user_config_restore_gallery_protection_unavailable": "Kh\xF4ng th\u1EC3 ki\u1EC3m tra tham chi\u1EBFu \u1EA3nh l\u1ECBch s\u1EED. Kh\xF4i ph\u1EE5c b\u1ECB ch\u1EB7n cho \u0111\u1EBFn khi \u0111\u1ECDc \u0111\u01B0\u1EE3c d\u1EEF li\u1EC7u t\xE1c v\u1EE5.",
+    "user_config_restore_conflicts_create_copies": "C\xE1c m\u1EE5c xung \u0111\u1ED9t s\u1EBD \u0111\u01B0\u1EE3c kh\xF4i ph\u1EE5c th\xE0nh b\u1EA3n sao ri\xEAng.",
+    "user_config_restore_settings_keep_existing": "Kh\xF4i ph\u1EE5c b\u1ED5 sung gi\u1EEF nguy\xEAn c\xE0i \u0111\u1EB7t hi\u1EC7n t\u1EA1i.",
+    "user_config_restore_missing_assets_review": "Thi\u1EBFu m\u1ED9t s\u1ED1 t\xE0i nguy\xEAn \u0111\u01B0\u1EE3c tham chi\u1EBFu. H\xE3y xem l\u1EA1i b\u1EA3n xem tr\u01B0\u1EDBc khi kh\xF4i ph\u1EE5c.",
+    "user_config_restore_client_preferences_unchecked": "Kh\xF4ng th\u1EC3 so s\xE1nh t\xF9y ch\u1ECDn tr\xECnh duy\u1EC7t t\u1EA1i \u0111\xE2y n\xEAn ch\xFAng kh\xF4ng n\u1EB1m trong s\u1ED1 thay \u0111\u1ED5i.",
     "mobile.taskActions": "Thao t\xE1c t\xE1c v\u1EE5",
     "mobile.photos": "\u1EA2nh",
     "mobile.files": "T\u1EC7p",
@@ -13886,7 +13982,7 @@
     "userConfigBackup.emptyReplaceBlocked": "Kh\xF4ng th\u1EC3 thay th\u1EBF: {groups} tr\u1ED1ng trong b\u1EA3n sao l\u01B0u nh\u01B0ng hi\u1EC7n c\xF3 d\u1EEF li\u1EC7u. H\xE3y b\u1ECF ch\u1ECDn ho\u1EB7c d\xF9ng kh\xF4i ph\u1EE5c t\u0103ng d\u1EA7n.",
     "userConfigBackup.archiveMeta": "{count} m\u1EE5c \xB7 \u0111\u1ECBnh d\u1EA1ng v{version}",
     "userConfigBackup.replaceImpact": "{section}: x\xF3a {current} m\u1EE5c hi\u1EC7n c\xF3 r\u1ED3i nh\u1EADp {archive} m\u1EE5c sao l\u01B0u",
-    "userConfigBackup.galleryReferenceImpact": "{count} t\xE1c v\u1EE5 l\u1ECBch s\u1EED s\u1EBD m\u1EA5t tham chi\u1EBFu \u1EA3nh d\xF9ng chung",
+    "userConfigBackup.galleryReferenceImpact": "{count} tham chi\u1EBFu \u1EA3nh l\u1ECBch s\u1EED s\u1EBD b\u1ECB \u1EA3nh h\u01B0\u1EDFng. Thay th\u1EBF b\u1ECB ch\u1EB7n; h\xE3y d\xF9ng kh\xF4i ph\u1EE5c b\u1ED5 sung.",
     "userConfigBackup.providerRetention": "{count} provider c\xF3 th\xF4ng tin x\xE1c th\u1EF1c s\u1EBD \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i \u0111\u1EC3 b\u1EA3o \u0111\u1EA3m an to\xE0n",
     "userConfigBackup.restoring": "\u0110ang kh\xF4i ph\u1EE5c. H\xE3y gi\u1EEF WebUI m\u1EDF\u2026",
     "userConfigBackup.restoreComplete": "Kh\xF4i ph\u1EE5c ho\xE0n t\u1EA5t",
@@ -14208,6 +14304,54 @@
 
   // codex_image/webui/frontend/src/i18n/zh-cn.ts
   var ZH_CN_DICTIONARY = {
+    "userConfigBackup.previewComparisonCounts": "\u76F8\u540C\uFF1A{identical} \xB7 \u51B2\u7A81\uFF1A{conflicts} \xB7 \u7F3A\u5931\u8D44\u6E90\uFF1A{missing}",
+    "recovery.unknownStatus": "\u7ED3\u679C\u672A\u77E5",
+    "recovery.resultUnknown": "\u670D\u52A1\u5546\u53EF\u80FD\u5DF2\u63A5\u6536\u6B64\u8BF7\u6C42\u5E76\u4EA7\u751F\u8D39\u7528\u3002\u518D\u6B21\u751F\u6210\u524D\uFF0C\u8BF7\u5148\u68C0\u67E5\u670D\u52A1\u5546\u4EFB\u52A1\u72B6\u6001\u3002",
+    "recovery.cancelledUnknown": "\u5DF2\u5728\u672C\u5730\u505C\u6B62\u3002\u670D\u52A1\u5546\u53EF\u80FD\u7EE7\u7EED\u5B8C\u6210\u6B64\u8BF7\u6C42\u5E76\u8BA1\u8D39\uFF0C\u7ED3\u679C\u4ECD\u672A\u77E5\u3002",
+    "recovery.confirmRegenerate": "\u5148\u524D\u7684\u8BF7\u6C42\u53EF\u80FD\u5DF2\u7ECF\u751F\u6210\u56FE\u7247\u5E76\u4EA7\u751F\u8D39\u7528\u3002\u786E\u5B9A\u518D\u6B21\u751F\u6210\u5417\uFF1F\u8FD9\u4F1A\u53D1\u9001\u65B0\u8BF7\u6C42\uFF0C\u53EF\u80FD\u518D\u6B21\u8BA1\u8D39\u3002",
+    "recovery.action.retry_submit": "\u91CD\u8BD5\u63D0\u4EA4",
+    "recovery.action.resume_poll": "\u68C0\u67E5\u670D\u52A1\u5546\u7ED3\u679C",
+    "recovery.action.retry_download": "\u91CD\u8BD5\u4E0B\u8F7D",
+    "recovery.action.retry_save": "\u91CD\u8BD5\u4FDD\u5B58",
+    "recovery.action.confirm_regenerate": "\u518D\u6B21\u751F\u6210\u2026",
+    "recovery.action.none": "\u6682\u65E0\u5B89\u5168\u91CD\u8BD5\u65B9\u5F0F",
+    "recovery.guidance.resume_poll": "\u7EE7\u7EED\u67E5\u8BE2\u5DF2\u6709\u670D\u52A1\u5546\u4EFB\u52A1\uFF0C\u4E0D\u91CD\u65B0\u63D0\u4EA4\u751F\u6210\u8BF7\u6C42\u3002",
+    "recovery.guidance.retry_download": "\u56FE\u7247\u5DF2\u751F\u6210\u3002\u91CD\u8BD5\u4E0B\u8F7D\uFF0C\u4E0D\u91CD\u65B0\u63D0\u4EA4\u751F\u6210\u8BF7\u6C42\u3002",
+    "recovery.guidance.retry_save": "\u56FE\u7247\u5DF2\u751F\u6210\u3002\u91CD\u8BD5\u5728\u672C\u5730\u4FDD\u5B58\uFF0C\u4E0D\u91CD\u65B0\u63D0\u4EA4\u751F\u6210\u8BF7\u6C42\u3002",
+    "taskSubmit.resultUnknown": "\u63D0\u4EA4\u7ED3\u679C\u672A\u77E5\u3002\u8BF7\u68C0\u67E5\u4EFB\u52A1\u5386\u53F2\uFF0C\u6216\u4FDD\u6301\u539F\u8F93\u5165\u91CD\u8BD5\u4EE5\u627E\u56DE\u540C\u4E00\u6B21\u63D0\u4EA4\uFF0C\u907F\u514D\u91CD\u590D\u521B\u5EFA\u4EFB\u52A1\u3002\u66F4\u6539\u8F93\u5165\u5C06\u521B\u5EFA\u65B0\u8BF7\u6C42\uFF0C\u53EF\u80FD\u518D\u6B21\u8BA1\u8D39\u3002",
+    "taskSubmit.identityUnavailable": "\u6D4F\u89C8\u5668\u5B58\u50A8\u4E0D\u53EF\u7528\u3002\u8BF7\u542F\u7528\u672C\u7AD9\u5B58\u50A8\u540E\u518D\u63D0\u4EA4\uFF0C\u4EE5\u4FBF\u5B89\u5168\u6062\u590D\u4E2D\u65AD\u7684\u8BF7\u6C42\u3002",
+    "diagnostics.title": "\u672C\u5730\u8BCA\u65AD",
+    "diagnostics.readOnly": "\u53EA\u8BFB\u68C0\u67E5\uFF0C\u4E0D\u5305\u542B\u63D0\u793A\u8BCD\u3001\u56FE\u7247\u3001\u51ED\u636E\u6216\u539F\u59CB\u8BF7\u6C42\uFF1B\u4E0D\u4F1A\u4E0A\u4F20\u6570\u636E\u6216\u6267\u884C\u4FEE\u590D\u3002",
+    "diagnostics.refresh": "\u5237\u65B0\u8BCA\u65AD",
+    "diagnostics.loading": "\u6B63\u5728\u8BFB\u53D6\u8BCA\u65AD\u2026",
+    "diagnostics.failed": "\u65E0\u6CD5\u8BFB\u53D6\u8BCA\u65AD\u3002\u8BF7\u68C0\u67E5\u672C\u5730\u670D\u52A1\u662F\u5426\u6B63\u5728\u8FD0\u884C\u3002",
+    "diagnostics.unavailable": "\u4E0D\u53EF\u7528",
+    "diagnostics.version": "\u7248\u672C / \u5B89\u88C5\u65B9\u5F0F",
+    "diagnostics.runtime": "\u8FD0\u884C\u73AF\u5883",
+    "diagnostics.executable": "Python \u7A0B\u5E8F\u8DEF\u5F84",
+    "diagnostics.service": "\u670D\u52A1",
+    "diagnostics.reachable": "\u53EF\u8BBF\u95EE",
+    "diagnostics.directory.data": "\u6570\u636E\u76EE\u5F55",
+    "diagnostics.directory.input": "\u8F93\u5165\u76EE\u5F55",
+    "diagnostics.directory.output": "\u8F93\u51FA\u76EE\u5F55",
+    "diagnostics.directory.source_data": "\u4EFB\u52A1\u6570\u636E\u76EE\u5F55",
+    "diagnostics.writable": "\u53EF\u5199",
+    "diagnostics.notWritable": "\u4E0D\u53EF\u5199\u6216\u4E0D\u53EF\u7528",
+    "diagnostics.queue": "\u961F\u5217",
+    "diagnostics.waiting": "\u7B49\u5F85\u4E2D",
+    "diagnostics.running": "\u8FD0\u884C\u4E2D",
+    "diagnostics.proxy": "\u4EE3\u7406",
+    "diagnostics.configured": "\u5DF2\u914D\u7F6E\uFF08\u5730\u5740\u5DF2\u9690\u85CF\uFF09",
+    "diagnostics.notConfigured": "\u672A\u914D\u7F6E",
+    "diagnostics.nextStep": "\u4E0B\u4E00\u6B65",
+    "gallery_item_in_use": "\u6B64\u516C\u7528\u56FE\u88AB\u5386\u53F2\u4EFB\u52A1\u5F15\u7528\u3002\u8BF7\u4FDD\u7559\u56FE\u7247\uFF0C\u6216\u660E\u786E\u5220\u9664\u76F8\u5173\u5386\u53F2\u4EFB\u52A1\u540E\u518D\u5220\u9664\u56FE\u7247\u3002",
+    "gallery_protection_unavailable": "\u65E0\u6CD5\u5B89\u5168\u68C0\u67E5\u5386\u53F2\u5F15\u7528\uFF0C\u672A\u5220\u9664\u56FE\u7247\u3002\u8BF7\u68C0\u67E5\u4EFB\u52A1\u6570\u636E\u76EE\u5F55\u540E\u91CD\u8BD5\u3002",
+    "user_config_restore_gallery_references_block_replace": "\u66FF\u6362\u4F1A\u5220\u9664\u6216\u66F4\u6539\u5386\u53F2\u4EFB\u52A1\u5F15\u7528\u7684\u56FE\u7247\u3002\u8BF7\u4F7F\u7528\u589E\u91CF\u6062\u590D\u6765\u4FDD\u7559\u8FD9\u4E9B\u5F15\u7528\u3002",
+    "user_config_restore_gallery_protection_unavailable": "\u65E0\u6CD5\u68C0\u67E5\u5386\u53F2\u56FE\u7247\u5F15\u7528\u3002\u8BF7\u6062\u590D\u4EFB\u52A1\u6570\u636E\u7684\u53EF\u8BFB\u6743\u9650\u540E\u518D\u6062\u590D\u3002",
+    "user_config_restore_conflicts_create_copies": "\u51B2\u7A81\u9879\u76EE\u5C06\u6062\u590D\u4E3A\u72EC\u7ACB\u526F\u672C\u3002",
+    "user_config_restore_settings_keep_existing": "\u589E\u91CF\u6062\u590D\u5C06\u4FDD\u7559\u5F53\u524D\u8BBE\u7F6E\u3002",
+    "user_config_restore_missing_assets_review": "\u90E8\u5206\u5F15\u7528\u8D44\u6E90\u7F3A\u5931\uFF0C\u8BF7\u5728\u6062\u590D\u524D\u68C0\u67E5\u9884\u89C8\u3002",
+    "user_config_restore_client_preferences_unchecked": "\u65E0\u6CD5\u5728\u6B64\u6BD4\u8F83\u6D4F\u89C8\u5668\u504F\u597D\uFF0C\u56E0\u6B64\u53D8\u66F4\u8BA1\u6570\u4E0D\u5305\u542B\u5B83\u4EEC\u3002",
     "mobile.taskActions": "\u4EFB\u52A1\u64CD\u4F5C",
     "mobile.photos": "\u7167\u7247",
     "mobile.files": "\u6587\u4EF6",
@@ -15269,7 +15413,7 @@
     "userConfigBackup.emptyReplaceBlocked": "\u65E0\u6CD5\u66FF\u6362\uFF1A\u5907\u4EFD\u4E2D\u7684{groups}\u4E3A\u7A7A\uFF0C\u4F46\u5F53\u524D\u4ECD\u6709\u6570\u636E\u3002\u8BF7\u53D6\u6D88\u9009\u62E9\u6216\u6539\u7528\u589E\u91CF\u6062\u590D\u3002",
     "userConfigBackup.archiveMeta": "{count} \u7C7B \xB7 \u683C\u5F0F v{version}",
     "userConfigBackup.replaceImpact": "{section}\uFF1A\u6E05\u9664\u5F53\u524D {current} \u9879\uFF0C\u518D\u5BFC\u5165\u5907\u4EFD {archive} \u9879",
-    "userConfigBackup.galleryReferenceImpact": "{count} \u4E2A\u5386\u53F2\u4EFB\u52A1\u5C06\u5931\u53BB\u516C\u7528\u56FE\u5F15\u7528",
+    "userConfigBackup.galleryReferenceImpact": "\u5C06\u5F71\u54CD {count} \u5904\u5386\u53F2\u56FE\u7247\u5F15\u7528\u3002\u5DF2\u963B\u6B62\u66FF\u6362\uFF0C\u8BF7\u4F7F\u7528\u589E\u91CF\u6062\u590D\u3002",
     "userConfigBackup.providerRetention": "{count} \u4E2A\u5E26\u51ED\u636E\u4F9B\u5E94\u5546\u5C06\u6309\u5B89\u5168\u89C4\u5219\u4FDD\u7559",
     "userConfigBackup.restoring": "\u6B63\u5728\u6062\u590D\uFF0C\u8BF7\u52FF\u5173\u95ED WebUI\u2026",
     "userConfigBackup.restoreComplete": "\u6062\u590D\u5B8C\u6210",
@@ -19039,7 +19183,27 @@
   }
 
   // codex_image/webui/frontend/src/task-recovery.ts
+  var SAFE_ACTIONS = /* @__PURE__ */ new Set(["retry_submit", "resume_poll", "retry_download", "retry_save", "confirm_regenerate", "none"]);
+  function taskSafeRetryAction(task) {
+    const value = task?.safe_retry_action || task?.generation_error?.safe_retry_action;
+    if (SAFE_ACTIONS.has(value)) return value;
+    const outputs = Array.isArray(task?.outputs) ? task.outputs.filter((output) => output.status !== "completed") : [];
+    for (const action of ["confirm_regenerate", "retry_save", "retry_download", "resume_poll", "retry_submit", "none"]) {
+      if (outputs.some((output) => (output.safe_retry_action || output.generation_error?.safe_retry_action) === action)) return action;
+    }
+    return null;
+  }
+  function taskResultUnknown(task) {
+    if (task?.submission_unknown) return true;
+    if (task?.status && !["failed", "partial_failed", "cancelled"].includes(task.status) && !task.cancelled_at) return false;
+    return Boolean(task?.result_certainty === "submitted_unknown" || task?.generation_error?.result_certainty === "submitted_unknown" || Array.isArray(task?.outputs) && task.outputs.some((output) => output.result_certainty === "submitted_unknown"));
+  }
   function taskRecoveryKind(task) {
+    const code = task?.generation_error?.code || task?.outputs?.find((output) => output.generation_error)?.generation_error?.code;
+    if (["authentication_failed", "provider_credentials_missing", "provider_credentials_origin_changed"].includes(code)) return "credentials";
+    if (["insufficient_quota", "quota_exceeded"].includes(code)) return "quota";
+    if (["invalid_parameters", "operation_unsupported", "input_limit_exceeded", "snapshot_manifest_incompatible"].includes(code)) return "input";
+    if (code) return "temporary";
     const text = String(task?.error || task?.last_error || "").toLowerCase();
     const statusMatch = text.match(/\bhttp(?:\s+(?:error|status))?\s*[:=]?\s*(\d{3})\b/) || text.match(/\bstatus(?:\s+code)?\s*[:=]\s*(\d{3})\b/);
     const status = statusMatch ? Number(statusMatch[1]) : null;
@@ -19052,6 +19216,9 @@
     return "temporary";
   }
   function taskRecoveryMessage(task) {
+    const action = taskSafeRetryAction(task);
+    if (taskResultUnknown(task)) return translate(task?.cancelled_at || task?.cancel_requested ? "recovery.cancelledUnknown" : "recovery.resultUnknown");
+    if (["retry_save", "retry_download", "resume_poll"].includes(action || "")) return translate(`recovery.guidance.${action}`);
     return translate(`ux.recovery.${taskRecoveryKind(task)}`);
   }
   function localizedTaskStatus(status) {
@@ -24488,6 +24655,7 @@
   }
   function formatTaskStatus(task) {
     if (!task) return "";
+    if (taskResultUnknown(task)) return translate("recovery.unknownStatus");
     if (taskWasCancelled(task)) return translate("queue.runningCancelled");
     if (taskCancellationPending(task)) return translate("taskStatus.cancelling");
     if (task.status === "submitting") return translate("taskStatus.submitting");
@@ -28091,6 +28259,80 @@
     });
   }
 
+  // codex_image/webui/frontend/src/local-diagnostics.ts
+  function initLocalDiagnostics() {
+    const panel = getLegacyBridge().els.systemSettingsStoragePanel;
+    if (!panel || document.getElementById("localDiagnostics")) return;
+    const details2 = document.createElement("details");
+    details2.id = "localDiagnostics";
+    details2.className = "settings-previous-paths";
+    const summary = document.createElement("summary");
+    summary.dataset.i18n = "diagnostics.title";
+    summary.textContent = translate("diagnostics.title");
+    const description = document.createElement("p");
+    description.dataset.i18n = "diagnostics.readOnly";
+    description.textContent = translate("diagnostics.readOnly");
+    const refresh = document.createElement("button");
+    refresh.type = "button";
+    refresh.className = "ghost-button text-sm";
+    refresh.dataset.i18n = "diagnostics.refresh";
+    refresh.textContent = translate("diagnostics.refresh");
+    const content = document.createElement("div");
+    content.setAttribute("role", "status");
+    content.setAttribute("aria-live", "polite");
+    let pending = false;
+    async function load() {
+      if (pending) return;
+      pending = true;
+      refresh.disabled = true;
+      content.textContent = translate("diagnostics.loading");
+      try {
+        let row = function(label, value) {
+          const term = document.createElement("dt");
+          term.textContent = label;
+          const detail = document.createElement("dd");
+          detail.style.overflowWrap = "anywhere";
+          detail.textContent = String(value ?? translate("diagnostics.unavailable"));
+          list2.append(term, detail);
+        };
+        const response = await fetch("/api/diagnostics", { cache: "no-store" });
+        if (!response.ok) throw new Error("diagnostics_unavailable");
+        const data = await response.json();
+        const list2 = document.createElement("dl");
+        row(translate("diagnostics.version"), `${data.version} \xB7 ${data.mode}`);
+        row(translate("diagnostics.runtime"), `${data.runtime?.platform} / ${data.runtime?.architecture} \xB7 Python ${data.runtime?.python}`);
+        row(translate("diagnostics.executable"), data.runtime?.executable);
+        row(translate("diagnostics.service"), data.service?.reachable ? translate("diagnostics.reachable") : translate("diagnostics.unavailable"));
+        for (const key2 of ["data", "input", "output", "source_data"]) {
+          const directory = data.directories?.[key2];
+          if (!directory) continue;
+          row(translate(`diagnostics.directory.${key2}`), `${directory.path} \xB7 ${translate(directory.writable ? "diagnostics.writable" : "diagnostics.notWritable")} (${directory.permissions || "?"})`);
+        }
+        row(translate("diagnostics.queue"), `${data.queue?.health} \xB7 ${translate("diagnostics.waiting")}: ${data.queue?.waiting ?? "?"} \xB7 ${translate("diagnostics.running")}: ${data.queue?.running ?? "?"}`);
+        row(translate("diagnostics.proxy"), `${data.proxy?.mode} \xB7 ${translate(data.proxy?.configured ? "diagnostics.configured" : "diagnostics.notConfigured")}`);
+        for (const error of data.recent_errors || []) row(`${error.code} \xD7 ${error.count}`, error.next_step);
+        for (const step of data.next_steps || []) row(translate("diagnostics.nextStep"), step);
+        content.replaceChildren(list2);
+      } catch {
+        content.textContent = translate("diagnostics.failed");
+      } finally {
+        pending = false;
+        refresh.disabled = false;
+      }
+    }
+    refresh.addEventListener("click", () => {
+      void load();
+    });
+    details2.addEventListener("toggle", () => {
+      if (details2.open) void load();
+    });
+    window.addEventListener(LOCALE_CHANGE_EVENT, () => {
+      if (details2.open) void load();
+    });
+    details2.append(summary, description, refresh, content);
+    panel.append(details2);
+  }
+
   // codex_image/webui/frontend/src/system-settings.ts
   var systemSettingsFeatureInitialized = false;
   var systemSettingsHeightAnimationToken = 0;
@@ -28382,6 +28624,7 @@
   function initSystemSettingsFeature() {
     if (systemSettingsFeatureInitialized) return;
     systemSettingsFeatureInitialized = true;
+    initLocalDiagnostics();
     const { els: els9 } = getLegacyBridge();
     els9.systemSettingsTabs?.addEventListener("click", handleSystemSettingsTabClick);
     els9.openUserConfigBackupButton?.addEventListener("click", handleUserConfigBackupEntry);

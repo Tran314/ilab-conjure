@@ -318,7 +318,10 @@ def create_app(
         legacy_task_roots=legacy_task_roots,
     )
     _migrate_legacy_gallery_directory(gallery_path, [Path("output") / "webui-gallery"])
-    gallery_storage = GalleryStorage(gallery_path)
+    gallery_storage = GalleryStorage(
+        gallery_path,
+        reference_counts_provider=lambda: storage.resource_reference_counts("gallery"),
+    )
     reference_asset_storage = ReferenceAssetStorage(
         reference_asset_path,
         reference_counts_provider=storage.reference_asset_reference_counts,

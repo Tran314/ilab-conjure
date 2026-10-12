@@ -6,6 +6,7 @@ import time
 from typing import Any, AsyncContextManager, Callable
 
 from codex_image.client import DEFAULT_MAIN_MODEL, CodexImagesImageClient, ImageResult, OpenAIImagesImageClient
+from codex_image.generation.checkpoints import RegenerationConfirmationRequired, TaskCheckpoints
 from codex_image.generation.errors import sanitize_generation_error_text
 from codex_image.http_connection import HTTPTransportFailure, transport_failure
 from codex_image.prompt_guard import build_prompt_guard_instructions
@@ -100,6 +101,9 @@ async def _execute_stored_task(
     error_sanitizer: Callable[[BaseException], str] = sanitize_generation_error_text,
 ) -> dict[str, Any]:
     metadata = storage.read_metadata(task_id)
+    from .recovery import _recover_completed_outputs_from_disk
+    _recover_completed_outputs_from_disk(storage, metadata)
+    checkpoints = TaskCheckpoints(storage, task_id)
     request = json.loads(storage.request_path(task_id).read_text(encoding="utf-8"))
     params = dict(metadata.get("params") or {})
     params["main_model"] = effective_reference_file_main_model(params.get("main_model"))
@@ -236,13 +240,28 @@ async def _execute_stored_task(
 
     candidate_output_numbers = retrying_failed_slots or list(range(1, count + 1))
     remaining_output_numbers = [index for index in candidate_output_numbers if index not in completed_output_numbers]
+    if any(record.get("index") in remaining_output_numbers and record.get("safe_retry_action") == "confirm_regenerate"
+           for record in metadata.get("outputs", []) if isinstance(record, dict)):
+        raise RegenerationConfirmationRequired("The provider outcome is unknown. Confirm possible additional cost before regenerating.")
     if isinstance(client, ExecutionPlanImageClient):
         client.prepare_output_count(len(remaining_output_numbers))
 
-    async def call_image_client(*args: Any, **kwargs: Any) -> ImageResult:
+    async def call_image_client(*args: Any, output_number: int, **kwargs: Any) -> ImageResult:
+        restored_result = checkpoints.read_result(output_number)
+        if restored_result is not None:
+            return restored_result
         if isinstance(client, ExecutionPlanImageClient):
-            return await client.call_output(lambda: _call_image_client(*args, **kwargs))
-        return await _call_image_client(*args, **kwargs)
+            result = await client.call_output(
+                lambda: _call_image_client(*args, **kwargs),
+                checkpoints=checkpoints, output_number=output_number,
+                output_numbers=remaining_output_numbers,
+            )
+        else:
+            operation = checkpoints.operation(output_number, [output_number])
+            with operation.scope():
+                result = await _call_image_client(*args, **kwargs)
+        checkpoints.save_result(output_number, result)
+        return result
 
     if _direct_images_concurrent_enabled(client, assigned_auth_source, effective_api_mode) and remaining_output_numbers:
         concurrency_limit = _normalize_api_images_concurrency(params.get("api_images_concurrency"))
@@ -329,6 +348,7 @@ async def _execute_stored_task(
                                         params,
                                         client.edit_image,
                                         timeout_seconds=effective_image_request_timeout_seconds,
+                                        output_number=output_number,
                                         retry_count=image_request_retry_count,
                                         prompt=transport_prompt,
                                         images=data_urls,
@@ -352,6 +372,7 @@ async def _execute_stored_task(
                                         params,
                                         client.generate_image,
                                         timeout_seconds=effective_image_request_timeout_seconds,
+                                        output_number=output_number,
                                         retry_count=image_request_retry_count,
                                         prompt=transport_prompt,
                                         **prompt_kwargs,
@@ -372,13 +393,13 @@ async def _execute_stored_task(
                             _raise_if_task_cancelled(storage, task_id)
                             if not isinstance(result, ImageResult):
                                 return {"index": output_number}
-                            results.append(result)
                             output_path = storage.write_output(
                                 task_id,
                                 result.image_bytes,
                                 result.output_format or str(params.get("output_format") or "png"),
                                 index=output_number,
                             )
+                            results.append(result)
                             output_paths.append(output_path)
                             output_record = {
                                 "index": output_number,
@@ -447,7 +468,7 @@ async def _execute_stored_task(
     else:
         for output_index in range(count):
             output_number = output_index + 1
-            if output_number in completed_output_numbers:
+            if output_number not in remaining_output_numbers:
                 continue
             _raise_if_task_cancelled(storage, task_id)
             if output_index > 0 and batch_delay_seconds > 0:
@@ -475,6 +496,7 @@ async def _execute_stored_task(
                                 params,
                                 client.edit_image,
                                 timeout_seconds=effective_image_request_timeout_seconds,
+                                output_number=output_number,
                                 retry_count=image_request_retry_count,
                                 prompt=transport_prompt,
                                 images=data_urls,
@@ -498,6 +520,7 @@ async def _execute_stored_task(
                                 params,
                                 client.generate_image,
                                 timeout_seconds=effective_image_request_timeout_seconds,
+                                output_number=output_number,
                                 retry_count=image_request_retry_count,
                                 prompt=transport_prompt,
                                 **prompt_kwargs,
@@ -570,13 +593,13 @@ async def _execute_stored_task(
                         continue
             if result is None:
                 continue
-            results.append(result)
             output_path = storage.write_output(
                 task_id,
                 result.image_bytes,
                 result.output_format or str(params.get("output_format") or "png"),
                 index=output_number,
             )
+            results.append(result)
             output_paths.append(output_path)
             output_record = {
                 "index": output_number,

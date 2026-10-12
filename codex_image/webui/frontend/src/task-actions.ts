@@ -1,3 +1,4 @@
+import { taskSafeRetryAction } from "./task-recovery";
 import { getLegacyBridge } from "./state";
 import { translate } from "./i18n";
 import { prefersReducedMotion } from "./webui-utils";
@@ -27,9 +28,12 @@ function errorMessage(error: unknown, fallback: string): string {
 
 class TaskActionHttpError extends Error {
   status: number;
+  code: string;
 
-  constructor(message: string, status: number) {
-    super(message);
+  constructor(detail: unknown, status: number) {
+    const structured = detail && typeof detail === "object" ? detail as { code?: string; message?: string } : null;
+    super(structured?.message || (typeof detail === "string" ? detail : translate("taskSubmit.requestFailed")));
+    this.code = structured?.code || "";
     this.name = "TaskActionHttpError";
     this.status = status;
   }
@@ -247,7 +251,19 @@ async function deleteTaskById(taskId: any) {
   }
 }
 
-async function retryFailedTask(taskId: any) {
+function requestRegeneration(taskId: any, regenerate: boolean): void {
+  openConfirmPopover(document.activeElement || els.runButton, {
+    title: translate("recovery.action.confirm_regenerate"),
+    message: translate("recovery.confirmRegenerate"),
+    confirmText: translate("recovery.action.confirm_regenerate"),
+    focusCancel: true,
+    onConfirm: () => retryFailedTask(taskId, true, regenerate),
+  });
+}
+
+const retryRequests = new Set<string>();
+async function retryFailedTask(taskId: any, confirmRegenerate = false, regenerate = false) {
+  if (retryRequests.has(String(taskId))) return;
   closePromptPopover();
   const task = state.tasks.find((item: any) => String(item.task_id) === String(taskId));
   if (!task || !canRetryFailedTask(task)) {
@@ -255,11 +271,21 @@ async function retryFailedTask(taskId: any) {
     setStatus(translate("taskActions.noRetryableFailedImages"), "error");
     return;
   }
+  const action = taskSafeRetryAction(task);
+  if ((action === "confirm_regenerate" || regenerate) && !confirmRegenerate) {
+    requestRegeneration(taskId, regenerate);
+    return;
+  }
+  retryRequests.add(String(taskId));
   try {
     const response = await fetch(`/api/tasks/${encodeURIComponent(taskId)}/retry-failed`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ api_provider_id: currentApiProviderId() }),
+      body: JSON.stringify({
+        ...(task.generation_snapshot || (!regenerate && ["resume_poll", "retry_download", "retry_save"].includes(action || "")) ? {} : { api_provider_id: currentApiProviderId() }),
+        ...(confirmRegenerate ? { confirm_regenerate: true } : {}),
+        ...(regenerate ? { regenerate: true } : {}),
+      }),
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new TaskActionHttpError(data.detail || translate("taskActions.retryFailedOutputsFailed"), response.status);
@@ -271,8 +297,16 @@ async function retryFailedTask(taskId: any) {
     await window.refreshQueue?.();
     setStatus(translate("taskActions.requeuedFailedImages"), "ok");
   } catch (error) {
-    if (isTaskActionConflict(error) && await refreshTaskAfterActionConflict(taskId)) return;
+    if (error instanceof TaskActionHttpError && error.code === "regeneration_confirmation_required") {
+      retryRequests.delete(String(taskId));
+      if (!confirmRegenerate) requestRegeneration(taskId, regenerate);
+      setStatus(translate("recovery.resultUnknown"), "error");
+      return;
+    }
+    if (isTaskActionConflict(error) && !(error as TaskActionHttpError).code && await refreshTaskAfterActionConflict(taskId)) return;
     setStatus(errorMessage(error, translate("taskActions.retryFailedOutputsFailed")), "error");
+  } finally {
+    retryRequests.delete(String(taskId));
   }
 }
 

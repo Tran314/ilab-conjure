@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from codex_image.generation.checkpoints import checkpoint_request
+
 import json
 import uuid
 from os import PathLike
@@ -52,7 +54,7 @@ class CodexImagesImageClient(OpenAIImagesImageClient):
 
     def _images_request(self, url: str, payload: dict[str, Any]) -> HTTPResponse:
         body = json.dumps(payload).encode("utf-8")
-        return self.transport.request(
+        return checkpoint_request(self.transport,
             method="POST",
             url=url,
             headers=self._build_headers(),

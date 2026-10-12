@@ -126,6 +126,8 @@ class WebUICancellableTransportTests(unittest.TestCase):
                         "api_mode": "images",
                         "images_concurrency": 2,
                     })
+                    from codex_image.webui.network_egress import NetworkEgressSettings
+                    NetworkEgressSettings(root / "network.json").write({"mode": "direct"})
                     with patch("codex_image.webui.network_egress.HttpxTransport", TrackedTransport):
                         app = create_app(
                             output_root=root / "tasks",
@@ -143,7 +145,7 @@ class WebUICancellableTransportTests(unittest.TestCase):
                                 })
                                 self.assertEqual(created.status_code, 200, created.text)
                                 task_id = created.json()["task"]["task_id"]
-                                self.assertTrue(held_requests_started.wait(3))
+                                self.assertTrue(held_requests_started.wait(3), client.get(f"/api/tasks/{task_id}").json())
                                 deadline = time.monotonic() + 1
                                 while True:
                                     before = client.get(f"/api/tasks/{task_id}").json()["task"]
@@ -187,10 +189,10 @@ class WebUICancellableTransportTests(unittest.TestCase):
                         finally:
                             release_responses.set()
 
-    def test_transient_retry_count_means_retries_after_the_first_attempt(self) -> None:
+    def test_image_retry_setting_never_replays_unknown_sent_operation(self) -> None:
         from codex_image.webui.executor_transport import _call_image_client
 
-        for retry_count, expected_attempts in ((0, 1), (2, 3), (5, 6)):
+        for retry_count, expected_attempts in ((0, 1), (2, 1), (5, 1)):
             calls = 0
 
             def fail_transiently(**_kwargs: object) -> object:
@@ -240,31 +242,17 @@ class WebUICancellableTransportTests(unittest.TestCase):
 
         self.assertEqual(calls, 1)
 
-    def test_cancellation_during_retry_backoff_does_not_send_another_request(self) -> None:
+    def test_read_disconnect_does_not_enter_image_retry_backoff(self) -> None:
         from codex_image.webui.executor_transport import _call_image_client
-
         calls = 0
-
-        def transient_failure() -> object:
+        def disconnected() -> object:
             nonlocal calls
             calls += 1
             raise ConnectionResetError(54, "Connection reset by peer")
-
-        async def cancel_backoff() -> None:
-            backoff_started = asyncio.Event()
-
-            def retry_delay(_attempt: int) -> float:
-                backoff_started.set()
-                return 60
-
-            with patch("codex_image.webui.executor_transport._transient_image_retry_delay_seconds", retry_delay):
-                call = asyncio.create_task(_call_image_client(None, {}, transient_failure, timeout_seconds=5))
-                await asyncio.wait_for(backoff_started.wait(), 1)
-                call.cancel()
-                with self.assertRaises(asyncio.CancelledError):
-                    await call
-
-        asyncio.run(cancel_backoff())
+        with patch("codex_image.webui.executor_transport._transient_image_retry_delay_seconds") as delay:
+            with self.assertRaises(ConnectionResetError):
+                asyncio.run(_call_image_client(None, {}, disconnected, timeout_seconds=5))
+            delay.assert_not_called()
         self.assertEqual(calls, 1)
 
     def test_total_timeout_cancels_http_request_before_slow_response_finishes(self) -> None:

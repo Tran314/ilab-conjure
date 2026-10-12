@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from codex_image.generation.checkpoints import checkpoint_request
+
 import json
 
 from codex_image import openai_images_client as openai_images_transport
@@ -81,7 +83,7 @@ class OpenAIImagesAdapter:
             content_type = "application/json"
         canonical_error_contract = not plan.binding.parameter_codec.startswith("gpt_")
         try:
-            response = client.transport.request(
+            response = checkpoint_request(client.transport,
                 method=request.method,
                 url=f"{client.base_url}{path}",
                 headers=client._build_headers(content_type=content_type),
@@ -159,7 +161,7 @@ class OpenAIResponsesAdapter:
         )
         payload = dict(plan.protocol_request.json_body or {})
         body = json.dumps(client._json_request_payload(payload)).encode("utf-8")
-        response = client.transport.request(
+        response = checkpoint_request(client.transport,
             method=plan.protocol_request.method,
             url=f"{client.base_url}{plan.protocol_request.path}",
             headers=client._build_headers(),

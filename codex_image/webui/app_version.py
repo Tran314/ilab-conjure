@@ -44,6 +44,9 @@ def _version_tag(value: str | None) -> str:
 
 
 def _portable_bundle_dir() -> Path | None:
+    # Installed Linux bundles also expose BUNDLE_DIR for launcher resources.
+    if os.environ.get("APP_LAUNCHER_MODE") in {"standard", "source"}:
+        return None
     raw = os.environ.get("ILAB_CONJURE_BUNDLE_DIR")
     if not raw:
         return None
@@ -180,8 +183,18 @@ def _updater_script(bundle_dir: Path | None) -> Path | None:
     elif system == "windows":
         candidate = bundle_dir / "Update WebUI Portable.bat"
     else:
-        candidate = bundle_dir / "Update WebUI Portable.command"
+        # Linux v1 only checks/downloads; never run another platform's updater.
+        return None
     return candidate if candidate.exists() else None
+
+
+def _package_identity(source: str) -> str | None:
+    system = platform.system().lower()
+    if source == "portable":
+        return "portable-tar-gz" if system == "linux" else "portable-zip"
+    if source == "standard_app":
+        return {"linux": "standard-deb", "darwin": "standard-dmg", "windows": "standard-zip"}.get(system)
+    return None
 
 
 def app_version_payload(output_root: Path) -> dict[str, Any]:
@@ -193,7 +206,10 @@ def app_version_payload(output_root: Path) -> dict[str, Any]:
     notice = _read_update_notice(data_dir, current_version)
     updater = _updater_script(bundle_dir)
     portable = bundle_dir is not None
-    onboarding = _read_post_update_onboarding(data_dir, current_version, portable=portable)
+    # New Linux packages never participated in the historical macOS/Windows
+    # v0.5.5 launcher transition; don't synthesize that migration prompt.
+    linux_package = platform.system().lower() == "linux" and os.environ.get("APP_LAUNCHER_MODE") == "portable"
+    onboarding = None if linux_package else _read_post_update_onboarding(data_dir, current_version, portable=portable)
     latest_version = notice["latest_version"] if notice else current_version
     return {
         "current_version": current_version,
@@ -201,6 +217,7 @@ def app_version_payload(output_root: Path) -> dict[str, Any]:
         "source": source,
         "portable": portable,
         "standard_app": source == "standard_app",
+        "package": _package_identity(source),
         "update_available": bool(notice),
         "latest_version": latest_version,
         "latest_version_label": _version_tag(latest_version),

@@ -68,6 +68,7 @@ from codex_image.webui.reference_image_order import (
     ordered_reference_data_urls,
 )
 from codex_image.webui.storage import utc_now
+from codex_image.webui.submission_identity import prepare_submission_identity
 from codex_image.webui.task_metadata import _dedupe_preserve_order, _params, _with_file_urls, _write_queued_metadata
 
 DEFAULT_PROMPT_FIDELITY = "off"
@@ -824,6 +825,11 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
         reference_images: list[UploadFile] | None = File(None),
         reference_files: list[UploadFile] | None = File(None),
     ) -> dict[str, Any]:
+        submission = await prepare_submission_identity(ctx, request)
+        if submission is not None:
+            replay = submission.replay()
+            if replay is not None:
+                return replay
         explicit_form_fields = frozenset(str(key) for key in (await request.form()).keys())
         auth_source = _request_auth_source(ctx, provider_id)
         if auth_source == "codex" and not ctx.route_helpers["codex_auth_checker"]():
@@ -936,35 +942,54 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
             reference_file_inputs=list(prepared_reference_files.response_inputs),
         )
 
-        reference_assets = _commit_reference_assets(
-            ctx,
-            uploads=uploaded_images,
-            predicted_assets=predicted_assets,
-        )
-        file_references = _commit_reference_files(
-            ctx.reference_file_storage,
-            prepared_reference_files,
-        )
-        task = ctx.storage.create_task("generate")
-        return _persist_generation_submission(
-            ctx,
-            prepared=prepared_submission,
-            operation="generate",
-            task_id=task.task_id,
-            created_at=utc_now(),
-            prompt=prompt,
-            requested_backend=requested_backend,
-            auth_source=auth_source,
-            effective_api_provider_id=effective_api_provider_id,
-            effective_api_provider_name=effective_api_provider_name,
-            effective_api_images_concurrency=effective_api_images_concurrency,
-            input_files=[],
-            mask_file=None,
-            gallery_refs=gallery_refs,
-            reference_assets=reference_assets,
-            file_references=file_references,
-            reference_image_order=image_order,
-        )
+        def commit_submission(task_id: str) -> dict[str, Any]:
+            reference_assets = _commit_reference_assets(
+                ctx,
+                uploads=uploaded_images,
+                predicted_assets=predicted_assets,
+            )
+            file_references = _commit_reference_files(
+                ctx.reference_file_storage,
+                prepared_reference_files,
+            )
+            return _persist_generation_submission(
+                ctx,
+                prepared=prepared_submission,
+                operation="generate",
+                task_id=task_id,
+                created_at=utc_now(),
+                prompt=prompt,
+                requested_backend=requested_backend,
+                auth_source=auth_source,
+                effective_api_provider_id=effective_api_provider_id,
+                effective_api_provider_name=effective_api_provider_name,
+                effective_api_images_concurrency=effective_api_images_concurrency,
+                input_files=[],
+                mask_file=None,
+                gallery_refs=gallery_refs,
+                reference_assets=reference_assets,
+                file_references=file_references,
+                reference_image_order=image_order,
+            )
+
+        # Publish references under the same lock used by gallery deletion and
+        # replacement. Revalidate after upload awaits without locking the loop.
+        # Serialize with history restore before acquiring resources. Restore
+        # holds a striped task lock before resource locks, so without this outer
+        # history lock a new task could collide with its stripe and deadlock.
+        with ctx.storage._history_organization_lock, ctx.reference_asset_storage._lock, ctx.gallery_storage.exclusive():
+            current_refs, _ = _resolve_gallery_refs(
+                ctx.gallery_storage, [str(item["id"]) for item in gallery_refs],
+                include_data_urls=False,
+            )
+            if [(item["id"], item["sha256"]) for item in current_refs] != [(item["id"], item["sha256"]) for item in gallery_refs]:
+                raise HTTPException(status_code=409, detail={
+                    "code": "gallery_reference_changed",
+                    "message": "A shared reference image changed during submission. Review it and submit again.",
+                })
+            if submission is not None:
+                return submission.commit("generate", commit_submission)
+            return commit_submission(ctx.storage.create_task("generate").task_id)
 
     @app.post("/api/edit")
     async def edit(
@@ -1003,6 +1028,11 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
         mask: UploadFile | None = File(None),
         reference_files: list[UploadFile] | None = File(None),
     ) -> dict[str, Any]:
+        submission = await prepare_submission_identity(ctx, request)
+        if submission is not None:
+            replay = submission.replay()
+            if replay is not None:
+                return replay
         explicit_form_fields = frozenset(str(key) for key in (await request.form()).keys())
         auth_source = _request_auth_source(ctx, provider_id)
         if auth_source == "codex" and not ctx.route_helpers["codex_auth_checker"]():
@@ -1132,46 +1162,65 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
             reference_file_inputs=list(prepared_reference_files.response_inputs),
         )
 
-        reference_assets = _commit_reference_assets(
-            ctx,
-            uploads=uploaded_images,
-            predicted_assets=predicted_assets,
-        )
-        file_references = _commit_reference_files(
-            ctx.reference_file_storage,
-            prepared_reference_files,
-        )
-        task = ctx.storage.create_task("edit")
-        mask_files = (
-            [
-                ctx.storage.write_input(
-                    task.task_id,
-                    prepared_mask.filename,
-                    prepared_mask.data,
-                    kind="mask",
-                    index=1,
-                )
-            ]
-            if prepared_mask is not None
-            else []
-        )
-        mask_file = mask_files[0].name if mask_files else None
-        return _persist_generation_submission(
-            ctx,
-            prepared=prepared_submission,
-            operation="edit",
-            task_id=task.task_id,
-            created_at=utc_now(),
-            prompt=prompt,
-            requested_backend=requested_backend,
-            auth_source=auth_source,
-            effective_api_provider_id=effective_api_provider_id,
-            effective_api_provider_name=effective_api_provider_name,
-            effective_api_images_concurrency=effective_api_images_concurrency,
-            input_files=[],
-            mask_file=mask_file,
-            gallery_refs=gallery_refs,
-            reference_assets=reference_assets,
-            file_references=file_references,
-            reference_image_order=image_order,
-        )
+        def commit_submission(task_id: str) -> dict[str, Any]:
+            reference_assets = _commit_reference_assets(
+                ctx,
+                uploads=uploaded_images,
+                predicted_assets=predicted_assets,
+            )
+            file_references = _commit_reference_files(
+                ctx.reference_file_storage,
+                prepared_reference_files,
+            )
+            mask_files = (
+                [
+                    ctx.storage.write_input(
+                        task_id,
+                        prepared_mask.filename,
+                        prepared_mask.data,
+                        kind="mask",
+                        index=1,
+                    )
+                ]
+                if prepared_mask is not None
+                else []
+            )
+            mask_file = mask_files[0].name if mask_files else None
+            return _persist_generation_submission(
+                ctx,
+                prepared=prepared_submission,
+                operation="edit",
+                task_id=task_id,
+                created_at=utc_now(),
+                prompt=prompt,
+                requested_backend=requested_backend,
+                auth_source=auth_source,
+                effective_api_provider_id=effective_api_provider_id,
+                effective_api_provider_name=effective_api_provider_name,
+                effective_api_images_concurrency=effective_api_images_concurrency,
+                input_files=[],
+                mask_file=mask_file,
+                gallery_refs=gallery_refs,
+                reference_assets=reference_assets,
+                file_references=file_references,
+                reference_image_order=image_order,
+            )
+
+        # Publish references under the same lock used by gallery deletion and
+        # replacement. Revalidate after upload awaits without locking the loop.
+        # Serialize with history restore before acquiring resources. Restore
+        # holds a striped task lock before resource locks, so without this outer
+        # history lock a new task could collide with its stripe and deadlock.
+        with ctx.storage._history_organization_lock, ctx.reference_asset_storage._lock, ctx.gallery_storage.exclusive():
+            current_refs, _ = _resolve_gallery_refs(
+                ctx.gallery_storage, [str(item["id"]) for item in gallery_refs],
+                include_data_urls=False,
+            )
+            if [(item["id"], item["sha256"]) for item in current_refs] != [(item["id"], item["sha256"]) for item in gallery_refs]:
+                raise HTTPException(status_code=409, detail={
+                    "code": "gallery_reference_changed",
+                    "message": "A shared reference image changed during submission. Review it and submit again.",
+                })
+            if submission is not None:
+                return submission.commit("edit", commit_submission)
+            return commit_submission(ctx.storage.create_task("edit").task_id)

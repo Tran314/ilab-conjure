@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from codex_image.generation.checkpoints import checkpoint_request
+
 import base64
 import json
 import re
@@ -318,7 +320,7 @@ class OpenAIImagesImageClient:
             url = self.generations_url
             headers = self._build_headers(content_type="application/json")
 
-        response = self.transport.request(
+        response = checkpoint_request(self.transport,
             method="POST",
             url=url,
             headers=headers,

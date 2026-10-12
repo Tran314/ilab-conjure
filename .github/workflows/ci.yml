@@ -168,9 +168,17 @@ jobs:
         os:
           - macos-latest
           - windows-latest
+          - ubuntu-22.04
+          - ubuntu-24.04
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Linux native launcher dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev libxdo-dev pkg-config
 
       - name: Install Rust quality components
         run: rustup component add rustfmt clippy
@@ -186,6 +194,91 @@ jobs:
       - name: Test Rust launcher
         working-directory: launcher
         run: cargo test --all-targets --locked
+
+  linux-packages:
+    name: Linux x86_64 portable tar.gz and installed DEB
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python builder
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.13"
+
+      - name: Set up Node.js builder
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libgtk-3-dev libayatana-appindicator3-dev libxdo-dev
+
+      - name: Read package version
+        id: version
+        run: echo "version=$(python -c 'from codex_image.version import APP_VERSION; print(APP_VERSION)')" >> "$GITHUB_OUTPUT"
+
+      - name: Build Linux portable payload first
+        run: ./packaging/linux/build-portable.sh --output-dir dist --version "${{ steps.version.outputs.version }}"
+
+      - name: Build DEB from the same portable payload
+        run: ./packaging/linux/build-app.sh --output-dir dist --version "${{ steps.version.outputs.version }}" --portable-dir dist/ilab-gpt-conjure_linux_portable_x64
+
+      - name: Verify linked and dynamically loaded Linux dependencies
+        run: |
+          python packaging/linux/verify-runtime.py --bundle dist/ilab-gpt-conjure_linux_portable_x64 --max-glibc 2.35
+          dpkg-deb --info dist/*.deb
+          dpkg-deb --contents dist/*.deb
+
+      - name: Upload Linux package artifacts
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: ilab-gpt-conjure-linux-x64
+          path: |
+            dist/*.tar.gz
+            dist/*.deb
+            dist/*.sha256.txt
+            dist/linux-portable-build.json
+            dist/linux-app-build.json
+          if-no-files-found: error
+
+  linux-package-runtime:
+    name: Linux installed runtime (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    needs: linux-packages
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    steps:
+      - name: Check out package verifier
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Download Linux package artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ilab-gpt-conjure-linux-x64
+          path: dist
+
+      - name: Install DEB with distro-specific runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ./dist/*.deb
+          python3 packaging/linux/verify-runtime.py --bundle /opt/ilab-conjure
+          python3 packaging/linux/smoke-service.py --bundle /opt/ilab-conjure
+          tar -xzf dist/ilab-gpt-conjure_linux_portable_x64_*.tar.gz -C dist
+          python3 packaging/linux/verify-runtime.py --bundle dist/ilab-gpt-conjure_linux_portable_x64
+          python3 packaging/linux/smoke-service.py --bundle dist/ilab-gpt-conjure_linux_portable_x64
+          test ! -w /opt/ilab-conjure
+          test ! -e /opt/ilab-conjure/data
 
   public-export-guard:
     name: Public export guard

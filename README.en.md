@@ -1,5 +1,8 @@
 > This is the Tran314 fork of [kadevin/ilab-conjure](https://github.com/kadevin/ilab-conjure), with backup restoration security and Windows compatibility fixes. Downloads and signed updates use this fork's independent release channel. Install a complete package manually when switching from an upstream build.
 
+
+Linux (Ubuntu 22.04/24.04 x86_64, GNOME X11/Wayland): [portable tar.gz and installed DEB instructions, data-preserving upgrades, and pending desktop qualification](docs/linux.md).
+
 <h1 align="center">iLab CONJURE</h1>
 
 <p align="center">
@@ -108,14 +111,13 @@ Download standard app packages and portable transition packages from
   selectable chips, public gallery, prompt templates, and system settings,
   plus additive restore or separately confirmed replacement restore.
 - Explicit system, direct, or custom HTTP(S) network routing, plus global
-  per-request image timeouts (1–30 minutes, default 10) and retries after
-  retryable transient failures (0–5, default 2). The settings are persisted in
-  the app data directory, apply to generation and editing across every
-  provider, and affect later task executions without restart. Connection failures
-  retry the current HTTP request within the active image operation's timeout;
-  retries for image downloads or independent DNS lookups do not resubmit generation.
-  Other supported transient failures that retry the whole operation still get a
-  fresh full timeout window.
+  per-request image timeouts (1–30 minutes, default 10) and connection retries
+  before a request is sent (0–5, default 2). Settings persist in the app data
+  directory and apply to subsequent tasks across providers without restart.
+  Read/write failures and unknown provider outcomes never automatically resubmit
+  generation. Durable receipts resume T8 polling, image downloads, or local saves;
+  an explicit possible-additional-charge confirmation is required to regenerate.
+  See the [recovery and charging-safety contract](docs/recovery-safety.md).
 - API provider cards for fast selection, read-only details by default, explicit
   editing, provider copy, delete confirmation, multi-provider sorting, and an
   optional emoji identity mark for each custom provider.

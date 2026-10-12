@@ -159,7 +159,19 @@ export interface ParameterMigrationReport {
   dropped: Array<{ id: string; previous: unknown }>;
 }
 
-export interface TaskOutputRecord {
+export interface GenerationErrorRecord {
+  code?: string;
+  message?: string;
+  retryable?: boolean;
+  phase?: "submit" | "wait" | "download" | "save" | "completed";
+  result_certainty?: "not_submitted" | "submitted_unknown" | "generated" | "saved";
+  safe_retry_action?: "retry_submit" | "resume_poll" | "retry_download" | "retry_save" | "confirm_regenerate" | "none";
+  provider_task_id?: string;
+  provider_request_id?: string;
+}
+
+export interface TaskOutputRecord extends GenerationErrorRecord {
+  generation_error?: GenerationErrorRecord;
   index?: number;
   status?: OutputStatus;
   file?: string;
@@ -246,7 +258,9 @@ export interface TaskParams {
   api_images_concurrency?: number;
 }
 
-export interface WebUITask {
+export interface WebUITask extends GenerationErrorRecord {
+  generation_error?: GenerationErrorRecord;
+  submission_unknown?: boolean;
   [key: string]: any;
   task_id: string;
   created_at?: string;

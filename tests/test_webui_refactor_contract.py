@@ -367,6 +367,7 @@ class WebUIRefactorContractTests(unittest.TestCase):
             expected_surface = {
                 ("/", "GET"),
                 ("/api/health", "GET"),
+                ("/api/diagnostics", "GET"),
                 ("/api/app-version", "GET"),
                 ("/api/app-version/open-updater", "POST"),
                 ("/api/app-version/dismiss-onboarding", "POST"),

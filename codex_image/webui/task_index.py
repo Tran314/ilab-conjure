@@ -89,6 +89,12 @@ SUMMARY_KEYS = {
     "requested_backend",
     "backend",
     "assigned_auth_source",
+    "phase",
+    "result_certainty",
+    "safe_retry_action",
+    "provider_task_id",
+    "provider_request_id",
+    "generation_error",
 }
 
 TASK_INDEX_SCHEMA_VERSION = 9

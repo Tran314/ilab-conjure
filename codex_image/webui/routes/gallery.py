@@ -6,6 +6,10 @@ from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, Response
 
 from codex_image.webui.context import WebUIContext
+from codex_image.webui.gallery_storage import (
+    GalleryItemInUseError,
+    GalleryProtectionUnavailableError,
+)
 from codex_image.webui.image_uploads import (
     InvalidRasterImage,
     SUPPORTED_RASTER_MIME_TYPES,
@@ -145,6 +149,8 @@ def register_gallery_routes(app: FastAPI, ctx: WebUIContext) -> None:
                 data=validated.data,
                 content_type=validated.mime_type,
             )
+        except (GalleryItemInUseError, GalleryProtectionUnavailableError) as exc:
+            raise _gallery_protection_error(exc) from exc
         except FileNotFoundError as exc:
             raise HTTPException(status_code=404, detail="Gallery item not found") from exc
         except ValueError as exc:
@@ -155,6 +161,8 @@ def register_gallery_routes(app: FastAPI, ctx: WebUIContext) -> None:
     def delete_gallery_item(item_id: str) -> dict[str, Any]:
         try:
             ctx.gallery_storage.delete_item(item_id)
+        except (GalleryItemInUseError, GalleryProtectionUnavailableError) as exc:
+            raise _gallery_protection_error(exc) from exc
         except (FileNotFoundError, ValueError) as exc:
             raise HTTPException(status_code=404, detail="Gallery item not found") from exc
         return {"ok": True, "id": item_id}
@@ -207,6 +215,7 @@ def register_gallery_routes(app: FastAPI, ctx: WebUIContext) -> None:
             raise HTTPException(status_code=404, detail=f"Reference asset not found: {asset_id}") from exc
         return {"ok": True}
 
+
     @app.delete("/api/reference-assets/{asset_id}")
     def delete_reference_asset(asset_id: str) -> dict[str, bool]:
         try:
@@ -257,3 +266,21 @@ def register_gallery_routes(app: FastAPI, ctx: WebUIContext) -> None:
         except FileNotFoundError as exc:
             raise HTTPException(status_code=404, detail=f"Reference asset not found: {asset_id}") from exc
         return FileResponse(path, media_type="image/webp", headers={"Cache-Control": "no-store"})
+
+def _gallery_protection_error(exc: RuntimeError) -> HTTPException:
+    if isinstance(exc, GalleryItemInUseError):
+        return HTTPException(
+            status_code=409,
+            detail={
+                "code": "gallery_item_in_use",
+                "message": "This gallery image is used by existing tasks. Keep it and create a new gallery item instead.",
+                "reference_count": exc.reference_count,
+            },
+        )
+    return HTTPException(
+        status_code=503,
+        detail={
+            "code": "gallery_protection_unavailable",
+            "message": "Gallery usage could not be checked. Nothing was changed; retry after task history is available.",
+        },
+    )

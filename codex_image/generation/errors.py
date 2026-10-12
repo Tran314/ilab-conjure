@@ -64,6 +64,11 @@ class GenerationErrorDetail:
     provider_id: str
     canonical_model_id: str
     protocol_profile: str
+    phase: str = ""
+    result_certainty: str = ""
+    safe_retry_action: str = ""
+    provider_task_id: str = ""
+    provider_request_id: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

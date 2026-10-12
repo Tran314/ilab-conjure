@@ -1325,7 +1325,7 @@ class WebUIStorageTests(unittest.TestCase):
         from codex_image.webui.storage import GalleryStorage
 
         with tempfile.TemporaryDirectory() as tmp:
-            storage = GalleryStorage(Path(tmp))
+            storage = GalleryStorage(Path(tmp), reference_counts_provider=lambda: {})
             item = storage.create_item(
                 name="小美",
                 category="portrait",
@@ -1353,7 +1353,7 @@ class WebUIStorageTests(unittest.TestCase):
         from codex_image.webui.storage import GalleryStorage
 
         with tempfile.TemporaryDirectory() as tmp:
-            storage = GalleryStorage(Path(tmp))
+            storage = GalleryStorage(Path(tmp), reference_counts_provider=lambda: {})
             item = storage.create_item(
                 name="小美",
                 category="portrait",

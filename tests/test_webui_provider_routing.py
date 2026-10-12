@@ -829,7 +829,7 @@ class WebUIProviderRoutingTests(unittest.TestCase):
                 self.assertEqual(saved.read_bytes(), png)
                 self.assertEqual(final["generation_snapshot"]["requested_parameters"]["output.count"], 2)
 
-    def test_gemini_batch_retries_count_real_requests_and_share_terminal_failure(self) -> None:
+    def test_gemini_batch_disconnect_is_not_replayed_and_shares_terminal_failure(self) -> None:
         import asyncio
         from unittest.mock import patch
         from codex_image.generation.types import GeneratedAsset, GenerationResult
@@ -872,16 +872,13 @@ class WebUIProviderRoutingTests(unittest.TestCase):
                         task_id = created.json()["task"]["task_id"]
                         with patch("codex_image.webui.execution_plan_client.default_registry", return_value=registry), \
                              patch("codex_image.webui.executor_transport._transient_image_retry_delay_seconds", return_value=0):
-                            if failures == 3:
-                                with self.assertRaises(QueueTaskError):
-                                    asyncio.run(app.state.queue_manager.run_available_once())
-                            else:
+                            with self.assertRaises(QueueTaskError):
                                 asyncio.run(app.state.queue_manager.run_available_once())
                         final = app.state.storage.read_metadata(task_id)
-                        self.assertEqual(final["status"], "failed" if failures == 3 else "completed")
-                        self.assertEqual(final["generated_count"], 0 if failures == 3 else 4)
-                        self.assertEqual(counts, [4] * min(failures + 1, 3))
-                        self.assertEqual([item.get("attempts", 1) for item in final["outputs"]], [min(failures + 1, 3)] * 4)
+                        self.assertEqual(final["status"], "failed")
+                        self.assertEqual(final["generated_count"], 0)
+                        self.assertEqual(counts, [4])
+                        self.assertEqual([item.get("attempts", 1) for item in final["outputs"]], [1] * 4)
                         self.assertEqual(final["generation_snapshot"]["requested_parameters"]["output.count"], 4)
 
     def test_queued_snapshot_keeps_remote_model_after_settings_change(self) -> None:

@@ -9,7 +9,7 @@ import threading
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, Mapping
 
 from .schemas import DEFAULT_WEBUI_GALLERY_ROOT
 from .storage_utils import _guess_mime_type, _safe_filename, utc_now
@@ -50,9 +50,26 @@ class GallerySnapshot:
     items: tuple[GallerySnapshotItem, ...]
 
 
+class GalleryItemInUseError(RuntimeError):
+    def __init__(self, item_id: str, reference_count: int) -> None:
+        self.item_id = item_id
+        self.reference_count = reference_count
+        super().__init__("Gallery item is used by existing tasks")
+
+
+class GalleryProtectionUnavailableError(RuntimeError):
+    pass
+
+
 class GalleryStorage(StoreLockMixin):
-    def __init__(self, root: Path | str = DEFAULT_WEBUI_GALLERY_ROOT) -> None:
+    def __init__(
+        self,
+        root: Path | str = DEFAULT_WEBUI_GALLERY_ROOT,
+        *,
+        reference_counts_provider: Callable[[], Mapping[str, int]] | None = None,
+    ) -> None:
         self.root = Path(root)
+        self._reference_counts_provider = reference_counts_provider
         self._lock = threading.RLock()
         self._restore_versions: dict[str, int] = {}
 
@@ -155,6 +172,22 @@ class GalleryStorage(StoreLockMixin):
                 )
                 prepared.append((clean_metadata, data))
 
+            # Validate all overwrites before the first write. A shared gallery ID
+            # must never silently start referring to a different image in history.
+            changed_ids: list[str] = []
+            for metadata, _ in prepared:
+                item_id = str(metadata["id"])
+                try:
+                    previous = self.read_item(item_id)
+                except FileNotFoundError:
+                    continue
+                if previous.get("sha256") != metadata["sha256"]:
+                    changed_ids.append(item_id)
+            if changed_ids:
+                counts = self.reference_counts()
+                for item_id in changed_ids:
+                    if counts.get(item_id, 0):
+                        raise GalleryItemInUseError(item_id, counts[item_id])
             self._write_categories(categories)
             for metadata, data in prepared:
                 item_path = self._item_path(str(metadata["id"]))
@@ -527,6 +560,8 @@ class GalleryStorage(StoreLockMixin):
             if not data:
                 raise ValueError("Image is required")
             metadata = self.read_item(item_id)
+            if hashlib.sha256(data).hexdigest() != metadata.get("sha256"):
+                self._assert_unreferenced(item_id)
             item_path = self._item_path(item_id)
             old_path = item_path / str(metadata.get("filename", ""))
             safe_name = _safe_filename(filename)
@@ -550,8 +585,41 @@ class GalleryStorage(StoreLockMixin):
             item_path = self._item_path(item_id)
             if not item_path.exists():
                 raise FileNotFoundError(item_id)
+            self._assert_unreferenced(item_id)
             self._bump_restore_version(item_id)
             shutil.rmtree(item_path)
+
+    def reference_counts(self) -> dict[str, int]:
+        """Read authoritative task usage; uncertainty must never allow deletion."""
+        with self._lock:
+            try:
+                if self._reference_counts_provider is None:
+                    raise ValueError("Gallery reference provider is not configured")
+                raw_counts = self._reference_counts_provider()
+                if not isinstance(raw_counts, Mapping):
+                    raise ValueError("Invalid gallery reference counts")
+                counts: dict[str, int] = {}
+                for item_id, count in raw_counts.items():
+                    if (
+                        not isinstance(item_id, str)
+                        or not item_id
+                        or not isinstance(count, int)
+                        or isinstance(count, bool)
+                        or count < 0
+                    ):
+                        raise ValueError("Invalid gallery reference count")
+                    if count:
+                        counts[item_id] = count
+                return counts
+            except Exception as exc:
+                raise GalleryProtectionUnavailableError(
+                    "Gallery usage could not be checked"
+                ) from exc
+
+    def _assert_unreferenced(self, item_id: str) -> None:
+        reference_count = self.reference_counts().get(item_id, 0)
+        if reference_count:
+            raise GalleryItemInUseError(item_id, reference_count)
 
     def image_path(self, item_id: str) -> Path:
         metadata = self.read_item(item_id)
@@ -580,7 +648,7 @@ class GalleryStorage(StoreLockMixin):
                 raise FileExistsError(name)
 
     def _item_path(self, item_id: str) -> Path:
-        if not item_id or "/" in item_id or "\\" in item_id:
+        if not item_id or item_id in {".", ".."} or "/" in item_id or "\\" in item_id:
             raise ValueError("Invalid gallery item id")
         return self.root / item_id
 

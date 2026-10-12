@@ -1,3 +1,4 @@
+import { initLocalDiagnostics } from "./local-diagnostics";
 import { getLegacyBridge } from "./state";
 import { refreshSegmentedIndicators } from "./segmented-indicator";
 import { translate } from "./i18n";
@@ -326,6 +327,7 @@ function handleSystemSettingsKeydown(event: KeyboardEvent): void {
 export function initSystemSettingsFeature(): void {
   if (systemSettingsFeatureInitialized) return;
   systemSettingsFeatureInitialized = true;
+  initLocalDiagnostics();
   const { els } = getLegacyBridge();
   els.systemSettingsTabs?.addEventListener("click", handleSystemSettingsTabClick);
   els.openUserConfigBackupButton?.addEventListener("click", handleUserConfigBackupEntry);
