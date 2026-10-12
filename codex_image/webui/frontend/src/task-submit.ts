@@ -279,8 +279,8 @@ function createPendingTask() {
   };
 }
 
-function addQueuedTask(task: any) {
-  replacePendingTask(state.pendingTaskId || task.task_id, task);
+function addQueuedTask(task: any, confirmedClientRequestId?: string) {
+  replacePendingTask(state.pendingTaskId || task.task_id, task, confirmedClientRequestId);
 }
 
 export function buildSubmissionRequest(): SubmissionSnapshot {
@@ -416,6 +416,11 @@ async function runTask() {
       knownRejection = true;
       throw new Error(translate("taskSubmit.identityUnavailable"));
     }
+    // Correlate only local placeholders with this exact durable submission.
+    // A confirmed replay can then retire the earlier lost-response placeholder.
+    Object.assign(pendingTask, { client_request_id: submissionIdentity.requestId });
+    const storedPending = state.tasks.find((task) => task.local_pending && task.task_id === pendingTask.task_id);
+    if (storedPending) storedPending.client_request_id = submissionIdentity.requestId;
     form.append("client_request_id", submissionIdentity.requestId);
     const response = await fetch(endpoint, {
       method: "POST",
@@ -436,7 +441,7 @@ async function runTask() {
     }
     accepted = true;
     try { completeSubmissionIdentity(submissionIdentity); } catch { /* Retain ID if cleanup fails: safe dedupe wins. */ }
-    addQueuedTask(data.task);
+    addQueuedTask(data.task, submissionIdentity.requestId);
     markComposerSubmitted(submittedComposer);
     if (els.requestJson) {
       els.requestJson.textContent = JSON.stringify(data.request || {}, null, 2);

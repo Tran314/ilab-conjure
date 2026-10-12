@@ -25085,14 +25085,15 @@
     renderTasks();
     renderPreview(task);
   }
-  function replacePendingTask(pendingTaskId, completedTask) {
+  function replacePendingTask(pendingTaskId, completedTask, confirmedClientRequestId) {
     const state5 = getLegacyBridge().state;
     const currentTask = state5.tasks.find((task) => task.task_id === completedTask.task_id && !task.local_pending);
     if (currentTask && taskUpdateIsOlder(currentTask, completedTask)) completedTask = currentTask;
-    const removedPendingTasks = state5.tasks.filter((task) => task?.local_pending && (task.task_id === completedTask.task_id || task.task_id === pendingTaskId));
+    const removedPendingTasks = state5.tasks.filter((task) => task?.local_pending && (task.task_id === completedTask.task_id || task.task_id === pendingTaskId || confirmedClientRequestId && task.submission_unknown === true && task.client_request_id === confirmedClientRequestId));
+    const removedPendingIds = new Set(removedPendingTasks.map((task) => task.task_id));
     state5.tasks = [
       completedTask,
-      ...state5.tasks.filter((task) => task.task_id !== completedTask.task_id && task.task_id !== pendingTaskId)
+      ...state5.tasks.filter((task) => task.task_id !== completedTask.task_id && task.task_id !== pendingTaskId && !removedPendingIds.has(task.task_id))
     ];
     removedPendingTasks.forEach(revokeTaskUploadPreviewUrls);
     state5.selectedTaskId = completedTask.task_id;

@@ -74,7 +74,7 @@ export interface LegacyMethods {
   renderReferenceCollector(): void;
   restoreCollectedReferences(): void;
   addPendingTask(task: WebUITask): void;
-  replacePendingTask(pendingTaskId: string, completedTask: WebUITask): void;
+  replacePendingTask(pendingTaskId: string, completedTask: WebUITask, confirmedClientRequestId?: string): void;
   syncPromptGalleryMentionsFromInputs(): void;
   getPromptText(): string;
   setPromptText(value: string): void;

@@ -231,17 +231,20 @@ export function addPendingTask(task: WebUITask): void {
   renderPreview(task);
 }
 
-export function replacePendingTask(pendingTaskId: string, completedTask: WebUITask): void {
+export function replacePendingTask(pendingTaskId: string, completedTask: WebUITask, confirmedClientRequestId?: string): void {
   const state = getLegacyBridge().state;
   const currentTask = state.tasks.find((task) => task.task_id === completedTask.task_id && !task.local_pending);
   if (currentTask && taskUpdateIsOlder(currentTask, completedTask)) completedTask = currentTask;
   const removedPendingTasks = state.tasks.filter((task: any) => (
     task?.local_pending
-    && (task.task_id === completedTask.task_id || task.task_id === pendingTaskId)
+    && (task.task_id === completedTask.task_id || task.task_id === pendingTaskId
+      || (confirmedClientRequestId && task.submission_unknown === true && task.client_request_id === confirmedClientRequestId))
   ));
+  const removedPendingIds = new Set(removedPendingTasks.map((task) => task.task_id));
   state.tasks = [
     completedTask,
-    ...state.tasks.filter((task: any) => task.task_id !== completedTask.task_id && task.task_id !== pendingTaskId),
+    ...state.tasks.filter((task: any) => task.task_id !== completedTask.task_id && task.task_id !== pendingTaskId
+      && !removedPendingIds.has(task.task_id)),
   ];
   removedPendingTasks.forEach(revokeTaskUploadPreviewUrls);
   state.selectedTaskId = completedTask.task_id;

@@ -130,6 +130,9 @@ try {
   assert.equal(clientIds[0], clientIds[1]);
   assert.equal((await state()).task_ids.length, 1);
   assert.equal((await state()).provider_calls, 0);
+  await waitUntil(async () => (await page.locator(".task-card[data-task-id]").count()) === 1
+    && (await page.locator(".task-card[data-task-id]").getAttribute("data-task-id")) === acceptedIds[0], "recovered submission replaces its unknown local placeholder");
+  assert.equal(await page.locator(".task-card[data-task-id^='pending-']").count(), 0);
 
   await page.locator("#generationPresetSelect").selectOption(first.id);
   await page.locator("#deleteGenerationPreset").click();
@@ -141,7 +144,9 @@ try {
   }
   await mkdir(artifacts, { recursive: true });
   await page.screenshot({ path: `${artifacts}/presets-summary.png`, fullPage: true });
-  console.log("Browser QA passed: create/duplicate/long Chinese name/apply/reapply/rename/cancel delete/reload/final summary/lost-response dedupe/confirmed delete; zero provider executions.");
+  await page.locator("#executionSummaryDetails").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${artifacts}/final-summary.png`, fullPage: true });
+  console.log("Browser QA passed: create/duplicate/long Chinese name/apply/reapply/rename/cancel delete/reload/final summary/lost-response dedupe and resolved placeholder cleanup/confirmed delete; zero provider executions.");
 } catch (error) {
   await mkdir(artifacts, { recursive: true });
   if (page) await page.screenshot({ path: `${artifacts}/failure.png`, fullPage: true }).catch(() => {});

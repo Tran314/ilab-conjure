@@ -20256,14 +20256,15 @@
     renderTasks();
     renderPreview(task);
   }
-  function replacePendingTask(pendingTaskId, completedTask) {
+  function replacePendingTask(pendingTaskId, completedTask, confirmedClientRequestId) {
     const state33 = getLegacyBridge().state;
     const currentTask = state33.tasks.find((task) => task.task_id === completedTask.task_id && !task.local_pending);
     if (currentTask && taskUpdateIsOlder(currentTask, completedTask)) completedTask = currentTask;
-    const removedPendingTasks = state33.tasks.filter((task) => task?.local_pending && (task.task_id === completedTask.task_id || task.task_id === pendingTaskId));
+    const removedPendingTasks = state33.tasks.filter((task) => task?.local_pending && (task.task_id === completedTask.task_id || task.task_id === pendingTaskId || confirmedClientRequestId && task.submission_unknown === true && task.client_request_id === confirmedClientRequestId));
+    const removedPendingIds = new Set(removedPendingTasks.map((task) => task.task_id));
     state33.tasks = [
       completedTask,
-      ...state33.tasks.filter((task) => task.task_id !== completedTask.task_id && task.task_id !== pendingTaskId)
+      ...state33.tasks.filter((task) => task.task_id !== completedTask.task_id && task.task_id !== pendingTaskId && !removedPendingIds.has(task.task_id))
     ];
     removedPendingTasks.forEach(revokeTaskUploadPreviewUrls);
     state33.selectedTaskId = completedTask.task_id;
@@ -54179,8 +54180,8 @@ ${hint}` : hint;
       request
     };
   }
-  function addQueuedTask(task) {
-    replacePendingTask2(state24.pendingTaskId || task.task_id, task);
+  function addQueuedTask(task, confirmedClientRequestId) {
+    replacePendingTask2(state24.pendingTaskId || task.task_id, task, confirmedClientRequestId);
   }
   function buildSubmissionRequest() {
     const prompt = getPromptText9();
@@ -54311,6 +54312,9 @@ ${hint}` : hint;
         knownRejection = true;
         throw new Error(translate("taskSubmit.identityUnavailable"));
       }
+      Object.assign(pendingTask, { client_request_id: submissionIdentity.requestId });
+      const storedPending = state24.tasks.find((task) => task.local_pending && task.task_id === pendingTask.task_id);
+      if (storedPending) storedPending.client_request_id = submissionIdentity.requestId;
       form.append("client_request_id", submissionIdentity.requestId);
       const response = await fetch(endpoint, {
         method: "POST",
@@ -54333,7 +54337,7 @@ ${hint}` : hint;
         completeSubmissionIdentity(submissionIdentity);
       } catch {
       }
-      addQueuedTask(data.task);
+      addQueuedTask(data.task, submissionIdentity.requestId);
       markComposerSubmitted(submittedComposer);
       if (els33.requestJson) {
         els33.requestJson.textContent = JSON.stringify(data.request || {}, null, 2);

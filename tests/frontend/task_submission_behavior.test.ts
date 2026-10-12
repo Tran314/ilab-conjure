@@ -630,3 +630,101 @@ test("a rejected reference-file submission marks the pending task failed and ren
   assert.match(previews[0].error, /Responses/);
   assert.notEqual(state.tasks[0].submission_unknown, true);
 });
+
+test("confirmed lost-response replay retires its old unknown placeholder using the real persistent task store", async () => {
+  resetSubmissionState();
+  stored.clear();
+  const revoked: string[] = [];
+  const rendered: string[][] = [];
+  Object.assign(methods, {
+    addPendingTask: runtimeFeedback.addPendingTask,
+    replacePendingTask: runtimeFeedback.replacePendingTask,
+    markPendingTaskFailed: runtimeFeedback.markPendingTaskFailed,
+    renderTasks: () => rendered.push(state.tasks.map((task: any) => task.task_id)),
+    renderPreview() {},
+    revokeTaskUploadPreviewUrls: (task: any) => revoked.push(task.task_id),
+  });
+  const clientIds: string[] = [];
+  let accepted = false;
+  globalThis.fetch = (async (_url: string, options: any) => {
+    clientIds.push(options.body.get("client_request_id"));
+    if (!accepted) throw new TypeError("Accepted by server, but response lost");
+    return new Response(JSON.stringify({ task: { task_id: "single-confirmed-task", status: "queued" } }));
+  }) as any;
+  await methods.runTask();
+  const original = state.tasks[0];
+  assert.equal(original.local_pending, true);
+  assert.equal(original.submission_unknown, true);
+  assert.equal(original.client_request_id, clientIds[0]);
+  // Avoid identical millisecond-based placeholder IDs hiding a duplicate-card bug.
+  await new Promise(resolve => setTimeout(resolve, 2));
+  await methods.runTask();
+  assert.equal(state.tasks.length, 2, "another lost response must not claim either earlier attempt was resolved");
+  assert.ok(state.tasks.every((task: any) => task.local_pending && task.submission_unknown));
+  await new Promise(resolve => setTimeout(resolve, 2));
+  accepted = true;
+  await methods.runTask();
+  assert.equal(clientIds[0], clientIds[1]);
+  assert.equal(clientIds[1], clientIds[2]);
+  assert.ok(rendered.some(ids => ids.length === 2), "retry must exercise preservation of the old local card");
+  assert.deepEqual(state.tasks.map((task: any) => task.task_id), ["single-confirmed-task"]);
+  assert.equal(state.tasks.some((task: any) => task.local_pending), false);
+  assert.equal(state.tasks.some((task: any) => task.submission_unknown), false);
+  assert.ok(revoked.includes(original.task_id));
+  assert.equal(revoked.length, 3, "all retired local placeholders release their preview URLs");
+  assert.equal(state.selectedTaskId, "single-confirmed-task");
+});
+
+test("confirmed replay preserves unrelated, unconfirmed and real server unknown tasks and their input references", () => {
+  resetSubmissionState();
+  const identity = "confirmed-client-request";
+  const retry = { task_id: "pending-retry", local_pending: true, status: "submitting", client_request_id: identity };
+  const recovered = { task_id: "pending-old", local_pending: true, status: "failed", submission_unknown: true, client_request_id: identity };
+  const unrelated = { ...recovered, task_id: "pending-other", client_request_id: "different-client-request" };
+  const uncorrelated = { ...recovered, task_id: "pending-legacy", client_request_id: undefined };
+  const unconfirmed = { ...retry, task_id: "pending-unconfirmed" };
+  const serverUnknown = { task_id: "server-unknown", status: "failed", submission_unknown: true, client_request_id: identity };
+  const latestServer = { task_id: "server-found", status: "running", updated_at: "2026-10-12T20:00:02Z" };
+  const staleReplay = { ...latestServer, status: "queued", updated_at: "2026-10-12T20:00:01Z" };
+  const revoked: string[] = [];
+  Object.assign(methods, { renderTasks() {}, renderPreview() {}, revokeTaskUploadPreviewUrls: (task: any) => revoked.push(task.task_id) });
+  state.tasks = [retry, recovered, unrelated, uncorrelated, unconfirmed, serverUnknown, latestServer];
+  runtimeFeedback.replacePendingTask(retry.task_id, staleReplay as any, identity);
+  assert.equal(state.tasks[0], latestServer, "replay must preserve newer server progress");
+  assert.deepEqual(new Set(state.tasks.slice(1)), new Set([unrelated, uncorrelated, unconfirmed, serverUnknown]));
+  assert.deepEqual(new Set(revoked), new Set([retry.task_id, recovered.task_id]));
+});
+
+test("a response without confirmed identity never retires earlier unknown placeholders", () => {
+  resetSubmissionState();
+  const unknown = { task_id: "pending-old", local_pending: true, status: "failed", submission_unknown: true, client_request_id: "unconfirmed-request" };
+  state.tasks = [{ task_id: "pending-current", local_pending: true, status: "submitting" }, unknown];
+  Object.assign(methods, { renderTasks() {}, renderPreview() {}, revokeTaskUploadPreviewUrls() {} });
+  runtimeFeedback.replacePendingTask("pending-current", { task_id: "new-server-task", status: "queued" } as any);
+  assert.equal(state.tasks.includes(unknown), true);
+});
+
+test("recovered placeholders release only orphaned preview URLs through the real input cleanup", async () => {
+  resetSubmissionState();
+  (globalThis as any).document.addEventListener = () => {};
+  const { initInputSourcesFeature } = await import("../../codex_image/webui/frontend/src/input-sources");
+  initInputSourcesFeature();
+  const originalRevoke = URL.revokeObjectURL;
+  const revoked: string[] = [];
+  URL.revokeObjectURL = (url: string) => { revoked.push(url); };
+  const input = (url: string) => ({ kind: "upload", previewUrl: url });
+  const inputs = [input("blob:orphan"), input("blob:unresolved-reference"), input("blob:composer-reference")];
+  const identity = "recovered-request";
+  const recovered = { task_id: "pending-old", local_pending: true, submission_unknown: true, client_request_id: identity, local_input_files: inputs };
+  const retry = { task_id: "pending-current", local_pending: true, client_request_id: identity, local_input_files: inputs };
+  const unresolved = { task_id: "pending-unrelated", local_pending: true, submission_unknown: true, client_request_id: "different-request", local_input_files: [input("blob:unresolved-reference")] };
+  state.images = [input("blob:composer-reference")];
+  state.tasks = [retry, recovered, unresolved];
+  Object.assign(methods, { renderTasks() {}, renderPreview() {} });
+  try {
+    runtimeFeedback.replacePendingTask(retry.task_id, { task_id: "confirmed-server-task", status: "queued" } as any, identity);
+    assert.deepEqual(new Set(revoked), new Set(["blob:orphan"]));
+    assert.equal(state.tasks.includes(unresolved), true);
+    assert.equal(state.images[0].previewUrl, "blob:composer-reference");
+  } finally { URL.revokeObjectURL = originalRevoke; }
+});
