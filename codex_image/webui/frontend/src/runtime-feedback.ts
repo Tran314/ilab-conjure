@@ -1,3 +1,4 @@
+import { taskResultUnknown } from "./task-recovery";
 import { getLegacyBridge } from "./state";
 import { formatTranslation, translate } from "./i18n";
 import type { WebUITask } from "./types";
@@ -55,6 +56,7 @@ export function updateTaskInState(task: WebUITask | null | undefined): boolean {
 
 export function formatTaskStatus(task: WebUITask | null | undefined): string {
   if (!task) return "";
+  if (taskResultUnknown(task)) return translate("recovery.unknownStatus");
   if (taskWasCancelled(task)) return translate("queue.runningCancelled");
   if (taskCancellationPending(task)) return translate("taskStatus.cancelling");
   if (task.status === "submitting") return translate("taskStatus.submitting");

@@ -325,12 +325,11 @@ class WebUISettingsTests(unittest.TestCase):
         self.assertEqual(payload["current_version"], "0.3.6")
         self.assertEqual(payload["latest_version"], "0.3.7")
         self.assertTrue(payload["update_available"])
-        self.assertTrue(payload["updater_available"])
-        expected_updater = (
-            "Update WebUI Portable.bat"
-            if platform.system().lower() == "windows"
-            else "Update WebUI Portable.command"
-        )
+        self.assertEqual(payload["updater_available"], platform.system().lower() in {"darwin", "windows"})
+        expected_updater = {
+            "windows": "Update WebUI Portable.bat",
+            "darwin": "Update WebUI Portable.command",
+        }.get(platform.system().lower())
         self.assertEqual(payload["updater_label"], expected_updater)
         self.assertIsNone(payload["post_update_onboarding"])
 
@@ -1427,6 +1426,13 @@ class WebUISettingsTests(unittest.TestCase):
                     f"/api/tasks/{task_id}/retry-failed",
                     json={"api_provider_id": "vendor-a"},
                 )
+                self.assertEqual(retry_response.status_code, 409, retry_response.text)
+                self.assertEqual(retry_response.json()["detail"]["code"], "recovery_provider_locked")
+                unchanged = client.get(f"/api/tasks/{task_id}").json()["task"]
+                self.assertEqual(unchanged["generation_snapshot"], partial["generation_snapshot"])
+                self.assertEqual(unchanged["status"], "partial_failed")
+                self.assertNotIn(task_id, app.state.queue_storage.read_state()["waiting"])
+                retry_response = client.post(f"/api/tasks/{task_id}/retry-failed")
                 queued = retry_response.json()["task"]
                 asyncio.run(app.state.queue_manager.run_available_once())
                 retried = client.get(f"/api/tasks/{task_id}").json()["task"]
@@ -1493,7 +1499,7 @@ class WebUISettingsTests(unittest.TestCase):
         self.assertEqual(task["output_urls"], [output_url(task_id, index) for index in (1, 2, 3, 4)])
         self.assertEqual(output_files_exist, [True, True, True, True])
 
-    def test_api_images_retries_retryable_transient_output_errors(self) -> None:
+    def test_api_images_does_not_replay_ambiguous_output_errors(self) -> None:
         from codex_image.webui.app import create_app
 
         failures = {
@@ -1556,20 +1562,21 @@ class WebUISettingsTests(unittest.TestCase):
                     )
                     task_id = created.json()["task"]["task_id"]
 
-                    asyncio.run(app.state.queue_manager.run_available_once())
+                    with self.assertRaises(RuntimeError):
+                        asyncio.run(app.state.queue_manager.run_available_once())
                     task = client.get(f"/api/tasks/{task_id}").json()["task"]
 
-                self.assertEqual(task["status"], "completed")
-                self.assertEqual(task["generated_count"], 1)
-                self.assertEqual(task["failed_count"], 0)
+                self.assertEqual(task["status"], "failed")
+                self.assertEqual(task["generated_count"], 0)
+                self.assertEqual(task["failed_count"], 1)
                 self.assertEqual(len(TransientFailingApiImageClient.instances), 1)
                 self.assertEqual(
                     len(TransientFailingApiImageClient.instances[0].generate_calls),
-                    2,
+                    1,
                 )
-                self.assertEqual(task["outputs"][0]["attempts"], 2)
+                self.assertEqual(task["outputs"][0]["attempts"], 1)
 
-    def test_api_images_stops_after_two_transient_output_retries(self) -> None:
+    def test_api_images_stops_after_first_ambiguous_output_failure(self) -> None:
         from codex_image.webui.app import create_app
 
         failure = RuntimeError(
@@ -1628,9 +1635,9 @@ class WebUISettingsTests(unittest.TestCase):
         self.assertEqual(len(TransientFailingApiImageClient.instances), 1)
         self.assertEqual(
             len(TransientFailingApiImageClient.instances[0].generate_calls),
-            3,
+            1,
         )
-        self.assertEqual(task["outputs"][0]["attempts"], 3)
+        self.assertEqual(task["outputs"][0]["attempts"], 1)
 
     def test_api_images_honors_zero_configured_transient_retries(self) -> None:
         from codex_image.webui.app import create_app

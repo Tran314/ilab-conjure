@@ -35,11 +35,12 @@ def _certificate_failure(exc: BaseException) -> bool:
 class HTTPTransportFailure(RuntimeError):
     """A diagnosed HTTP failure whose connection retries have already been handled."""
 
-    def __init__(self, *, phase: str, hostname: str, route: str, attempts: int, error: BaseException):
+    def __init__(self, *, phase: str, hostname: str, route: str, attempts: int, error: BaseException, request_sent: bool = False):
         self.phase = phase
         self.hostname = hostname
         self.route = route
         self.attempts = attempts
+        self.request_sent = request_sent
         chain = exception_chain(error)
         codes = list(dict.fromkeys(
             errno.errorcode[item.errno] for item in chain
@@ -62,7 +63,7 @@ def connection_retry_delay(failed_round: int) -> float:
 
 @asynccontextmanager
 async def stream_with_connection_retries(
-    client, method, urls, *, retry_count: int, phase: str, hostname: str, route: str, **kwargs,
+    client, method, urls, *, retry_count: int, phase: str, hostname: str, route: str, prior_request_sent: bool = False, **kwargs,
 ):
     attempts = 0
     for round_index in range(retry_count + 1):
@@ -78,14 +79,14 @@ async def stream_with_connection_retries(
                 if opened:
                     if phase != "upstream_request":
                         raise HTTPTransportFailure(phase=phase, hostname=hostname, route=route,
-                                                   attempts=attempts, error=exc) from exc
+                                                   attempts=attempts, error=exc, request_sent=prior_request_sent or opened) from exc
                     raise
                 if _certificate_failure(exc) or (round_index == retry_count and index == len(urls) - 1):
                     raise HTTPTransportFailure(phase=phase, hostname=hostname, route=route,
-                                               attempts=attempts, error=exc) from exc
+                                               attempts=attempts, error=exc, request_sent=prior_request_sent or opened) from exc
             except httpx.TransportError as exc:
                 if phase == "upstream_request":
                     raise
                 raise HTTPTransportFailure(phase=phase, hostname=hostname, route=route,
-                                           attempts=attempts, error=exc) from exc
+                                           attempts=attempts, error=exc, request_sent=prior_request_sent or opened) from exc
         await asyncio.sleep(connection_retry_delay(round_index))

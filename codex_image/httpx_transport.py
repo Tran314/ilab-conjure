@@ -300,6 +300,7 @@ class HttpxTransport:
                         client, current_method, request_urls,
                         retry_count=self.connect_retry_count, phase=phase,
                         hostname=urlsplit(current_url).hostname or "", route=route,
+                        prior_request_sent=redirect_count > 0,
                         headers=request_headers,
                         content=current_body,
                         extensions=extensions,

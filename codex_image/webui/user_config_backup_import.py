@@ -49,7 +49,12 @@ from .color_settings import _normalize_color_palette_payload
 from .image_uploads import InvalidRasterImage, validate_raster_image
 from .prompt_snippets import _normalize_prompt_snippets_payload
 from .provider_validation import provider_url_origin, validate_v2_payload
-from .gallery_storage import GallerySnapshot, GallerySnapshotItem
+from .gallery_storage import (
+    GallerySnapshot,
+    GallerySnapshotItem,
+    GalleryProtectionUnavailableError,
+)
+from .user_config_restore_preview import compare_section, gallery_items, gallery_reference_impact
 from .resource_limits import (
     MAX_USER_CONFIG_BACKUP_COMPRESSION_RATIO,
     MAX_USER_CONFIG_BACKUP_ENTRIES,
@@ -393,6 +398,14 @@ class UserConfigBackupImportService:
 
         with ExitStack() as apply_stack:
             apply_stack.enter_context(self.planner._exclusive(selected))
+            # Recheck after acquiring the stores: a preview can become stale while
+            # another writer holds a lock, including after the early check above.
+            for section_preview in preview.sections:
+                if section_preview.section in selected and self._current_fingerprint(
+                    section_preview.section,
+                    self._staged_client_preferences(normalized_id),
+                ) != section_preview.current_fingerprint:
+                    raise ValueError("user_config_restore_preview_stale")
             if (
                 mode == "replace"
                 and any(section in {"gallery", "settings"} for section in selected)
@@ -402,6 +415,8 @@ class UserConfigBackupImportService:
                 queue_state = self.queue_storage.read_state()
                 if queue_state.get("waiting") or queue_state.get("running"):
                     raise ValueError("user_config_restore_active_tasks")
+            if mode == "replace" and "gallery" in selected:
+                self._assert_gallery_replacement_safe(normalized_id)
             backups = self._capture_selected_json_backups(selected)
             directory_backups = self._capture_selected_directory_backups(
                 normalized_id,
@@ -556,12 +571,13 @@ class UserConfigBackupImportService:
                 digest = hashlib.sha256(
                     json.dumps(candidate, sort_keys=True, ensure_ascii=False).encode()
                 ).hexdigest()[:16]
-                candidate["id"] = f"restored-{digest}"
+                candidate["id"] = _recovery_copy_id(digest, ids)
                 base_tag = tag[:14]
                 index = 2
                 new_tag = f"{base_tag}-restored"
                 while new_tag.casefold() in tags:
-                    new_tag = f"{base_tag}-restored-{index}"
+                    suffix = f"-restored-{index}"
+                    new_tag = f"{base_tag[:24 - len(suffix)]}{suffix}"
                     index += 1
                 candidate["tag"] = new_tag[:24]
                 candidate["title"] = (
@@ -602,6 +618,7 @@ class UserConfigBackupImportService:
             )
         current = self.planner.gallery_storage.snapshot()
         if mode == "replace":
+            self._assert_gallery_replacement_safe(session_id)
             self._remove_managed_gallery_paths()
             self.planner.gallery_storage.write_snapshot(
                 GallerySnapshot(
@@ -644,7 +661,7 @@ class UserConfigBackupImportService:
             ):
                 recovery_copies += 1
                 digest = imported.sha256[:16]
-                metadata["id"] = f"restored-{digest}"
+                metadata["id"] = _recovery_copy_id(digest, ids)
                 base_name = str(metadata["name"])[:48]
                 candidate_name = f"{base_name}（恢复副本）"
                 index = 2
@@ -673,6 +690,28 @@ class UserConfigBackupImportService:
             skipped=skipped,
             recovery_copies=recovery_copies,
         )
+
+    def _gallery_reference_counts(self) -> dict[str, int]:
+        assert self.planner is not None
+        try:
+            return self.planner.gallery_storage.reference_counts()
+        except GalleryProtectionUnavailableError as exc:
+            raise ValueError("user_config_restore_gallery_protection_unavailable") from exc
+
+    def _assert_gallery_replacement_safe(self, session_id: str) -> None:
+        assert self.planner is not None
+        imported = {
+            path.parent.name: _json_value(path.read_bytes(), path.name)
+            for path in (self._staging_path(session_id) / "gallery" / "items").glob(
+                "*/metadata.json"
+            )
+        }
+        current = {
+            str(item.metadata["id"]): item.metadata
+            for item in self.planner.gallery_storage.snapshot().items
+        }
+        if gallery_reference_impact(imported, current, self._gallery_reference_counts()):
+            raise ValueError("user_config_restore_gallery_references_block_replace")
 
     def _restore_templates(self, session_id, mode):
         assert self.planner is not None
@@ -747,10 +786,14 @@ class UserConfigBackupImportService:
                 digest = hashlib.sha256(
                     json.dumps(candidate, sort_keys=True, ensure_ascii=False).encode()
                 ).hexdigest()[:16]
-                candidate["id"] = f"restored-{digest}"
-                candidate["title"] = (
-                    str(candidate["title"])[:68] + "（恢复副本）"
-                )[:80]
+                candidate["id"] = _recovery_copy_id(digest, ids)
+                base_title = str(candidate["title"])[:68]
+                candidate["title"] = base_title + "（恢复副本）"
+                index = 2
+                while candidate["title"].casefold() in titles:
+                    suffix = f"（恢复副本 {index}）"
+                    candidate["title"] = base_title[:80 - len(suffix)] + suffix
+                    index += 1
             merged.append(candidate)
             identities.add(identity)
             ids.add(str(candidate["id"]))
@@ -1280,29 +1323,43 @@ class UserConfigBackupImportService:
             self._preserve_current_provider_keys(payloads["settings/providers.json"])
         section_previews: list[UserConfigRestoreSectionPreview] = []
         current_fingerprints: dict[str, str] = {}
+        history_impact = 0
         for section in manifest.sections:
             members = [member for member in manifest.members if member.section == section]
             archive_count = _section_archive_count(section, payloads, members)
             archive_groups = _section_group_counts(section, payloads, members)
-            (
-                current_count,
-                current_groups,
-                current_fingerprint,
-            ) = self._current_section_state(
-                section,
-                semantic.get("client_preferences"),
+            current_payloads, current_members, current_warnings, current_fingerprint = (
+                self._current_section_details(section, semantic.get("client_preferences"))
             )
+            current_count = _section_archive_count(section, current_payloads, current_members)
+            current_groups = _section_group_counts(section, current_payloads, current_members)
+            identical, conflicts, missing, section_warnings = compare_section(
+                section, payloads, current_payloads, members, current_members,
+                contains_secrets=manifest.contains_secrets,
+                current_warnings=current_warnings,
+            )
+            if section == "gallery" and self.planner is not None:
+                reference_counts = self._gallery_reference_counts()
+                current_items = gallery_items(current_payloads)
+                history_impact = gallery_reference_impact(
+                    gallery_items(payloads), current_items, reference_counts,
+                )
+                missing += sum(item_id not in current_items for item_id in reference_counts)
+                if history_impact:
+                    section_warnings += ("user_config_restore_gallery_references_block_replace",)
+                if missing:
+                    section_warnings += ("user_config_restore_missing_assets_review",)
             current_fingerprints[section] = current_fingerprint
             section_previews.append(
                 UserConfigRestoreSectionPreview(
                     section=section,
                     archive_count=archive_count,
-                    identical_count=0,
-                    conflicts=0,
-                    missing_assets=0,
+                    identical_count=identical,
+                    conflicts=conflicts,
+                    missing_assets=missing,
                     replace_existing_count=current_count,
                     estimated_write_bytes=sum(member.size_bytes for member in members),
-                    warnings=(),
+                    warnings=section_warnings,
                     current_fingerprint=current_fingerprint,
                     groups=tuple(
                         UserConfigRestoreGroupPreview(
@@ -1321,6 +1378,7 @@ class UserConfigBackupImportService:
                 "archive_sha256": archive_sha256,
                 "members": [asdict(member) for member in manifest.members],
                 "current": current_fingerprints,
+                "gallery_history_reference_impact": history_impact,
             },
             sort_keys=True,
             separators=(",", ":"),
@@ -1335,7 +1393,7 @@ class UserConfigBackupImportService:
             sections=tuple(section_previews),
             path_fields=path_fields,
             keyed_provider_retention_count=keyed_retention,
-            gallery_history_reference_impact=0,
+            gallery_history_reference_impact=history_impact,
             warnings=(),
         )
 
@@ -1351,17 +1409,22 @@ class UserConfigBackupImportService:
         section: UserConfigSection,
         preferences: ClientPreferences | None,
     ) -> tuple[int, dict[str, int], str]:
+        payloads, members, _, fingerprint = self._current_section_details(section, preferences)
+        return (
+            _section_archive_count(section, payloads, members),
+            _section_group_counts(section, payloads, members),
+            fingerprint,
+        )
+
+    def _current_section_details(self, section, preferences):
         if self.planner is None:
-            groups = _section_group_counts(section, {}, ())
-            return (
-                0,
-                groups,
-                hashlib.sha256(f"empty:{section}".encode()).hexdigest(),
-            )
+            return {}, (), (), hashlib.sha256(f"empty:{section}".encode()).hexdigest()
         try:
             plan = self.planner.plan(
                 (section,),
-                include_api_keys=False,
+                # Include key changes in stale-preview detection, without exposing
+                # their values in the preview or persisting the current snapshot.
+                include_api_keys=section == "settings",
                 client_preferences=(preferences if section == "settings" else None),
             )
             members = [member.entry for member in plan.members]
@@ -1376,11 +1439,7 @@ class UserConfigBackupImportService:
             ).encode()
         except Exception as exc:
             raise ValueError("user_config_restore_preview_unavailable") from exc
-        return (
-            _section_archive_count(section, payloads, members),
-            _section_group_counts(section, payloads, members),
-            hashlib.sha256(fingerprint_payload).hexdigest(),
-        )
+        return payloads, members, plan.warnings, hashlib.sha256(fingerprint_payload).hexdigest()
 
     def _keyed_provider_count(self) -> int:
         if self.planner is None:
@@ -1519,6 +1578,16 @@ class UserConfigBackupImportService:
     def _now(self) -> datetime:
         now = self._clock()
         return now if now.tzinfo is not None else now.replace(tzinfo=timezone.utc)
+
+
+def _recovery_copy_id(digest: str, existing_ids: set[str]) -> str:
+    base = f"restored-{digest}"
+    candidate = base
+    index = 2
+    while candidate in existing_ids:
+        candidate = f"{base}-{index}"
+        index += 1
+    return candidate
 
 
 def _validated_filename(filename: Any) -> str:

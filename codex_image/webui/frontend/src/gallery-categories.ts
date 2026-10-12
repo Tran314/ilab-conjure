@@ -1,3 +1,4 @@
+import { apiErrorMessage } from "./api-error";
 import { getLegacyBridge } from "./state";
 import { setGalleryDragPreview } from "./gallery-drag-preview";
 import { formatTranslation, LOCALE_CHANGE_EVENT, translate } from "./i18n";
@@ -254,7 +255,7 @@ async function refreshGalleryCategories() {
   try {
     const response = await fetch("/api/gallery/categories");
     const data = await response.json();
-    if (!response.ok) throw new Error(data.detail || translate("gallery.categoryLoadFailed"));
+    if (!response.ok) throw new Error(apiErrorMessage(data.detail, translate("gallery.categoryLoadFailed")));
     state.galleryCategories = normalizeGalleryCategories(data.categories);
     ensureActiveGalleryCategory();
     renderGalleryCategoryControls();
@@ -281,7 +282,7 @@ async function createGalleryCategory() {
       body: JSON.stringify({ name, prompt_role: promptRole }),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.detail || translate("gallery.categoryCreateFailed"));
+    if (!response.ok) throw new Error(apiErrorMessage(data.detail, translate("gallery.categoryCreateFailed")));
     if (els.newGalleryCategoryName) els.newGalleryCategoryName.value = "";
     if (els.newGalleryCategoryPromptRole) els.newGalleryCategoryPromptRole.value = "";
     state.activeGalleryCategory = data.category?.id || state.activeGalleryCategory;
@@ -309,7 +310,7 @@ async function updateGalleryCategory(categoryId: any) {
       body: JSON.stringify({ name, prompt_role: promptRole, order: category?.order }),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.detail || translate("gallery.categorySaveFailed"));
+    if (!response.ok) throw new Error(apiErrorMessage(data.detail, translate("gallery.categorySaveFailed")));
     await refreshGalleryCategories();
     setStatus(translate("gallery.categorySaved"), "ok");
   } catch (error: any) {
@@ -339,7 +340,7 @@ async function performDeleteGalleryCategory(categoryId: any, moveTo: any, catego
       method: "DELETE",
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.detail || translate("gallery.categoryDeleteFailed"));
+    if (!response.ok) throw new Error(apiErrorMessage(data.detail, translate("gallery.categoryDeleteFailed")));
     if (state.activeGalleryCategory === categoryId) state.activeGalleryCategory = moveTo;
     await refreshGallery();
     setStatus(formatTranslation("gallery.categoryDeletedMigrated", { name: categoryName }), "ok");
@@ -458,7 +459,7 @@ async function persistGalleryCategoryOrder(categoryIds: string[]) {
       body: JSON.stringify({ category_ids: categoryIds }),
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.detail || translate("gallery.categoryOrderUpdateFailed"));
+    if (!response.ok) throw new Error(apiErrorMessage(data.detail, translate("gallery.categoryOrderUpdateFailed")));
     state.galleryCategories = normalizeGalleryCategories(data.categories);
     renderGalleryCategoryControls();
     renderQuickGalleryDock();

@@ -285,7 +285,10 @@ class HistoryBackupImportTests(unittest.TestCase):
             input_root=work / "inputs",
             source_data_root=work / "outputs" / "source-data",
         )
-        gallery = GalleryStorage(work / "gallery")
+        gallery = GalleryStorage(
+            work / "gallery",
+            reference_counts_provider=lambda: storage.resource_reference_counts("gallery"),
+        )
         assets = ReferenceAssetStorage(work / "reference-assets", max_items=50)
         reference_files = ReferenceFileStorage(work / "reference-files")
         planner = TaskBackupPlanner(storage, gallery, assets, reference_files)

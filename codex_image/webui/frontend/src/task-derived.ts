@@ -1,4 +1,4 @@
-import { taskRecoveryKind } from "./task-recovery";
+import { taskRecoveryKind, taskResultUnknown, taskSafeRetryAction } from "./task-recovery";
 import { getLegacyBridge } from "./state";
 import { taskWasCancelled } from "./task-cancellation";
 import { formatTranslation, translate } from "./i18n";
@@ -482,6 +482,7 @@ function nonnegativeInt(value: any) {
 
 function taskFailureMessage(task: any) {
   if (!task || (task.status !== "failed" && task.status !== "partial_failed")) return "";
+  if (taskResultUnknown(task)) return translate("recovery.resultUnknown");
   if (taskWasCancelled(task)) return translate("queue.runningCancelled");
   return String(task.error || task.last_error || "").trim();
 }
@@ -489,6 +490,9 @@ function taskFailureMessage(task: any) {
 function canRetryFailedTask(task: any) {
   if (!task || task.local_pending) return false;
   if (!["failed", "partial_failed"].includes(task.status)) return false;
+  const action = taskSafeRetryAction(task);
+  if (action === "none") return false;
+  if (action) return true;
   if (taskHasNonRetryableError(task) && !taskPartialFailureCanRetryGenericInvalidRequest(task)) return false;
   const states = taskImageBlockStates(task);
   return states.includes("failed");

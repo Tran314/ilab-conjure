@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from codex_image.generation.checkpoints import checkpoint_request
+
 import json
 import time
 from collections.abc import Mapping
@@ -98,7 +100,7 @@ class T8ImagesAdapter:
             body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
             content_type = "application/json"
         try:
-            response = client.transport.request(
+            response = checkpoint_request(client.transport,
                 method=request.method,
                 url=f"{client.base_url}{request.path}",
                 headers=client._build_headers(content_type=content_type),
@@ -133,7 +135,7 @@ class T8ImagesAdapter:
         task_url = f"{client.base_url}/images/tasks/{quote(task_id, safe='')}"
         for _attempt in range(self._poll_attempts):
             self._sleep(self._poll_interval)
-            response = client.transport.request(
+            response = checkpoint_request(client.transport,
                 method="GET",
                 url=task_url,
                 headers=headers,

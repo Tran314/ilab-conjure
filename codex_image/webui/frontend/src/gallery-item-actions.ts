@@ -1,3 +1,4 @@
+import { apiErrorMessage } from "./api-error";
 import { getLegacyBridge } from "./state";
 import { formatTranslation, translate } from "./i18n";
 
@@ -116,7 +117,7 @@ async function saveUploadToGallery() {
     const response = await fetch("/api/gallery", { method: "POST", body: form });
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.detail || translate("gallery.saveFailed"));
+      throw new Error(apiErrorMessage(data.detail, translate("gallery.saveFailed")));
     }
     state.images[state.addToGalleryIndex] = gallerySource(data.item);
     if (source.kind === "upload") revokeUploadPreviewUrl(source);
@@ -195,7 +196,7 @@ async function patchGalleryItem(itemId: any, payload: any) {
       body: JSON.stringify(payload),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.detail || translate("gallery.updateFailed"));
+    if (!response.ok) throw new Error(apiErrorMessage(data.detail, translate("gallery.updateFailed")));
     await refreshGallery();
     state.images = state.images.map((source: any) => source.kind === "gallery" && source.id === itemId ? gallerySource(data.item) : source);
     renderImageStrip();
@@ -239,7 +240,7 @@ async function replaceGalleryItemImage(itemId: any) {
       body: form,
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.detail || translate("gallery.replaceImageFailed"));
+    if (!response.ok) throw new Error(apiErrorMessage(data.detail, translate("gallery.replaceImageFailed")));
     const updated = data.item;
     state.galleryItems = state.galleryItems.map((candidate: any) => (candidate.id === itemId ? updated : candidate));
     state.images = state.images.map((source: any) => (source.kind === "gallery" && source.id === itemId ? gallerySource(updated) : source));
@@ -271,7 +272,7 @@ async function performDeleteGalleryItem(itemId: any) {
   try {
     const response = await fetch(`/api/gallery/${encodeURIComponent(itemId)}`, { method: "DELETE" });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.detail || translate("gallery.deleteFailed"));
+    if (!response.ok) throw new Error(apiErrorMessage(data.detail, translate("gallery.deleteFailed")));
     await refreshGallery();
     state.images = state.images.map((source: any) => {
       if (source.kind !== "gallery" || source.id !== itemId) return source;

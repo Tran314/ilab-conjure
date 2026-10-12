@@ -55,3 +55,69 @@ cargo run
 ```
 
 On Windows the binary uses the GUI subsystem, so double-clicking it does not create a console window.
+
+## Linux first release
+
+Target: Ubuntu 22.04/24.04 x86_64, GNOME X11 or Wayland. Desktop acceptance on
+both sessions is a release gate; automated headless tests do not validate tray
+visibility. Linux needs GTK 3, libayatana-appindicator3, libxdo3, curl, xdg-utils,
+and zenity. GNOME tray actions also need an enabled AppIndicator extension.
+GTK initialization, tray creation, and the GTK event loop run on one thread.
+AppIndicator library and symbol preflight catches missing/incompatible tray
+libraries before the dependency's lazy loader can panic.
+If the display, AppIndicator library, or tray host is unavailable, the backend remains available at
+its printed URL. Browser-opening failure also leaves the backend available.
+
+The portable archive and installed DEB contain an explicit bundle identity:
+
+```json
+{"schema_version":1,"platform":"linux-x86_64","mode":"portable","package":"portable-tar-gz"}
+```
+
+The DEB uses `mode: "installed"` and `package: "standard-deb"`. This file is
+`bundle-metadata.json` beside the launcher, `app/`, and `python/` directories.
+Both modes use `python/bin/python3`, `app/.deps`, and `linux_webui_app:app`.
+Missing metadata, runtime, or bundled dependencies is a damaged-package error;
+packaged launch never falls back to system Python, `.venv`, or pip. Source
+checkouts retain their venv/dependency bootstrap, regardless of directory name.
+The installed program tree is never used for data or bytecode writes.
+
+Portable data defaults to writable `data/` beside the launcher. Installed data
+uses absolute `$XDG_DATA_HOME/iLab GPT CONJURE`, otherwise
+`$HOME/.local/share/iLab GPT CONJURE`. An absolute `ILAB_CONJURE_DATA_DIR` can
+override either default. Saved custom input/output paths are preserved. Logs
+are `<configured-output-root>/webui-server.log`. The server receives consistent
+`APP_LAUNCHER_MODE` (`portable`, `standard`, or `source`),
+`ILAB_CONJURE_APP_DIR`, `ILAB_CONJURE_BUNDLE_DIR`, and `ILAB_CONJURE_DATA_DIR`.
+
+```bash
+ilab-conjure --status
+ilab-conjure --stop
+ilab-conjure --no-tray
+ilab-conjure --check-updates
+ilab-conjure --download-update
+```
+
+For a portable bundle, use `./ilab-conjure-launcher` instead of `ilab-conjure`.
+Use the same data-directory override for startup and control commands.
+`--status` and `--stop` work without a display. Automatic reuse, browser opening,
+and status require product/data identity plus a private ownership record whose
+instance token and live process identity match the health response. An unrecorded
+or spoofed local service is reported as unverified and is not opened automatically.
+Manually started source services must be opened manually. The first launcher owns its backend; subsequent
+launches reuse a matching service without taking ownership. Explicit tray
+Restart/Quit can control a reused launcher-owned backend after verifying its
+current health instance against the ownership record. Closing a secondary
+launcher without that explicit action does not stop the detached backend.
+Stop verifies the
+private service record, UID, process start time, launcher token, and server
+command. Linux pidfds protect against PID reuse. It sends SIGTERM, waits up to
+eight seconds, then uses SIGKILL only for that verified process. Unrelated
+services on port 8787 are never terminated. Startup/control errors exit nonzero.
+
+Linux update checks preserve the schema-1 Ed25519 signing protocol and choose
+`linux-x86_64` from the portable or standard map. Download uses HTTPS only,
+verifies the signed SHA256, and saves into `<data-dir>/downloads/`. Failed or
+corrupt partial downloads are removed. Neither update command extracts,
+replaces, runs, or installs the package. Install the verified archive or DEB
+manually; source checkouts do not offer package replacement.

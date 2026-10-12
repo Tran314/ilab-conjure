@@ -216,7 +216,19 @@ pub(super) fn update_check_from_manifest(
         UpdatePackageKind::Standard => &manifest.standard_platforms,
         UpdatePackageKind::Source => &manifest.platforms,
     };
-    let platform = platform_map.get(current_update_platform_key());
+    let platform = platform_map
+        .get(current_update_platform_key())
+        .filter(|entry| {
+            if cfg!(target_os = "linux") {
+                match package_kind {
+                    UpdatePackageKind::Portable => entry.package == "portable-tar-gz",
+                    UpdatePackageKind::Standard => entry.package == "standard-deb",
+                    UpdatePackageKind::Source => false,
+                }
+            } else {
+                true
+            }
+        });
     UpdateCheck {
         current_version: current_version.to_string(),
         latest_version,
@@ -401,7 +413,12 @@ pub(super) fn current_update_platform_key() -> &'static str {
     {
         "windows-x86_64"
     }
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    {
+        "linux-x86_64"
+    }
     #[cfg(not(any(
+        all(target_os = "linux", target_arch = "x86_64"),
         all(target_os = "macos", target_arch = "aarch64"),
         all(target_os = "macos", target_arch = "x86_64"),
         all(target_os = "windows", target_arch = "x86_64")

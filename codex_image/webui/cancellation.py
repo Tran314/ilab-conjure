@@ -113,6 +113,17 @@ def requeue_task_after_shutdown(
         metadata = storage.read_metadata(task_id)
         if metadata.get("cancel_requested"):
             return finalize_task_cancellation(storage, task_id)
+        from codex_image.generation.checkpoints import project_recovery
+        project_recovery(storage, task_id, metadata)
+        if metadata.get("safe_retry_action") == "confirm_regenerate":
+            metadata.update(status="failed", updated_at=utc_now(),
+                            error="The service stopped after submission. The provider may still complete and charge for this generation.")
+            metadata["last_error"] = metadata["error"]
+            for record in metadata.get("outputs", []):
+                if isinstance(record, dict) and record.get("status") in {"running", "queued", "waiting"}:
+                    record.update(status="failed", error=metadata["error"])
+            storage.write_metadata(task_id, metadata)
+            return metadata
         requeued_at = utc_now()
         metadata.update(
             {

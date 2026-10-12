@@ -339,7 +339,9 @@ class ReferenceImageOrderTests(unittest.TestCase):
 
         self.app.state.queue_manager.auto_retry = False
         task = self.submit("edit", "DACBE").json()["task"]
-        self.app.state.gallery_storage.delete_item(self.galleries["D"])
+        # Simulate external loss; the gallery API now protects task references.
+        import shutil
+        shutil.rmtree(self.app.state.gallery_storage.root / self.galleries["D"])
         with self.assertRaises(RetryableTaskError):
             asyncio.run(self.app.state.queue_manager.run_available_once())
         restored = self.client.get(f"/api/tasks/{task['task_id']}").json()["task"]

@@ -866,6 +866,7 @@ def _write_queued_metadata(
     file_references = _reference_files_for_metadata(reference_files)
     metadata = {
         "task_id": task_id,
+        "recovery_schema_version": 1,
         "created_at": created_at,
         "updated_at": created_at,
         "viewed_at": created_at,

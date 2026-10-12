@@ -222,12 +222,23 @@ class TaskStorage:
             else:
                 _preserve_sticky_task_cancellation(path, metadata)
             _stabilize_task_terminal_timestamp(path, metadata)
+            from codex_image.generation.checkpoints import project_recovery
+            project_recovery(self, task_id, metadata)
             atomic_write_text(
                 path,
                 json.dumps(metadata, indent=2, ensure_ascii=False),
                 mode=0o600,
             )
             self.task_index.upsert(metadata)
+            from codex_image.generation.checkpoints import TaskCheckpoints
+            TaskCheckpoints(self, task_id).compact_completed(metadata)
+            for record in metadata.get("outputs", []):
+                if isinstance(record, dict) and record.get("status") == "completed" and isinstance(record.get("index"), int):
+                    result_path = path.parent / f"{task_id}.result-{record['index']}.json"
+                    try:
+                        result_path.unlink(missing_ok=True)
+                    except OSError:
+                        pass
         return path
 
     def read_metadata(self, task_id: str) -> dict[str, Any]:
@@ -611,6 +622,9 @@ class TaskStorage:
             for directory in (self.source_data_root, task_source_dir)
             for suffix in (*TASK_SOURCE_DATA_SUFFIXES, "restore-owner")
         ]
+        for directory in (self.source_data_root, task_source_dir):
+            source_data_paths.extend(path for path in directory.glob(f"{task_id}.*.json")
+                                     if re.fullmatch(re.escape(task_id) + r"\.(?:recovery|result)-[0-9]+\.json", path.name))
         source_data_paths = list(dict.fromkeys(path for path in source_data_paths if path.is_file() or path.is_symlink()))
         metadata_filename = f"{task_id}.metadata.json"
         metadata_paths = [path for path in source_data_paths if path.name == metadata_filename]

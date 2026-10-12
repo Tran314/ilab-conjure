@@ -82,7 +82,9 @@ const els: any = {
 
 const methods: Record<string, (...args: any[]) => any> = {};
 const bridge: any = { state, els, methods };
+const stored = new Map<string, string>();
 const fakeWindow: any = {
+  localStorage: { getItem: (key: string) => stored.get(key) ?? null, setItem: (key: string, value: string) => stored.set(key, value), removeItem: (key: string) => stored.delete(key) },
   __codexImageWebUI: bridge,
   clearInterval() {},
   clearTimeout: globalThis.clearTimeout.bind(globalThis),
@@ -164,7 +166,9 @@ function deferredFetch() {
   };
   return {
     calls: () => calls,
-    resolveAll() {
+    async resolveAll() {
+      // File content hashing is asynchronous; wait until submission reaches fetch.
+      for (let index = 0; index < 50 && !resolvers.length; index++) await new Promise(resolve => setTimeout(resolve, 0));
       resolvers.forEach((resolve, index) => resolve(new Response(JSON.stringify({
         request: {},
         task: { task_id: `queued-${index + 1}`, status: "queued" },
@@ -219,7 +223,7 @@ test("submission keeps the generate button availability unchanged while awaiting
   } catch (error) {
     assertionError = error;
   } finally {
-    pendingFetch.resolveAll();
+    await pendingFetch.resolveAll();
     await submission;
   }
   if (assertionError) throw assertionError;
@@ -236,7 +240,7 @@ test("a second submission is ignored until the first server response arrives", a
   } catch (error) {
     assertionError = error;
   } finally {
-    pendingFetch.resolveAll();
+    await pendingFetch.resolveAll();
     await Promise.all([firstSubmission, secondSubmission]);
   }
   if (assertionError) throw assertionError;
@@ -253,7 +257,7 @@ test("editing during an in-flight submission remains an unsaved draft", async ()
   const pendingFetch = deferredFetch();
   const submission = methods.runTask();
   prompt = "second draft typed while waiting";
-  pendingFetch.resolveAll();
+  await pendingFetch.resolveAll();
   await submission;
   assert.equal(composerHasChanges(), true);
 });
@@ -283,7 +287,7 @@ test("accepted submissions refresh recent uploads only when their image inputs c
     });
     const pendingFetch = deferredFetch();
     const submission = methods.runTask();
-    pendingFetch.resolveAll();
+    await pendingFetch.resolveAll();
     await submission;
     assert.equal(state.tasks[0].status, "queued", scenario.name);
     assert.equal(refreshes, scenario.refreshes, scenario.name);
@@ -300,7 +304,7 @@ test("recent upload refresh follows submitted inputs rather than in-flight draft
     const pendingFetch = deferredFetch();
     const submission = methods.runTask();
     assets = submittedWithImage ? [] : [{ id: "new-draft-image" }];
-    pendingFetch.resolveAll();
+    await pendingFetch.resolveAll();
     await submission;
     assert.equal(refreshes, Number(submittedWithImage));
   }
@@ -315,7 +319,7 @@ test("submission preview uses the latest task after queue and asset requests", a
   };
   const pendingFetch = deferredFetch();
   const submission = methods.runTask();
-  pendingFetch.resolveAll();
+  await pendingFetch.resolveAll();
   await submission;
   fakeWindow.refreshQueue = async () => {};
   assert.equal(statuses.at(-1), "failed");
@@ -363,7 +367,7 @@ test("accepted submissions retire matching drafts but protect unrelated and in-f
   assert.equal(restoreButton.hidden, false);
   let pendingFetch = deferredFetch();
   let submission = methods.runTask();
-  pendingFetch.resolveAll();
+  await pendingFetch.resolveAll();
   await submission;
   assert.equal(restoreButton.hidden, true);
   assert.equal(unloadBlocked(), false);
@@ -375,7 +379,7 @@ test("accepted submissions retire matching drafts but protect unrelated and in-f
   pendingFetch = deferredFetch();
   submission = methods.runTask();
   prompt = "new edits while submitting";
-  pendingFetch.resolveAll();
+  await pendingFetch.resolveAll();
   await submission;
   assert.equal(drafts.composerHasChanges(), true);
   assert.equal(unloadBlocked(), true);
@@ -498,3 +502,25 @@ for (const mode of ["generate", "edit"]) {
     });
   }
 }
+
+test("a lost submission response keeps its identity and unknown result until identical retry succeeds", async () => {
+  resetSubmissionState();
+  stored.clear();
+  const identities: string[] = [];
+  let fail = true;
+  globalThis.fetch = (async (_url: string, options: any) => {
+    identities.push(String(options.body.get("client_request_id")));
+    if (fail) throw new TypeError("Network connection lost");
+    return new Response(JSON.stringify({request:{},task:{task_id:"recovered-request",status:"queued"}}),{status:200,headers:{"Content-Type":"application/json"}});
+  }) as any;
+  await methods.runTask();
+  assert.equal(state.tasks[0].submission_unknown, true);
+  assert.equal(state.tasks[0].result_certainty, "submitted_unknown");
+  fail=false;
+  await methods.runTask();
+  assert.equal(identities.length,2);
+  assert.equal(identities[0],identities[1]);
+  assert.equal(state.tasks[0].task_id,"recovered-request");
+  await methods.runTask();
+  assert.notEqual(identities[2],identities[1], "an acknowledged successful submission permits intentional new work");
+});

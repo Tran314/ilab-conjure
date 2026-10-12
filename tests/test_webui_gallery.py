@@ -726,7 +726,21 @@ class WebUIGalleryTests(unittest.TestCase):
                     "gallery_image_ids": gallery_item["id"],
                 },
             ).json()["task"]
-            client.delete(f"/api/gallery/{gallery_item['id']}")
+            deleted = client.delete(f"/api/gallery/{gallery_item['id']}")
+            self.assertEqual(deleted.status_code, 409)
+            self.assertEqual(deleted.json()["detail"]["code"], "gallery_item_in_use")
+            self.assertEqual(deleted.json()["detail"]["reference_count"], 1)
+            self.assertEqual(client.get(gallery_item["image_url"]).status_code, 200)
+            replaced = client.put(
+                f"/api/gallery/{gallery_item['id']}/image",
+                files={"image": ("changed.jpg", self._image_bytes("JPEG"), "image/jpeg")},
+            )
+            self.assertEqual(replaced.status_code, 409)
+            self.assertEqual(replaced.json()["detail"]["code"], "gallery_item_in_use")
+            self.assertEqual(client.get(gallery_item["image_url"]).content, self._image_bytes())
+            # Missing placeholders still work for files removed outside the app.
+            import shutil
+            shutil.rmtree(root / "gallery" / gallery_item["id"])
             returned = client.get(f"/api/tasks/{task['task_id']}").json()["task"]
 
         self.assertTrue(returned["gallery_refs"][0]["missing"])

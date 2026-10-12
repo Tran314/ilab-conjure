@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=iLab CONJURE
+Comment=Local-first AI image generation workbench
+Exec=ilab-conjure
+Icon=ilab-conjure
+Terminal=false
+Categories=Graphics;Utility;
+StartupNotify=false

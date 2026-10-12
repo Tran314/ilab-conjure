@@ -130,12 +130,28 @@ def cleanup_windows_runtime(runtime_dir: Path) -> None:
     )
 
 
+def cleanup_linux_runtime(runtime_dir: Path) -> None:
+    runtime_dir = runtime_dir.resolve()
+    # Keep libpython, extension modules and licenses from the PBS distribution.
+    _remove(runtime_dir / "include", root=runtime_dir)
+    for stdlib in (runtime_dir / "lib").glob("python3.*"):
+        _remove_test_trees(stdlib, root=runtime_dir)
+        for relative in ("ensurepip", "idlelib", "turtledemo"):
+            _remove(stdlib / relative, root=runtime_dir)
+        _remove_build_tool_packages(stdlib / "site-packages", root=runtime_dir)
+        _remove_matching(stdlib, ("config-*",), root=runtime_dir)
+    _remove_matching(runtime_dir / "bin", ("pip*", "idle*", "2to3*", "pydoc*", "python*-config"), root=runtime_dir)
+    _remove_matching(runtime_dir / "lib", ("*.a",), root=runtime_dir)
+
+
 def cleanup_runtime(app_dir: Path, runtime_dir: Path, platform: str) -> None:
     cleanup_app(app_dir)
     if platform == "macos":
         cleanup_macos_runtime(runtime_dir)
     elif platform == "windows":
         cleanup_windows_runtime(runtime_dir)
+    elif platform == "linux":
+        cleanup_linux_runtime(runtime_dir)
     else:
         raise ValueError(f"Unsupported platform: {platform}")
 
@@ -146,7 +162,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--app-dir", type=Path, required=True)
     parser.add_argument("--runtime-dir", type=Path, required=True)
-    parser.add_argument("--platform", choices=("macos", "windows"), required=True)
+    parser.add_argument("--platform", choices=("macos", "windows", "linux"), required=True)
     return parser.parse_args()
 
 

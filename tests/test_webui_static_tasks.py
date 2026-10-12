@@ -2887,6 +2887,7 @@ console.log(JSON.stringify({{
                 self._extract_javascript_function(script, "canRetryFailedTask"),
                 self._extract_javascript_function(script, "taskCardRetryStateText"),
                 """
+                const taskSafeRetryAction = () => null; // Legacy metadata fixtures.
                 const i18nMessages = {
                   "taskDerived.usageLimited": "额度限制",
                   "taskStatus.connectionInterrupted": "连接中断",

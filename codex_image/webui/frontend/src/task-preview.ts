@@ -1,4 +1,4 @@
-import { taskRecoveryKind, taskRecoveryMessage } from "./task-recovery";
+import { taskRecoveryKind, taskRecoveryMessage, taskRecoveryActionLabel, taskResultUnknown, taskSafeRetryAction } from "./task-recovery";
 import { requestedTransparentBackground, submittedPromptForTask, transparencyStatus } from "./transparency-status";
 import { getLegacyBridge } from "./state";
 import { formatTranslation, LOCALE_CHANGE_EVENT, translate } from "./i18n";
@@ -524,6 +524,11 @@ function handlePreviewGridClick(event: any) {
     getLegacyBridge().methods.showGenerationEditor?.();
     return;
   }
+  const regenerateButton = target.closest("[data-preview-regenerate-task-id]") as HTMLElement | null;
+  if (regenerateButton) {
+    retryFailedTask(regenerateButton.dataset.previewRegenerateTaskId, false, true);
+    return;
+  }
   const retryButton = target.closest("[data-preview-retry-failed-task-id]") as HTMLElement | null;
   if (retryButton) {
     retryFailedTask(retryButton.dataset.previewRetryFailedTaskId);
@@ -848,7 +853,7 @@ function failureSummaryCard(task: any, visibleOutputCount: any) {
   const retryStateHtml = retryState ? `<p data-preview-retry-state>${escapeHtml(retryState)}</p>` : "";
   return `
     <div class="failure-summary-card">
-      <strong>${escapeHtml(task.status === "partial_failed" ? translate("preview.partialFailed") : translate("preview.taskFailed"))}</strong>
+      <strong>${escapeHtml(taskResultUnknown(task) ? translate("recovery.unknownStatus") : task.status === "partial_failed" ? translate("preview.partialFailed") : translate("preview.taskFailed"))}</strong>
       <p>${escapeHtml(formatTranslation("preview.failureLine", { generated, total, failed: failedCount }))}</p>
       ${retryStateHtml}
       ${retryFailureSummaryButton(task)}
@@ -873,7 +878,10 @@ function retryFailureSummaryButton(task: any) {
     actions.push(`<button type="button" class="ghost-button text-sm" data-preview-edit-inputs>${escapeHtml(translate("ux.editInputs"))}</button>`);
   }
   if (canRetryFailedTask(task)) {
-    actions.push(`<button class="ghost-button text-sm" type="button" data-preview-retry-failed-task-id="${taskId}">${escapeHtml(translate("preview.retryFailed"))}</button>`);
+    actions.push(`<button class="ghost-button text-sm" type="button" data-preview-retry-failed-task-id="${taskId}">${escapeHtml(taskRecoveryActionLabel(task))}</button>`);
+  }
+  if (canRetryFailedTask(task) && ["resume_poll", "retry_download", "retry_save"].includes(taskSafeRetryAction(task) || "")) {
+    actions.push(`<button class="ghost-button text-sm" type="button" data-preview-regenerate-task-id="${taskId}">${escapeHtml(translate("recovery.action.confirm_regenerate"))}</button>`);
   }
   if (canAcceptTaskSuccesses(task)) {
     actions.push(`<button class="ghost-button text-sm" type="button" title="${escapeHtml(translate("ux.acceptDetail"))}" data-preview-accept-successes-task-id="${taskId}">${escapeHtml(translate("preview.acceptSuccesses"))}</button>`);

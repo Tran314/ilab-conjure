@@ -12,12 +12,14 @@ from urllib.parse import quote
 
 
 PLATFORM_PATTERNS = {
-    "darwin-aarch64": "ilab-gpt-conjure_macos_portable_arm64_",
-    "darwin-x86_64": "ilab-gpt-conjure_macos_portable_x64_",
-    "windows-x86_64": "ilab-gpt-conjure_windows_portable_x64_",
+    "darwin-aarch64": ("ilab-gpt-conjure_macos_portable_arm64_", ".zip", "portable-zip"),
+    "darwin-x86_64": ("ilab-gpt-conjure_macos_portable_x64_", ".zip", "portable-zip"),
+    "windows-x86_64": ("ilab-gpt-conjure_windows_portable_x64_", ".zip", "portable-zip"),
+    "linux-x86_64": ("ilab-gpt-conjure_linux_portable_x64_", ".tar.gz", "portable-tar-gz"),
 }
 
 STANDARD_PLATFORM_PATTERNS = {
+    "linux-x86_64": ("iLab-GPT-CONJURE-linux-x64_", ".deb", "standard-deb"),
     "darwin-aarch64": ("iLab-GPT-CONJURE-macos-arm64-", ".dmg", "standard-dmg"),
     "darwin-x86_64": ("iLab-GPT-CONJURE-macos-x64-", ".dmg", "standard-dmg"),
     "windows-x86_64": ("iLab-GPT-CONJURE-windows-x64_", ".zip", "standard-zip"),
@@ -60,23 +62,25 @@ def build_manifest(
     repo: str,
     notes: str,
 ) -> dict[str, object]:
-    zip_assets = sorted(path for path in assets_dir.rglob("*.zip") if path.is_file())
-    dmg_assets = sorted(path for path in assets_dir.rglob("*.dmg") if path.is_file())
+    assets = sorted(path for path in assets_dir.rglob("*") if path.is_file())
     platforms: dict[str, dict[str, str]] = {}
     standard_platforms: dict[str, dict[str, str]] = {}
 
-    for platform, prefix in PLATFORM_PATTERNS.items():
-        matches = [path for path in zip_assets if path.name.startswith(prefix)]
+    for platform, (prefix, suffix, package) in PLATFORM_PATTERNS.items():
+        matches = [path for path in assets if path.name.startswith(prefix) and path.name.endswith(suffix)]
         if len(matches) != 1:
             raise SystemExit(
                 f"expected exactly one {platform} asset with prefix {prefix}, found {len(matches)}"
             )
         asset_path = matches[0]
+        expected_name = f"{prefix}{version}{suffix}"
+        if asset_path.name != expected_name:
+            raise SystemExit(f"release asset version mismatch: expected {expected_name}, found {asset_path.name}")
         entry = {
             "asset": asset_path.name,
             "url": release_download_url(repo, tag, asset_path.name),
             "sha256": read_sha256(asset_path),
-            "package": "portable-zip",
+            "package": package,
         }
         signature = read_optional_signature(asset_path)
         if signature:
@@ -84,10 +88,9 @@ def build_manifest(
         platforms[platform] = entry
 
     for platform, (prefix, suffix, package) in STANDARD_PLATFORM_PATTERNS.items():
-        asset_pool = dmg_assets if suffix == ".dmg" else zip_assets
         matches = [
             path
-            for path in asset_pool
+            for path in assets
             if path.name.startswith(prefix) and path.name.endswith(suffix)
         ]
         if len(matches) != 1:
@@ -95,6 +98,9 @@ def build_manifest(
                 f"expected exactly one standard {platform} asset with prefix {prefix}, found {len(matches)}"
             )
         asset_path = matches[0]
+        expected_name = f"{prefix}{version}{suffix}"
+        if asset_path.name != expected_name:
+            raise SystemExit(f"release asset version mismatch: expected {expected_name}, found {asset_path.name}")
         standard_platforms[platform] = {
             "asset": asset_path.name,
             "url": release_download_url(repo, tag, asset_path.name),

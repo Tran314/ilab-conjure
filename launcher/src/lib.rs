@@ -10,6 +10,13 @@ use std::{
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
+mod bundle;
+pub use bundle::BundleMode;
+#[cfg(target_os = "linux")]
+mod linux_service;
+#[cfg(target_os = "linux")]
+pub mod linux_tray;
+mod linux_update;
 mod locale;
 pub mod standard_update;
 pub use locale::{
@@ -85,6 +92,8 @@ pub enum UpdateOutcome {
 #[derive(Debug, Clone)]
 pub struct LauncherConfig {
     pub app_dir: PathBuf,
+    pub bundle_dir: PathBuf,
+    pub mode: BundleMode,
     pub data_dir: PathBuf,
     pub input_root: PathBuf,
     pub output_root: PathBuf,
@@ -96,19 +105,48 @@ pub struct LauncherConfig {
 impl LauncherConfig {
     pub fn detect() -> Result<Self> {
         let app_dir = detect_app_dir()?;
-        let data_dir = env::var_os("ILAB_CONJURE_DATA_DIR")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| default_data_dir_for_app(&app_dir));
+        let data_dir = resolve_data_directory(
+            &app_dir,
+            env::var_os("ILAB_CONJURE_DATA_DIR")
+                .as_deref()
+                .map(Path::new),
+            env::var_os("XDG_DATA_HOME").as_deref().map(Path::new),
+            home_dir().as_deref(),
+        )?;
         Self::from_dirs(app_dir, data_dir, DEFAULT_PORT)
     }
 
     pub fn from_dirs(app_dir: PathBuf, data_dir: PathBuf, port: u16) -> Result<Self> {
-        let data_dir = data_dir.canonicalize().unwrap_or_else(|_| data_dir.clone());
-        let output_root = data_dir.join("webui-outputs");
+        let mode = bundle::mode_for_app(&app_dir)?;
+        let app_dir = bundle::absolute_path(&app_dir)?;
+        let data_dir = bundle::absolute_path(&data_dir)?;
+        let bundle_dir = if mode == BundleMode::Source {
+            app_dir.clone()
+        } else {
+            app_dir.parent().unwrap_or(&app_dir).to_path_buf()
+        };
+        let settings: serde_json::Value = fs::read(data_dir.join("webui-settings.json"))
+            .ok()
+            .and_then(|v| serde_json::from_slice(&v).ok())
+            .unwrap_or_default();
+        let configured = |key: &str, fallback: PathBuf| -> PathBuf {
+            settings
+                .get(key)
+                .and_then(|v| v.as_str())
+                .filter(|v| !v.trim().is_empty())
+                .map(PathBuf::from)
+                .map(|p| if p.is_absolute() { p } else { app_dir.join(p) })
+                .unwrap_or(fallback)
+        };
+        let output_root = configured("output_root", data_dir.join("webui-outputs"));
+        let input_root = configured("input_root", data_dir.join("webui-inputs"));
+        let source_data_root = configured("source_data_root", output_root.join("source-data"));
         Ok(Self {
             app_dir,
-            input_root: data_dir.join("webui-inputs"),
-            source_data_root: output_root.join("source-data"),
+            bundle_dir,
+            mode,
+            input_root,
+            source_data_root,
             log_path: output_root.join(LOG_FILE_NAME),
             output_root,
             data_dir,
@@ -153,13 +191,31 @@ impl LauncherConfig {
     }
 
     pub fn uvicorn_app(&self) -> &'static str {
-        if self.app_dir.join("standard_webui_app.py").exists() {
+        if self.app_dir.join("linux_webui_app.py").exists() {
+            "linux_webui_app:app"
+        } else if self.app_dir.join("standard_webui_app.py").exists() {
             "standard_webui_app:app"
         } else if self.app_dir.join("portable_webui_app.py").exists() {
             "portable_webui_app:app"
         } else {
             "codex_image.webui.app:app"
         }
+    }
+}
+
+fn resolve_data_directory(
+    app_dir: &Path,
+    explicit: Option<&Path>,
+    xdg: Option<&Path>,
+    home: Option<&Path>,
+) -> Result<PathBuf> {
+    if let Some(path) = explicit {
+        return bundle::absolute_path(path);
+    }
+    if cfg!(target_os = "linux") && bundle::mode_for_app(app_dir)? == BundleMode::Installed {
+        bundle::linux_data_dir(xdg, home)
+    } else {
+        Ok(default_data_dir_for_app(app_dir))
     }
 }
 
@@ -307,10 +363,34 @@ fn show_platform_about_window(info: &AboutInfo, labels: &AboutLabels) -> Result<
     }
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
-        eprintln!(
-            "{}\n{}: {}\n{}: {}",
-            labels.title, labels.version, info.version_label, labels.open_source, info.project_url
+        let message = format!(
+            "{}: {}\n{}: {}",
+            labels.version, info.version_label, labels.open_source, info.project_url
         );
+        eprintln!("{message}");
+        let output = Command::new("zenity")
+            .args([
+                "--question",
+                "--title",
+                labels.title,
+                "--text",
+                &message,
+                "--ok-label",
+                labels.check_updates,
+                "--cancel-label",
+                labels.close,
+                "--extra-button",
+                labels.open_project,
+            ])
+            .output();
+        if let Ok(output) = output {
+            if String::from_utf8_lossy(&output.stdout).trim() == labels.open_project {
+                return Ok(AboutAction::OpenProject);
+            }
+            if output.status.success() {
+                return Ok(AboutAction::CheckUpdates);
+            }
+        }
         Ok(AboutAction::Close)
     }
 }
@@ -521,7 +601,16 @@ fn show_platform_update_window(
     }
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
-        eprintln!("{}", update_message(check, labels, install_action));
+        let message = update_message(check, labels, install_action);
+        eprintln!("{message}");
+        if cfg!(target_os = "linux") && update_check_has_install_action(check, install_action) {
+            if let Ok(output) = Command::new("zenity").args(["--question", "--title", APP_NAME, "--text", &format!("{message}\n\nDownload and SHA256-verify the package? Installation is manual."), "--ok-label", update_install_button_label(labels, install_action), "--cancel-label", labels.close, "--extra-button", labels.open_release]).output() {
+                if String::from_utf8_lossy(&output.stdout).trim() == labels.open_release { return Ok(UpdateDialogAction::OpenRelease); }
+                if output.status.success() { return Ok(UpdateDialogAction::InstallUpdate); }
+            }
+        } else {
+            show_linux_info(&message);
+        }
         Ok(UpdateDialogAction::Close)
     }
 }
@@ -694,12 +783,10 @@ fn update_action_from_button(button: &str, labels: &UpdateLabels) -> UpdateDialo
 }
 
 fn update_package_kind_for_app(app_dir: &Path) -> UpdatePackageKind {
-    if is_standard_app_dir(app_dir) {
-        UpdatePackageKind::Standard
-    } else if app_dir.file_name().and_then(|name| name.to_str()) == Some("app") {
-        UpdatePackageKind::Portable
-    } else {
-        UpdatePackageKind::Source
+    match bundle::mode_for_app(app_dir) {
+        Ok(BundleMode::Installed) => UpdatePackageKind::Standard,
+        Ok(BundleMode::Portable) => UpdatePackageKind::Portable,
+        _ => UpdatePackageKind::Source,
     }
 }
 
@@ -709,6 +796,15 @@ fn update_install_action_for_config(
 ) -> UpdateInstallAction {
     if check.download_url.is_none() || check.availability == UpdateAvailability::UpToDate {
         return UpdateInstallAction::None;
+    }
+    if cfg!(target_os = "linux")
+        && config.mode != BundleMode::Source
+        && matches!(
+            check.package.as_deref(),
+            Some("portable-tar-gz" | "standard-deb")
+        )
+    {
+        return UpdateInstallAction::DownloadPackage;
     }
     if portable_updater_path(config).is_some() {
         return UpdateInstallAction::PortableUpdater;
@@ -731,6 +827,8 @@ fn update_notice_path(config: &LauncherConfig) -> PathBuf {
 }
 
 fn sync_update_notice(config: &LauncherConfig, check: &UpdateCheck) -> Result<()> {
+    #[cfg(target_os = "linux")]
+    linux_service::verify_writable(config)?;
     if check.availability != UpdateAvailability::UpdateAvailable {
         clear_update_notice(config);
         return Ok(());
@@ -769,6 +867,7 @@ fn clear_update_notice(config: &LauncherConfig) {
 pub struct WebUiService {
     pub config: LauncherConfig,
     child: Option<Child>,
+    instance: String,
 }
 
 impl WebUiService {
@@ -776,17 +875,38 @@ impl WebUiService {
         Self {
             config,
             child: None,
+            instance: String::new(),
         }
     }
 
     pub fn ensure_running(&mut self) -> Result<()> {
+        #[cfg(target_os = "linux")]
+        linux_service::verify_writable(&self.config)?;
+        #[cfg(target_os = "linux")]
+        let _launch_lock = linux_service::lock(&self.config)?;
+        if self.config.mode == BundleMode::Installed {
+            for path in [
+                &self.config.input_root,
+                &self.config.output_root,
+                &self.config.source_data_root,
+            ] {
+                if bundle::absolute_path(path)?.starts_with(&self.config.bundle_dir) {
+                    return Err(anyhow!("Configured storage path is inside the read-only installed program: {}. Choose a user-writable location in Settings.", path.display()));
+                }
+            }
+        }
         fs::create_dir_all(&self.config.output_root)?;
         fs::create_dir_all(&self.config.input_root)?;
         fs::create_dir_all(&self.config.source_data_root)?;
 
-        if is_webui_ready(self.config.port) {
-            self.log_line("WebUI is already running; leaving existing service untouched.")?;
+        if service_health(&self.config).is_ok() {
+            self.log_line(
+                "Matching WebUI is already running; leaving existing service untouched.",
+            )?;
             return Ok(());
+        }
+        if port_in_use(self.config.port) {
+            return Err(anyhow!("Port {} is occupied by a different, unhealthy, or unverified service. It has not been stopped. Use --status and check {}.", self.config.port, self.config.log_path.display()));
         }
 
         let python = self.ensure_python_runtime()?;
@@ -834,6 +954,11 @@ impl WebUiService {
                     Ok(UpdateOutcome::LaunchedUpdater)
                 }
                 UpdateInstallAction::DownloadPackage => {
+                    if cfg!(target_os = "linux") {
+                        let path = linux_update::download_verified(&check, &self.config.data_dir)?;
+                        show_linux_info(&format!("Update downloaded and SHA256 verified:\n{}\nInstall it manually when ready. The running service and user data are unchanged.", path.display()));
+                        return Ok(UpdateOutcome::Continue);
+                    }
                     let url = check
                         .download_url
                         .as_ref()
@@ -844,6 +969,34 @@ impl WebUiService {
                 UpdateInstallAction::None => Ok(UpdateOutcome::Continue),
             },
         }
+    }
+
+    /// Headless update controls use exactly the same signed manifest as the tray.
+    pub fn update_cli(&self, download: bool) -> Result<String> {
+        let manifest = fetch_update_manifest()?;
+        let check = update_check_from_manifest(
+            &self.config.about_info().version_label,
+            &manifest,
+            update_package_kind_for_app(&self.config.app_dir),
+        );
+        sync_update_notice(&self.config, &check)?;
+        if download {
+            if !cfg!(target_os = "linux") {
+                return Err(anyhow!("--download-update is currently Linux-only"));
+            }
+            let path = linux_update::download_verified(&check, &self.config.data_dir)?;
+            return Ok(format!("Downloaded and SHA256 verified: {}. Install manually; no files have been replaced.", path.display()));
+        }
+        Ok(format!(
+            "Current: {}; latest: {}; {}",
+            check.current_version,
+            check.latest_version,
+            if check.download_url.is_some() {
+                "matching package available; use --download-update to download and verify"
+            } else {
+                "no matching package; see the release page"
+            }
+        ))
     }
 
     pub fn show_about(&self, locale: AppLocale) -> Result<UpdateOutcome> {
@@ -860,16 +1013,107 @@ impl WebUiService {
     }
 
     pub fn restart_owned_service(&mut self) -> Result<()> {
-        self.stop_owned_service();
+        self.stop_requested_service()?;
         self.ensure_running()?;
         self.open_webui()
     }
 
+    /// Explicit tray Quit/Restart may control a detached backend for this data
+    /// directory. Passive Drop/loop cleanup deliberately uses stop_owned_service.
+    pub fn stop_requested_service(&mut self) -> Result<()> {
+        #[cfg(target_os = "linux")]
+        if self.child.is_none() {
+            if !port_in_use(self.config.port) {
+                return Ok(());
+            }
+            let health = service_health(&self.config)?;
+            let instance = health
+                .get("launcher_instance")
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| anyhow!("Current WebUI has no launcher ownership identity"))?;
+            return linux_service::stop_matching_recorded(&self.config, instance);
+        }
+        self.stop_owned_service();
+        Ok(())
+    }
+
     pub fn stop_owned_service(&mut self) {
         if let Some(mut child) = self.child.take() {
-            let _ = child.kill();
+            #[cfg(unix)]
+            {
+                // Child is unreaped, so its PID cannot have been reused.
+                if matches!(child.try_wait(), Ok(None)) {
+                    unsafe {
+                        libc_signal_term(child.id());
+                    }
+                    let start = Instant::now();
+                    while start.elapsed() < Duration::from_secs(8) {
+                        if !matches!(child.try_wait(), Ok(None)) {
+                            break;
+                        }
+                        thread::sleep(Duration::from_millis(100));
+                    }
+                }
+            }
+            if matches!(child.try_wait(), Ok(None)) {
+                let _ = child.kill();
+            }
             let _ = child.wait();
+            #[cfg(target_os = "linux")]
+            linux_service::remove_record(&self.config, &self.instance);
         }
+    }
+
+    /// Keep the logged backend available when a desktop has no usable tray.
+    pub fn detach_service(&mut self) {
+        self.child.take();
+    }
+
+    pub fn status(&self) -> Result<String> {
+        service_health(&self.config)?;
+        #[cfg(target_os = "linux")]
+        let owned = linux_service::owned_status(&self.config);
+        #[cfg(not(target_os = "linux"))]
+        let owned = self.child.is_some();
+        Ok(format!(
+            "running: {} ({}; data: {})",
+            self.config.url(),
+            if owned {
+                "launcher-owned"
+            } else {
+                "matching service, not owned"
+            },
+            self.config.data_dir.display()
+        ))
+    }
+
+    pub fn stop_recorded_service(&mut self) -> Result<()> {
+        #[cfg(target_os = "linux")]
+        {
+            linux_service::stop_recorded(&self.config)
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            Err(anyhow!("--stop is currently supported on Linux only"))
+        }
+    }
+
+    pub fn owned_child_exited(&mut self) -> Result<bool> {
+        if let Some(child) = self.child.as_mut() {
+            if let Some(status) = child.try_wait()? {
+                #[cfg(target_os = "linux")]
+                linux_service::remove_record(&self.config, &self.instance);
+                self.child = None;
+                if !status.success() {
+                    return Err(anyhow!(
+                        "WebUI service exited with {status}. Check {}",
+                        self.config.log_path.display()
+                    ));
+                }
+                return Ok(true);
+            }
+        }
+        Ok(false)
     }
 
     fn launch_portable_updater(&self) -> Result<()> {
@@ -912,6 +1156,17 @@ impl WebUiService {
     }
 
     fn ensure_python_runtime(&self) -> Result<PathBuf> {
+        if self.config.mode != BundleMode::Source {
+            let python = bundled_python_candidates(&self.config.app_dir).into_iter()
+                .find(|path| path.is_file()).ok_or_else(|| anyhow!(
+                    "Package damaged: bundled Python runtime is missing. Reinstall the package; user data is unchanged."))?;
+            if !dependency_probe(&python, &self.config.app_dir)
+                .context("Package damaged: bundled Python cannot run. Reinstall the package")?
+            {
+                return Err(anyhow!("Package damaged: bundled dependencies are missing or invalid. Reinstall the package; no system Python will be used."));
+            }
+            return Ok(python);
+        }
         if let Some(python) = bundled_or_venv_python(&self.config.app_dir) {
             if dependency_probe(&python, &self.config.app_dir)? {
                 return Ok(python);
@@ -952,12 +1207,25 @@ impl WebUiService {
             command_with_no_window(python)
                 .args(["-m", "codex_image.webui.startup_auth", "--settings-path"])
                 .arg(self.config.auth_settings_path())
+                .env("PYTHONPATH", python_path_for_app(&self.config.app_dir))
                 .current_dir(&self.config.app_dir),
             "initialize auth settings",
         )
     }
 
     fn spawn_uvicorn(&mut self, python: &Path) -> Result<()> {
+        #[cfg(target_os = "linux")]
+        {
+            self.instance = linux_service::new_instance()?;
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            self.instance = format!(
+                "{}-{}",
+                std::process::id(),
+                SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos()
+            );
+        }
         let log = open_log_file(&self.config.log_path)?;
         let err_log = log.try_clone()?;
         let mut command = command_with_no_window(python);
@@ -975,24 +1243,40 @@ impl WebUiService {
             .current_dir(&self.config.app_dir)
             .env("ILAB_CONJURE_DATA_DIR", &self.config.data_dir)
             .env("ILAB_CONJURE_APP_DIR", &self.config.app_dir)
-            .env(
-                "APP_LAUNCHER_MODE",
-                launcher_mode_for_app(&self.config.app_dir),
-            )
+            .env("ILAB_CONJURE_BUNDLE_DIR", &self.config.bundle_dir)
+            .env("PYTHONDONTWRITEBYTECODE", "1")
+            .env("ILAB_CONJURE_LAUNCHER_INSTANCE", &self.instance)
+            .env("APP_LAUNCHER_MODE", self.config.mode.launcher_mode())
             .env("PYTHONPATH", python_path_for_app(&self.config.app_dir))
+            .stdin(Stdio::null())
             .stdout(Stdio::from(log))
             .stderr(Stdio::from(err_log));
 
         let child = command.spawn().context("failed to start WebUI service")?;
+        let pid = child.id();
         self.child = Some(child);
+        #[cfg(target_os = "linux")]
+        linux_service::write_record(&self.config, pid, &self.instance)?;
+        #[cfg(not(target_os = "linux"))]
+        let _ = pid;
         Ok(())
     }
 
-    fn wait_until_ready(&self) -> Result<()> {
+    fn wait_until_ready(&mut self) -> Result<()> {
         let started_at = Instant::now();
         while started_at.elapsed() < WAIT_TIMEOUT {
-            if is_webui_ready(self.config.port) {
-                return Ok(());
+            if let Ok(health) = service_health(&self.config) {
+                if health.get("launcher_instance").and_then(|v| v.as_str()) == Some(&self.instance)
+                {
+                    return Ok(());
+                }
+                return Err(anyhow!(
+                    "Port {} belongs to a different launcher instance",
+                    self.config.port
+                ));
+            }
+            if self.owned_child_exited()? {
+                return Err(anyhow!("WebUI exited before becoming ready"));
             }
             thread::sleep(HEALTH_POLL_INTERVAL);
         }
@@ -1030,13 +1314,30 @@ pub fn detect_app_dir() -> Result<PathBuf> {
     if let Some(path) = env::var_os("ILAB_CONJURE_APP_DIR") {
         let path = PathBuf::from(path);
         if is_app_dir(&path) {
-            return Ok(path);
+            return bundle::absolute_path(&path);
         }
+        return Err(anyhow!(
+            "Configured app directory is missing or damaged: {}",
+            path.display()
+        ));
     }
 
     let mut candidates: Vec<PathBuf> = Vec::new();
     if let Ok(exe) = env::current_exe() {
         if let Some(parent) = exe.parent() {
+            if parent.join("bundle-metadata.json").exists()
+                || (cfg!(target_os = "linux")
+                    && (parent.join("python").exists()
+                        || parent.join("app/linux_webui_app.py").exists()))
+            {
+                let app = parent.join("app");
+                if !is_app_dir(&app) {
+                    return Err(anyhow!(
+                        "Package damaged: application files are missing; reinstall the package"
+                    ));
+                }
+                return bundle::absolute_path(&app);
+            }
             push_app_dir_candidates(&mut candidates, parent);
         }
     }
@@ -1075,25 +1376,79 @@ pub fn is_app_dir(path: &Path) -> bool {
     path.join("codex_image").is_dir() && path.join("requirements-webui.txt").is_file()
 }
 
-pub fn is_webui_ready(port: u16) -> bool {
-    let Ok(mut stream) = TcpStream::connect_timeout(
-        &format!("127.0.0.1:{port}")
-            .parse()
-            .expect("valid loopback address"),
+fn port_in_use(port: u16) -> bool {
+    TcpStream::connect_timeout(
+        &format!("127.0.0.1:{port}").parse().expect("loopback"),
         Duration::from_millis(600),
-    ) else {
-        return false;
-    };
-    let _ = stream.set_read_timeout(Some(Duration::from_millis(800)));
-    let _ = stream.set_write_timeout(Some(Duration::from_millis(800)));
-    let request = format!(
-        "GET {HEALTH_PATH} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\n\r\n"
-    );
-    if stream.write_all(request.as_bytes()).is_err() {
-        return false;
-    }
+    )
+    .is_ok()
+}
+
+fn read_health(port: u16) -> Result<serde_json::Value> {
+    let mut stream = TcpStream::connect_timeout(
+        &format!("127.0.0.1:{port}").parse()?,
+        Duration::from_millis(600),
+    )
+    .context("WebUI is not running")?;
+    stream.set_read_timeout(Some(Duration::from_millis(800)))?;
+    stream.set_write_timeout(Some(Duration::from_millis(800)))?;
+    stream.write_all(
+        format!(
+            "GET {HEALTH_PATH} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\n\r\n"
+        )
+        .as_bytes(),
+    )?;
     let mut response = String::new();
-    stream.read_to_string(&mut response).is_ok() && response.starts_with("HTTP/1.1 200")
+    stream.take(65_536).read_to_string(&mut response)?;
+    parse_health_response(&response)
+}
+
+fn parse_health_response(response: &str) -> Result<serde_json::Value> {
+    let (headers, body) = response
+        .split_once("\r\n\r\n")
+        .ok_or_else(|| anyhow!("Invalid health response"))?;
+    if headers
+        .lines()
+        .next()
+        .and_then(|line| line.split_whitespace().nth(1))
+        != Some("200")
+    {
+        return Err(anyhow!("WebUI health request failed"));
+    }
+    let health: serde_json::Value = serde_json::from_str(body).context("Invalid health JSON")?;
+    if health["product"].as_str() != Some("ilab-conjure") || health["ok"].as_bool() != Some(true) {
+        return Err(anyhow!(
+            "Port is occupied by a different or unhealthy service"
+        ));
+    }
+    Ok(health)
+}
+
+fn service_health(config: &LauncherConfig) -> Result<serde_json::Value> {
+    let health = read_health(config.port)?;
+    if health["data_dir"].as_str() != config.data_dir.to_str() {
+        return Err(anyhow!(
+            "Port {} is serving a different data directory; existing service is untouched",
+            config.port
+        ));
+    }
+    #[cfg(target_os = "linux")]
+    linux_service::verify_health_owner(config, &health)?;
+    Ok(health)
+}
+
+/// Readiness includes profile identity and, on Linux, verified launcher ownership.
+pub fn is_webui_ready(config: &LauncherConfig) -> bool {
+    service_health(config).is_ok()
+}
+
+#[cfg(unix)]
+unsafe fn libc_signal_term(pid: u32) {
+    // macOS keeps its existing dependency footprint; kill(2) is provided by libc.
+    extern "C" {
+        fn kill(pid: i32, signal: i32) -> i32;
+    }
+    let _ = kill(pid as i32, 15);
 }
 
 pub fn rabbit_icon_rgba(size: u32) -> (Vec<u8>, u32, u32) {
@@ -1220,15 +1575,11 @@ fn bundled_or_venv_python(app_dir: &Path) -> Option<PathBuf> {
 }
 
 fn default_data_dir_for_app(app_dir: &Path) -> PathBuf {
-    if is_standard_app_dir(app_dir) {
-        return standard_app_data_dir();
+    match bundle::mode_for_app(app_dir) {
+        Ok(BundleMode::Installed) => standard_app_data_dir(),
+        Ok(BundleMode::Portable) => app_dir.parent().unwrap_or(app_dir).join("data"),
+        _ => app_dir.join("output"),
     }
-    if app_dir.file_name().and_then(|name| name.to_str()) == Some("app") {
-        if let Some(data_dir) = app_dir.parent().map(|parent| parent.join("data")) {
-            return data_dir;
-        }
-    }
-    app_dir.join("output")
 }
 
 fn bundled_python_candidates(app_dir: &Path) -> Vec<PathBuf> {
@@ -1239,6 +1590,10 @@ fn bundled_python_candidates(app_dir: &Path) -> Vec<PathBuf> {
         }
         if let Some(bundle_dir) = app_dir.parent() {
             candidates.push(bundle_dir.join("python").join("python.exe"));
+        }
+    } else if cfg!(target_os = "linux") {
+        if let Some(root) = app_dir.parent() {
+            candidates.push(root.join("python/bin/python3"));
         }
     } else {
         if let Some(resources_dir) = app_dir.parent() {
@@ -1268,6 +1623,10 @@ fn bundled_python_candidates(app_dir: &Path) -> Vec<PathBuf> {
 }
 
 fn is_standard_app_dir(app_dir: &Path) -> bool {
+    matches!(bundle::mode_for_app(app_dir), Ok(BundleMode::Installed))
+}
+
+fn is_legacy_standard_app_dir(app_dir: &Path) -> bool {
     if app_dir.file_name().and_then(|name| name.to_str()) != Some("app") {
         return false;
     }
@@ -1309,6 +1668,7 @@ fn standard_app_data_dir() -> PathBuf {
     } else {
         env::var_os("XDG_DATA_HOME")
             .map(PathBuf::from)
+            .filter(|path| path.is_absolute())
             .or_else(|| home_dir().map(|home| home.join(".local").join("share")))
             .unwrap_or_else(|| PathBuf::from("."))
             .join(LEGACY_DATA_DIR_NAME)
@@ -1319,16 +1679,6 @@ fn home_dir() -> Option<PathBuf> {
     env::var_os("HOME")
         .map(PathBuf::from)
         .or_else(|| env::var_os("USERPROFILE").map(PathBuf::from))
-}
-
-fn launcher_mode_for_app(app_dir: &Path) -> &'static str {
-    if is_standard_app_dir(app_dir) {
-        "standard"
-    } else if app_dir.file_name().and_then(|name| name.to_str()) == Some("app") {
-        "portable"
-    } else {
-        "source"
-    }
 }
 
 pub fn maybe_offer_legacy_portable_migration(
@@ -1489,6 +1839,7 @@ fn copy_dir_recursive(source: &Path, target: &Path) -> Result<()> {
     Ok(())
 }
 
+#[cfg(any(test, target_os = "macos", target_os = "windows"))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct MigrationPromptPlan {
     title: &'static str,
@@ -1498,6 +1849,7 @@ struct MigrationPromptPlan {
     detected_button: Option<&'static str>,
 }
 
+#[cfg(any(test, target_os = "macos", target_os = "windows"))]
 fn migration_prompt_plan(
     detected_data_dir: Option<&Path>,
     locale: AppLocale,
@@ -1733,6 +2085,13 @@ fn open_log_file(path: &Path) -> Result<File> {
 
 fn command_with_no_window(program: &Path) -> Command {
     let mut command = Command::new(program);
+    command.env("PYTHONDONTWRITEBYTECODE", "1");
+    #[cfg(target_os = "linux")]
+    {
+        command
+            .env_remove("PYTHONHOME")
+            .env("PYTHONNOUSERSITE", "1");
+    }
     configure_no_window(&mut command);
     command
 }
@@ -1748,3 +2107,13 @@ fn configure_no_window(_command: &mut Command) {}
 
 #[cfg(test)]
 mod tests;
+
+fn show_linux_info(message: &str) {
+    eprintln!("{APP_NAME}: {message}");
+    #[cfg(target_os = "linux")]
+    {
+        let _ = Command::new("zenity")
+            .args(["--info", "--title", APP_NAME, "--text", message])
+            .status();
+    }
+}

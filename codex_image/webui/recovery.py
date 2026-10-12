@@ -208,6 +208,12 @@ def _materialize_orphaned_running_failure(
                 continue
             record = dict(raw_record)
             status = str(record.get("status") or "")
+            if status == "running" and not record.get("result_certainty"):
+                # Schema 1 commits a receipt before sending, so absence proves
+                # no submission; older versions cannot make that guarantee.
+                tracked = metadata.get("recovery_schema_version") == 1
+                record.update(phase="submit", result_certainty="not_submitted" if tracked else "submitted_unknown",
+                              safe_retry_action="retry_submit" if tracked else "confirm_regenerate")
             if status in {"running", "queued", "waiting", ""}:
                 record["status"] = "failed"
                 record.setdefault("error", message)
@@ -217,6 +223,13 @@ def _materialize_orphaned_running_failure(
                 failed_count += 1
             normalized_outputs.append(record)
     total_count = _positive_int(metadata.get("total_count")) or _positive_int((metadata.get("params") or {}).get("n")) or 1
+    recorded_indexes = {record.get("index") for record in normalized_outputs if isinstance(record, dict)}
+    for index in range(1, total_count + 1):
+        if index not in recorded_indexes:
+            tracked = metadata.get("recovery_schema_version") == 1
+            normalized_outputs.append({"index": index, "status": "failed", "error": message,
+                                       "phase": "submit", "result_certainty": "not_submitted" if tracked else "submitted_unknown",
+                                       "safe_retry_action": "retry_submit" if tracked else "confirm_regenerate"})
     failed_count += max(0, total_count - completed_count - failed_count)
     updated = dict(metadata)
     updated.update(
@@ -229,8 +242,7 @@ def _materialize_orphaned_running_failure(
             "failed_count": failed_count,
         }
     )
-    if isinstance(output_records, list):
-        updated["outputs"] = normalized_outputs
+    updated["outputs"] = normalized_outputs
     updated.pop("request", None)
     storage.write_metadata(task_id, updated)
     return updated
@@ -250,6 +262,12 @@ def _recover_queue_state(storage: TaskStorage, queue_storage: QueueStorage) -> N
         status = str(task.get("status") or "")
         if status in {"queued", "running"} and _recover_completed_outputs_from_disk(storage, task):
             continue
+        from codex_image.generation.checkpoints import project_recovery
+        project_recovery(storage, task_id, task)
+        if status == "queued" and task.get("safe_retry_action") == "confirm_regenerate":
+            task.update(status="running")
+            _materialize_orphaned_running_failure(storage, task_id, task)
+            continue
         if status == "queued" and _is_legacy_auto_retry_queue_task(task):
             message = str(task.get("last_error") or task.get("error") or "Task stopped before manual retry.")
             task["status"] = "failed"
@@ -263,11 +281,7 @@ def _recover_queue_state(storage: TaskStorage, queue_storage: QueueStorage) -> N
         if status == "cancelling" and task_id:
             finalize_task_cancellation(storage, task_id)
         if status == "running" and task_id:
-            task["status"] = "failed"
-            task["updated_at"] = utc_now()
-            task["error"] = "Service restarted before this task completed."
-            task["last_error"] = task["error"]
-            storage.write_metadata(task_id, task)
+            _materialize_orphaned_running_failure(storage, task_id, task)
     queued_task_id_set = set(queued_task_ids)
     waiting = [task_id for task_id in state["waiting"] if task_id in queued_task_id_set]
     for task_id in queued_task_ids:
@@ -294,10 +308,17 @@ def _recover_completed_outputs_from_disk(storage: TaskStorage, task: dict[str, A
     if not output_paths:
         return False
     total_count = _recoverable_total_count(task, len(output_paths))
-    if total_count <= 0 or len(output_paths) < total_count:
+    if total_count <= 0:
         return False
 
-    selected_paths = output_paths[:total_count]
+    selected_by_index = {index: path for path in output_paths
+                         if (index := _output_index_from_path(path)) is not None and 1 <= index <= total_count}
+    deleted = {record.get("index") for record in task.get("outputs", [])
+               if isinstance(record, dict) and (record.get("status") == "deleted" or record.get("deleted"))}
+    selected_paths = [path for index, path in sorted(selected_by_index.items()) if index not in deleted]
+    if not selected_paths:
+        return False
+    complete = len(selected_paths) >= total_count
     existing_outputs = {
         int(record["index"]): record
         for record in task.get("outputs", [])
@@ -317,6 +338,9 @@ def _recover_completed_outputs_from_disk(storage: TaskStorage, task: dict[str, A
         )
         outputs.append(record)
 
+    recovered_indexes = {record["index"] for record in outputs}
+    outputs.extend(record for index, record in existing_outputs.items() if index not in recovered_indexes)
+    outputs.sort(key=lambda record: record["index"])
     output_files = [storage.output_file(path) for path in selected_paths]
     output_urls = [_output_url(storage, path) for path in selected_paths]
     params = task.get("params") if isinstance(task.get("params"), dict) else {}
@@ -324,10 +348,10 @@ def _recover_completed_outputs_from_disk(storage: TaskStorage, task: dict[str, A
     output_size = task.get("output_size") or params.get("size")
     task.update(
         {
-            "status": "completed",
+            "status": "completed" if complete else task.get("status", "failed"),
             "updated_at": utc_now(),
             "generated_count": len(selected_paths),
-            "failed_count": 0,
+            "failed_count": 0 if complete else max(0, total_count - len(selected_paths)),
             "total_count": total_count,
             "output_file": output_files[0],
             "output_files": output_files,
@@ -341,10 +365,11 @@ def _recover_completed_outputs_from_disk(storage: TaskStorage, task: dict[str, A
     if output_size:
         task["output_size"] = output_size
         task["output_sizes"] = [output_size for _ in selected_paths]
-    task.pop("error", None)
-    task.pop("last_error", None)
+    if complete:
+        task.pop("error", None)
+        task.pop("last_error", None)
     storage.write_metadata(task_id, task)
-    return True
+    return complete
 
 
 def _recoverable_total_count(task: dict[str, Any], fallback: int) -> int:
@@ -364,6 +389,11 @@ def _disk_output_paths(storage: TaskStorage, task_id: str) -> list[Path]:
     thumbnail_root = storage.output_root / "thumbnails"
     output_paths: list[Path] = []
     for path in storage.output_root.rglob(f"{task_id}-image-*"):
+        if not path.is_file() or path.is_symlink():
+            continue
+        resolved = path.resolve()
+        if not resolved.is_relative_to(storage.output_root.resolve()) or resolved.is_relative_to(storage.source_data_root.resolve()):
+            continue
         try:
             path.relative_to(thumbnail_root)
         except ValueError:

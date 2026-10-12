@@ -2,9 +2,12 @@ use super::*;
 
 #[test]
 fn launcher_urls_match_fixed_local_webui_port() {
+    let root = env::temp_dir().join(format!("ilab-launcher-url-test-{}", std::process::id()));
+    fs::create_dir_all(root.join("source")).unwrap();
+    fs::create_dir_all(root.join("data")).unwrap();
+    let canonical_data = root.join("data").canonicalize().unwrap();
     let config =
-        LauncherConfig::from_dirs(PathBuf::from("/app"), PathBuf::from("/data"), DEFAULT_PORT)
-            .unwrap();
+        LauncherConfig::from_dirs(root.join("source"), root.join("data"), DEFAULT_PORT).unwrap();
 
     assert_eq!(config.url(), WEBUI_URL);
     assert_eq!(config.health_url(), "http://127.0.0.1:8787/api/health");
@@ -12,8 +15,10 @@ fn launcher_urls_match_fixed_local_webui_port() {
     assert_eq!(config.history_url(), "http://127.0.0.1:8787/history");
     assert_eq!(
         config.log_path,
-        PathBuf::from("/data/webui-outputs/webui-server.log")
+        canonical_data.join("webui-outputs").join(LOG_FILE_NAME)
     );
+    assert_eq!(config.data_dir, canonical_data);
+    fs::remove_dir_all(root).unwrap();
 }
 
 #[test]
@@ -284,7 +289,12 @@ fn update_check_selects_matching_manifest_platform_entry() {
                     url: "https://example.test/other.zip".to_string(),
                     sha256: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
                         .to_string(),
-                    package: "portable-zip".to_string(),
+                    package: if cfg!(target_os = "linux") {
+                        "portable-tar-gz"
+                    } else {
+                        "portable-zip"
+                    }
+                    .to_string(),
                 },
             ),
             (
@@ -294,7 +304,12 @@ fn update_check_selects_matching_manifest_platform_entry() {
                     url: "https://example.test/current.zip".to_string(),
                     sha256: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
                         .to_string(),
-                    package: "portable-zip".to_string(),
+                    package: if cfg!(target_os = "linux") {
+                        "portable-tar-gz"
+                    } else {
+                        "portable-zip"
+                    }
+                    .to_string(),
                 },
             ),
         ]
@@ -306,7 +321,12 @@ fn update_check_selects_matching_manifest_platform_entry() {
                 url: "https://example.test/current.dmg".to_string(),
                 sha256: "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
                     .to_string(),
-                package: "standard-dmg".to_string(),
+                package: if cfg!(target_os = "linux") {
+                    "standard-deb"
+                } else {
+                    "standard-dmg"
+                }
+                .to_string(),
             },
         )]
         .into(),
@@ -328,12 +348,32 @@ fn update_check_selects_matching_manifest_platform_entry() {
         check.download_sha256,
         Some("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_string())
     );
-    assert_eq!(check.package, Some("portable-zip".to_string()));
+    assert_eq!(
+        check.package,
+        Some(
+            if cfg!(target_os = "linux") {
+                "portable-tar-gz"
+            } else {
+                "portable-zip"
+            }
+            .to_string()
+        )
+    );
     assert_eq!(
         standard_check.download_url,
         Some("https://example.test/current.dmg".to_string())
     );
-    assert_eq!(standard_check.package, Some("standard-dmg".to_string()));
+    assert_eq!(
+        standard_check.package,
+        Some(
+            if cfg!(target_os = "linux") {
+                "standard-deb"
+            } else {
+                "standard-dmg"
+            }
+            .to_string()
+        )
+    );
 }
 
 #[test]
@@ -390,7 +430,12 @@ fn update_check_offers_install_for_local_build_when_manifest_platform_matches() 
                 url: "https://example.test/current.zip".to_string(),
                 sha256: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
                     .to_string(),
-                package: "portable-zip".to_string(),
+                package: if cfg!(target_os = "linux") {
+                    "portable-tar-gz"
+                } else {
+                    "portable-zip"
+                }
+                .to_string(),
             },
         )]
         .into(),
@@ -462,14 +507,20 @@ fn portable_updater_path_resolves_from_bundle_root() {
     {
         let updater = root.join("Update WebUI Portable.command");
         fs::write(&updater, "#!/bin/zsh\n").unwrap();
-        assert_eq!(portable_updater_path(&config), Some(updater));
+        assert_eq!(
+            portable_updater_path(&config),
+            Some(updater.canonicalize().unwrap())
+        );
     }
 
     #[cfg(target_os = "windows")]
     {
         let updater = root.join("Update WebUI Portable.bat");
         fs::write(&updater, "@echo off\n").unwrap();
-        assert_eq!(portable_updater_path(&config), Some(updater));
+        assert_eq!(
+            portable_updater_path(&config),
+            Some(updater.canonicalize().unwrap())
+        );
     }
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
@@ -481,6 +532,7 @@ fn portable_updater_path_resolves_from_bundle_root() {
 }
 
 #[test]
+#[cfg(not(target_os = "linux"))]
 fn standard_app_uses_standard_webui_shim_and_no_portable_updater() {
     let root = env::temp_dir().join(format!(
         "ilab-conjure-launcher-standard-test-{}",
@@ -552,6 +604,7 @@ fn reads_locale_preference_from_webui_settings_json() {
 }
 
 #[test]
+#[cfg(not(target_os = "linux"))]
 fn portable_app_dir_defaults_to_bundle_data_directory() {
     let app_dir = PathBuf::from("/bundle/app");
 
@@ -592,6 +645,7 @@ fn standard_app_executable_can_find_embedded_resources_app_directory() {
 }
 
 #[test]
+#[cfg(not(target_os = "linux"))]
 fn standard_app_uses_platform_user_data_directory_instead_of_embedded_resources() {
     let app_dir = PathBuf::from("/Applications/iLab GPT CONJURE.app/Contents/Resources/app");
     let data_dir = default_data_dir_for_app(&app_dir);
@@ -663,4 +717,305 @@ fn migration_prompt_plan_allows_manual_choice_when_no_data_was_detected() {
     assert_eq!(en.detected_button, Some("Copy Detected Data"));
     assert!(en.message.contains("/tmp/iLab GPT CONJURE/data"));
     assert!(en.message.contains("will not be moved or deleted"));
+}
+
+#[cfg(target_os = "linux")]
+fn linux_test_package(test: &str, mode: &str) -> (PathBuf, LauncherConfig) {
+    let root = env::temp_dir().join(format!("ilab-linux-{test}-{}", std::process::id()));
+    let _ = fs::remove_dir_all(&root);
+    fs::create_dir_all(root.join("app")).unwrap();
+    fs::write(root.join("bundle-metadata.json"), serde_json::json!({"schema_version":1,"mode":mode,"platform":"linux-x86_64","package": if mode == "installed" {"standard-deb"} else {"portable-tar-gz"}}).to_string()).unwrap();
+    let config =
+        LauncherConfig::from_dirs(root.join("app"), root.join("user-data"), DEFAULT_PORT).unwrap();
+    (root, config)
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn linux_package_mode_and_pbs_runtime_are_explicit() {
+    let (root, config) = linux_test_package("mode", "installed");
+    assert_eq!(config.mode, BundleMode::Installed);
+    assert_eq!(config.mode.launcher_mode(), "standard");
+    assert_eq!(config.bundle_dir, root);
+    assert_eq!(
+        bundled_python_candidates(&config.app_dir),
+        vec![root.join("python/bin/python3")]
+    );
+    assert_eq!(
+        update_package_kind_for_app(&config.app_dir),
+        UpdatePackageKind::Standard
+    );
+    fs::write(config.app_dir.join("linux_webui_app.py"), "# shim").unwrap();
+    assert_eq!(config.uvicorn_app(), "linux_webui_app:app");
+    fs::remove_file(root.join("bundle-metadata.json")).unwrap();
+    assert!(bundle::mode_for_app(&config.app_dir)
+        .unwrap_err()
+        .to_string()
+        .contains("Package damaged"));
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn packaged_missing_runtime_and_dependencies_never_bootstrap() {
+    use std::os::unix::fs::PermissionsExt;
+    let (root, config) = linux_test_package("runtime", "portable");
+    fs::create_dir_all(config.app_dir.join(".venv/bin")).unwrap();
+    fs::write(config.app_dir.join(".venv/bin/python"), "ignored venv").unwrap();
+    let service = WebUiService::new(config);
+    let error = service.ensure_python_runtime().unwrap_err().to_string();
+    assert!(error.contains("Package damaged"));
+    assert!(error.contains("missing"));
+    fs::create_dir_all(root.join("python/bin")).unwrap();
+    let python = root.join("python/bin/python3");
+    fs::write(&python, "#!/bin/sh\nexit 1\n").unwrap();
+    fs::set_permissions(&python, fs::Permissions::from_mode(0o755)).unwrap();
+    assert!(service
+        .ensure_python_runtime()
+        .unwrap_err()
+        .to_string()
+        .contains("dependencies"));
+    assert_eq!(
+        fs::read_to_string(service.config.app_dir.join(".venv/bin/python")).unwrap(),
+        "ignored venv"
+    );
+    assert!(!service.config.app_dir.join(".venv/pyvenv.cfg").exists());
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn linux_saved_custom_storage_is_preserved_and_program_tree_rejected() {
+    let (root, config) = linux_test_package("storage", "installed");
+    fs::create_dir_all(&config.data_dir).unwrap();
+    let input = root.join("custom-input");
+    let output = root.join("custom-output");
+    let settings = serde_json::json!({"input_root":input,"output_root":output,"source_data_root":output.join("sources"),"locale":"en"}).to_string();
+    fs::write(config.webui_settings_path(), &settings).unwrap();
+    let mut config =
+        LauncherConfig::from_dirs(config.app_dir, config.data_dir, DEFAULT_PORT).unwrap();
+    assert_eq!(config.input_root, input);
+    assert_eq!(config.output_root, output);
+    assert_eq!(config.source_data_root, output.join("sources"));
+    assert_eq!(
+        fs::read_to_string(config.webui_settings_path()).unwrap(),
+        settings
+    );
+    // Installed mode may never create data under its program directory.
+    config.data_dir = root.join("app/data");
+    assert!(linux_service::verify_writable(&config).is_err());
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn health_response_rejects_generic_http_success_and_foreign_products() {
+    for body in [
+        r#"{"ok":true}"#,
+        r#"{"ok":true,"product":"different-app"}"#,
+        r#"{"ok":false,"product":"ilab-conjure"}"#,
+    ] {
+        assert!(parse_health_response(&format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{body}"
+        ))
+        .is_err());
+    }
+    let response = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"ok\":true,\"product\":\"ilab-conjure\",\"data_dir\":\"/one\"}";
+    assert!(parse_health_response(response).is_ok());
+    assert!(parse_health_response(&response.replace("200 OK", "503 Unavailable")).is_err());
+}
+
+#[test]
+fn service_identity_rejects_different_data_directory() {
+    use std::net::TcpListener;
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let port = listener.local_addr().unwrap().port();
+    let worker = thread::spawn(move || {
+        let (mut stream, _) = listener.accept().unwrap();
+        let mut bytes = [0; 1024];
+        let _ = stream.read(&mut bytes);
+        let payload = r#"{"ok":true,"product":"ilab-conjure","data_dir":"/wrong-data"}"#;
+        stream
+            .write_all(
+                format!(
+                    "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+                    payload.len(),
+                    payload
+                )
+                .as_bytes(),
+            )
+            .unwrap();
+    });
+    let config = LauncherConfig::from_dirs(
+        PathBuf::from("/source-test"),
+        PathBuf::from("/expected-data"),
+        port,
+    )
+    .unwrap();
+    assert!(service_health(&config)
+        .unwrap_err()
+        .to_string()
+        .contains("different data directory"));
+    worker.join().unwrap();
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn linux_updates_require_correct_package_and_never_offer_source_replacement() {
+    assert_eq!(current_update_platform_key(), "linux-x86_64");
+    let payload = serde_json::json!({"schema_version":1,"version":"1.0.0","platforms":{"linux-x86_64":{"url":"https://example.test/update.tar.gz","sha256":"a".repeat(64),"package":"portable-tar-gz"}},"standard_platforms":{"linux-x86_64":{"url":"https://example.test/update.deb","sha256":"b".repeat(64),"package":"standard-deb"}}});
+    let mut manifest = parse_update_manifest_payload(&payload.to_string()).unwrap();
+    assert_eq!(
+        update_check_from_manifest("0.9.7", &manifest, UpdatePackageKind::Portable)
+            .package
+            .as_deref(),
+        Some("portable-tar-gz")
+    );
+    assert_eq!(
+        update_check_from_manifest("0.9.7", &manifest, UpdatePackageKind::Standard)
+            .package
+            .as_deref(),
+        Some("standard-deb")
+    );
+    assert!(
+        update_check_from_manifest("0.9.7", &manifest, UpdatePackageKind::Source)
+            .download_url
+            .is_none()
+    );
+    manifest.platforms.get_mut("linux-x86_64").unwrap().package = "portable-zip".to_string();
+    assert!(
+        update_check_from_manifest("0.9.7", &manifest, UpdatePackageKind::Portable)
+            .download_url
+            .is_none()
+    );
+    manifest.standard_platforms.clear();
+    assert!(
+        update_check_from_manifest("0.9.7", &manifest, UpdatePackageKind::Standard)
+            .download_url
+            .is_none()
+    );
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn linux_source_checkout_names_never_define_bundle_mode() {
+    for path in [
+        "/tmp/clean-source/app",
+        "/tmp/clean-source/resources/app",
+        "/tmp/clean-source",
+    ] {
+        let app = Path::new(path);
+        assert_eq!(bundle::mode_for_app(app).unwrap(), BundleMode::Source);
+        assert_eq!(default_data_dir_for_app(app), app.join("output"));
+        assert_eq!(update_package_kind_for_app(app), UpdatePackageKind::Source);
+    }
+    let (root, config) = linux_test_package("portable-data", "portable");
+    assert_eq!(default_data_dir_for_app(&config.app_dir), root.join("data"));
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn linux_signed_portable_and_standard_maps_reject_tampering() {
+    use base64::{engine::general_purpose, Engine as _};
+    use ed25519_dalek::{Signer, SigningKey};
+    let key = SigningKey::from_bytes(&[7; 32]); // deterministic test-only signing key
+    let public = general_purpose::STANDARD.encode(key.verifying_key().as_bytes());
+    let payload = serde_json::json!({"schema_version":1,"version":"1.0.0","platforms":{"linux-x86_64":{"url":"https://example.test/update.tar.gz","sha256":"a".repeat(64),"package":"portable-tar-gz"}},"standard_platforms":{"linux-x86_64":{"url":"https://example.test/update.deb","sha256":"b".repeat(64),"package":"standard-deb"}}});
+    let mut manifest = parse_update_manifest_payload(&payload.to_string()).unwrap();
+    manifest.signature = Some(UpdateSignature {
+        algorithm: "ed25519".into(),
+        value: general_purpose::STANDARD.encode(
+            key.sign(update_manifest::update_manifest_signing_payload(&manifest).as_bytes())
+                .to_bytes(),
+        ),
+    });
+    manifest.standard_signature = Some(UpdateSignature {
+        algorithm: "ed25519".into(),
+        value: general_purpose::STANDARD.encode(
+            key.sign(
+                update_manifest::standard_update_manifest_signing_payload(&manifest).as_bytes(),
+            )
+            .to_bytes(),
+        ),
+    });
+    verify_update_manifest_signature_with_key(&manifest, &public).unwrap();
+    let mut portable = manifest.clone();
+    portable.platforms.get_mut("linux-x86_64").unwrap().url =
+        "https://example.test/changed.tar.gz".into();
+    assert!(verify_update_manifest_signature_with_key(&portable, &public).is_err());
+    let mut standard = manifest.clone();
+    standard
+        .standard_platforms
+        .get_mut("linux-x86_64")
+        .unwrap()
+        .sha256 = "c".repeat(64);
+    assert!(verify_update_manifest_signature_with_key(&standard, &public).is_err());
+    let mut unsigned = manifest;
+    unsigned.standard_signature = None;
+    assert!(verify_update_manifest_signature_with_key(&unsigned, &public).is_err());
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn installed_explicit_data_override_does_not_require_home_or_xdg() {
+    let (root, config) = linux_test_package("explicit-no-home", "installed");
+    let explicit = root.join("explicit-data");
+    assert_eq!(
+        resolve_data_directory(&config.app_dir, Some(&explicit), None, None).unwrap(),
+        explicit
+    );
+    assert!(resolve_data_directory(&config.app_dir, None, None, None).is_err());
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn fake_health_claiming_product_and_profile_is_not_trusted_without_ownership() {
+    use std::net::TcpListener;
+    use std::sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    };
+    let root = env::temp_dir().join(format!("ilab-fake-health-{}", std::process::id()));
+    let _ = fs::remove_dir_all(&root);
+    fs::create_dir_all(root.join("source")).unwrap();
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    listener.set_nonblocking(true).unwrap();
+    let port = listener.local_addr().unwrap().port();
+    let config = LauncherConfig::from_dirs(root.join("source"), root.join("data"), port).unwrap();
+    let body = serde_json::json!({"ok":true,"product":"ilab-conjure","data_dir":config.data_dir,"launcher_instance":"not-owned"}).to_string();
+    let done = Arc::new(AtomicBool::new(false));
+    let server_done = done.clone();
+    let server = thread::spawn(move || {
+        while !server_done.load(Ordering::SeqCst) {
+            match listener.accept() {
+                Ok((mut stream, _)) => {
+                    stream
+                        .set_read_timeout(Some(Duration::from_secs(1)))
+                        .unwrap();
+                    let mut request = [0; 1024];
+                    if stream.read(&mut request).unwrap_or(0) > 0 {
+                        let _ = stream.write_all(format!("HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len()).as_bytes());
+                    }
+                }
+                Err(_) => thread::sleep(Duration::from_millis(5)),
+            }
+        }
+    });
+    let mut service = WebUiService::new(config);
+    assert!(service
+        .status()
+        .unwrap_err()
+        .to_string()
+        .contains("Unverified service"));
+    assert!(!is_webui_ready(&service.config));
+    assert!(service
+        .ensure_running()
+        .unwrap_err()
+        .to_string()
+        .contains("unverified service"));
+    assert!(service.child.is_none()); // No browser-opening success path or backend adoption.
+    done.store(true, Ordering::SeqCst);
+    server.join().unwrap();
+    fs::remove_dir_all(root).unwrap();
 }

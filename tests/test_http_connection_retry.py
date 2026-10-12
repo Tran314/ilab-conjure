@@ -111,6 +111,21 @@ class HTTPConnectionRetryTests(unittest.TestCase):
                 self.assertEqual([request.url.path for request in calls], ["/generate", "/result", "/result"])
                 self.assertEqual([request.method for request in calls], ["POST", *(["GET" if status == 302 else "POST"] * 2)])
 
+    def test_exhausted_redirect_connection_keeps_original_submission_unknown(self):
+        from codex_image.generation.checkpoints import OperationCheckpoint, checkpoint_request
+        calls = []
+        def handler(request):
+            calls.append(request)
+            if request.url.path == "/images/generations":
+                return httpx.Response(302, headers={"Location": "/result"})
+            raise httpx.ConnectError("destination unavailable")
+        with tempfile.TemporaryDirectory() as tmp, self.mock_client(handler):
+            operation = OperationCheckpoint(Path(tmp) / "receipt.json", [1])
+            with operation.scope(), self.assertRaises(HTTPTransportFailure):
+                checkpoint_request(self.transport(), method="POST", url="https://upstream.example/images/generations", headers={}, body=b"{}")
+            self.assertEqual(operation.state["safe_retry_action"], "confirm_regenerate")
+            self.assertEqual([request.method for request in calls], ["POST", "GET", "GET", "GET"])
+
     def test_read_write_and_http_errors_are_not_connection_retries(self):
         for failure in (httpx.ReadTimeout, httpx.WriteError, 400, 503):
             calls = []
@@ -214,6 +229,13 @@ class HTTPConnectionRetryTests(unittest.TestCase):
                         result = ({"url": "https://cdn.example/image?token=secret-token"} if failure in {"download", "dns"}
                                   else {"b64_json": base64.b64encode(png.getvalue()).decode()})
                         return httpx.Response(200, json={"data": [result]})
+                    if failure == "recovered":
+                        if request.url.host in {"cloudflare-dns.com", "dns.google"}:
+                            number = 28 if request.url.params.get("type") == "AAAA" else 1
+                            return httpx.Response(200, json={"Status": 0,
+                                "Question": [{"name": request.url.params["name"], "type": number}],
+                                "Answer": [{"type": 1, "data": "8.8.8.8"}] if number == 1 else []})
+                        return httpx.Response(200, content=png.getvalue(), headers={"Content-Type": "image/png"})
                     raise httpx.ConnectError("secret-token private-prompt") from ConnectionResetError(errno.ECONNRESET, "synthetic")
 
                 with self.subTest(mode=mode, failure=failure), tempfile.TemporaryDirectory() as tmp, chdir(tmp):
@@ -262,12 +284,13 @@ class HTTPConnectionRetryTests(unittest.TestCase):
                             # Exhausted automatic retries must not disable a later
                             # user-requested retry after the network recovers.
                             previous_posts = calls["POST"]
+                            needs_submit = failure == "all_connections"
                             failure = "recovered"
                             retried = client.post(f"/api/tasks/{task_id}/retry-failed")
                             self.assertEqual(retried.status_code, 200, retried.text)
                             asyncio.run(app.state.queue_manager.run_available_once())
                             self.assertEqual(client.get(f"/api/tasks/{task_id}").json()["task"]["status"], "completed")
-                            self.assertEqual(calls["POST"], previous_posts + 1)
+                            self.assertEqual(calls["POST"], previous_posts + int(needs_submit))
 
     def test_image_download_retries_only_download_and_never_resubmits_generation(self):
         png = BytesIO()

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from codex_image.generation.checkpoints import checkpoint_request
+
 import json
 from os import PathLike
 from typing import Any
@@ -233,7 +235,7 @@ class OpenAIResponsesImageClient:
         debug_sse_path: str | PathLike[str] | None = None,
     ) -> ImageResult:
         body = json.dumps(self._json_request_payload(payload)).encode("utf-8")
-        response = self.transport.request(
+        response = checkpoint_request(self.transport,
             method="POST",
             url=self.responses_url,
             headers=self._build_headers(),

@@ -51,6 +51,7 @@ def _sidebar_task_card(metadata: dict[str, Any]) -> dict[str, Any]:
         "max_attempts": _nonnegative_int(metadata.get("max_attempts"), 0),
         "last_error": metadata.get("last_error") or metadata.get("error") or "",
         "error": metadata.get("error") or "",
+        **{key: metadata.get(key) for key in ("phase", "result_certainty", "safe_retry_action", "provider_task_id", "provider_request_id", "generation_error") if metadata.get(key)},
         "cancel_requested": bool(metadata.get("cancel_requested")),
         "cancelled_at": metadata.get("cancelled_at") or "",
         "retrying_failed_slots": metadata.get("retrying_failed_slots") if isinstance(metadata.get("retrying_failed_slots"), list) else [],

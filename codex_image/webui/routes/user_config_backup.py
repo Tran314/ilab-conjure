@@ -351,6 +351,8 @@ _ERROR_STATUS_BY_CODE = {
     "user_config_restore_confirm_replace_required": 409,
     "user_config_restore_empty_replace_blocked": 409,
     "user_config_restore_active_tasks": 409,
+    "user_config_restore_gallery_references_block_replace": 409,
+    "user_config_restore_gallery_protection_unavailable": 503,
     "user_config_restore_size_invalid": 413,
     "user_config_restore_upload_too_large": 413,
     "user_config_restore_upload_overflow": 413,

@@ -1412,7 +1412,11 @@ raise SystemExit(1)
         self.assertEqual(task["generated_count"], 1)
         self.assertEqual(task["total_count"], 2)
         self.assertEqual(task["output_files"], [first_output_file])
-        self.assertEqual([record["file"] for record in task["outputs"]], [first_output_file])
+        completed = [record for record in task["outputs"] if record["status"] == "completed"]
+        self.assertEqual([record["file"] for record in completed], [first_output_file])
+        missing = [record for record in task["outputs"] if record["status"] == "failed"]
+        self.assertEqual([record["index"] for record in missing], [2])
+        self.assertEqual(missing[0]["safe_retry_action"], "confirm_regenerate")
         self.assertIn("Service restarted", task["error"])
 
     def test_queue_worker_executes_queued_edit_task_with_mask(self) -> None:

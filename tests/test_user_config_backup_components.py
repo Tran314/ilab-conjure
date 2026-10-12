@@ -47,7 +47,10 @@ class UserConfigBackupComponentTests(unittest.TestCase):
             "prompt_snippet_settings": PromptSnippetSettings(
                 settings_root / "snippets.json"
             ),
-            "gallery_storage": GalleryStorage(root / "inputs" / "gallery"),
+            "gallery_storage": GalleryStorage(
+                root / "inputs" / "gallery",
+                reference_counts_provider=lambda: task_storage.resource_reference_counts("gallery"),
+            ),
             "prompt_template_settings": PromptTemplateSettings(
                 settings_root / "templates.json"
             ),

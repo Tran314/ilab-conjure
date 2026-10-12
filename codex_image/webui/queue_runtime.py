@@ -902,6 +902,8 @@ async def execute_task(
     execution_contract: QueueExecutionContract | None = None
     try:
         metadata = ctx.storage.read_metadata(task_id)
+        if metadata.get("status") == "queued" and not metadata.get("started_at") and not metadata.get("attempts"):
+            metadata.setdefault("recovery_schema_version", 1)
         attempt_started_at = utc_now()
         metadata["status"] = "running"
         metadata["started_at"] = metadata.get("started_at") or attempt_started_at
@@ -975,6 +977,8 @@ async def execute_task(
         usage_limit_error = _is_usage_limit_error(exc)
         local_usage_limit_error = channel.auth_source != "api" and usage_limit_error
         metadata = ctx.storage.read_metadata(task_id)
+        from codex_image.generation.checkpoints import project_recovery
+        project_recovery(ctx.storage, task_id, metadata)
         reference_file_missing = _is_reference_file_missing_error(exc)
         explicit_file_rejection = (
             execution_contract is not None
@@ -1000,6 +1004,7 @@ async def execute_task(
             reference_file_missing or explicit_file_rejection or provider_non_retryable
             or _is_non_retryable_error(exc) or local_usage_limit_error
             or transport_failure(exc) is not None
+            or metadata.get("safe_retry_action") in {"confirm_regenerate", "resume_poll", "retry_download", "retry_save"}
         )
         metadata["status"] = "failed" if is_final_attempt or non_retryable else "queued"
         metadata["updated_at"] = utc_now()
@@ -1069,7 +1074,7 @@ def install_queue_runtime(
         should_requeue_cancelled=lambda task_id: not _task_cancel_requested(
             ctx.storage,
             task_id,
-        ),
+        ) and ctx.storage.read_metadata(task_id).get("status") == "queued",
         auto_retry=auto_retry,
     )
     ctx.install_on_app_state()

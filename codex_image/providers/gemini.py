@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from codex_image.generation.checkpoints import checkpoint_active, checkpoint_request
+
 import json
 from typing import Any, Callable, Mapping
 from urllib.parse import urlsplit, urlunsplit
@@ -120,6 +122,8 @@ def parse_gemini_generate_content_response(
                                 }
                             )
                         except AssetLoadError:
+                            if checkpoint_active():
+                                raise
                             continue
                         assets.append(
                             GeneratedAsset(
@@ -142,6 +146,8 @@ def parse_gemini_generate_content_response(
                             url_loader=url_loader,
                         )
                     except AssetLoadError:
+                        if checkpoint_active():
+                            raise
                         continue
                     assets.append(
                         GeneratedAsset(
@@ -215,7 +221,7 @@ class GeminiGenerateContentAdapter:
             "x-goog-api-key": plan.provider.api_key,
         }
         try:
-            response = self._transport.request(
+            response = checkpoint_request(self._transport,
                 method=request.method,
                 url=self._request_url(plan),
                 headers=headers,

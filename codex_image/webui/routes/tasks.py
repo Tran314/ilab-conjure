@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from codex_image.generation.checkpoints import TaskCheckpoints, project_recovery
+
 import os
 from pathlib import Path
 import subprocess
@@ -510,7 +512,10 @@ def register_task_routes(app: FastAPI, ctx: WebUIContext) -> None:
                 raise HTTPException(status_code=409, detail="Running task cannot be retried")
             if task_id in ctx.queue_storage.read_state()["waiting"]:
                 raise HTTPException(status_code=409, detail="Task is already queued")
+            from ..recovery import _recover_completed_outputs_from_disk
+            _recover_completed_outputs_from_disk(ctx.storage, metadata)
             metadata = h["materialize_orphaned_running_failure"](task_id, metadata)
+            project_recovery(ctx.storage, task_id, metadata)
             if metadata.get("status") not in {"failed", "partial_failed"}:
                 raise HTTPException(status_code=409, detail="Only failed tasks can retry failed image slots")
 
@@ -518,6 +523,39 @@ def register_task_routes(app: FastAPI, ctx: WebUIContext) -> None:
             if not retry_slots:
                 raise HTTPException(status_code=409, detail="No retryable failed image slots")
 
+            checkpoints = TaskCheckpoints(ctx.storage, task_id)
+            states = {record["index"]: record for record in metadata.get("outputs", [])
+                      if isinstance(record, dict) and isinstance(record.get("index"), int)}
+            states.update(checkpoints.states())
+            ambiguous_slots = [index for index in retry_slots if states.get(index, {}).get("safe_retry_action") == "confirm_regenerate"]
+            requested_regeneration = (payload or {}).get("regenerate") is True
+            confirmed = (payload or {}).get("confirm_regenerate") is True
+            if (ambiguous_slots or requested_regeneration) and not confirmed:
+                raise HTTPException(status_code=409, detail={
+                    "code": "regeneration_confirmation_required",
+                    "message": "The provider may already have completed and charged for these images. Regenerating can create an additional charge. Confirm before continuing.",
+                    "slots": ambiguous_slots or retry_slots,
+                    "safe_retry_action": "confirm_regenerate",
+                })
+            provider_id = str((payload or {}).get("api_provider_id") or "").strip()
+            current_provider = str((metadata.get("generation_snapshot") or {}).get("provider_id") or metadata.get("api_provider_id") or "")
+            if provider_id and provider_id != current_provider and isinstance(metadata.get("generation_snapshot"), dict):
+                raise HTTPException(status_code=409, detail={"code": "recovery_provider_locked", "message": "This task keeps its original provider and request plan. Submit a new task to use a different provider."})
+            recovering_existing = any(states.get(index, {}).get("safe_retry_action") in {"resume_poll", "retry_download", "retry_save"} for index in retry_slots)
+            if provider_id and provider_id != current_provider and recovering_existing and not requested_regeneration:
+                raise HTTPException(status_code=409, detail={"code": "recovery_provider_locked", "message": "Resume the original provider result, or explicitly confirm a new generation before switching providers."})
+            if requested_regeneration:
+                checkpoints.clear_for_regeneration(retry_slots)
+            elif ambiguous_slots:
+                checkpoints.clear_ambiguous(ambiguous_slots)
+            if ambiguous_slots or requested_regeneration:
+                for record in metadata.get("outputs", []):
+                    if isinstance(record, dict) and record.get("index") in (retry_slots if requested_regeneration else ambiguous_slots):
+                        for key in ("generation_error", "provider_task_id", "provider_request_id"):
+                            record.pop(key, None)
+                        record.update(phase="submit", result_certainty="not_submitted", safe_retry_action="retry_submit")
+                metadata["regeneration_confirmed_at"] = utc_now()
+                metadata.update(phase="submit", result_certainty="not_submitted", safe_retry_action="retry_submit")
             now = utc_now()
             metadata["status"] = "queued"
             metadata["queued_at"] = now

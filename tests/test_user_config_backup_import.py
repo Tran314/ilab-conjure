@@ -419,6 +419,8 @@ class UserConfigBackupImportTests(unittest.TestCase):
             )
             session = self._upload(service, payload)
             preview = service.validate(session.session_id)
+            self.assertEqual(preview.sections[0].identical_count, 1)
+            self.assertEqual(preview.sections[0].conflicts, 1)
             result = service.restore(
                 session.session_id,
                 sections=("chips",),

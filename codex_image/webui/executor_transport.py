@@ -113,50 +113,10 @@ def _exception_chain(exc: BaseException) -> list[BaseException]:
 
 
 def _is_retryable_transient_image_error(exc: BaseException) -> bool:
-    chain = _exception_chain(exc)
-    if transport_failure(exc) is not None:
-        # Connection retries belong to the individual HTTP request, including asset downloads.
-        return False
-    message = "\n".join(str(item).lower() for item in chain)
-    if (
-        "http 502" in message
-        and (
-            "upstream_error" in message
-            or "upstream service temporarily unavailable" in message
-        )
-    ):
-        return True
-
-    retryable_types = (
-        ssl.SSLEOFError,
-        ConnectionResetError,
-        ConnectionAbortedError,
-        BrokenPipeError,
-        http.client.RemoteDisconnected,
-    )
-    retryable_errnos = {
-        errno.ECONNABORTED,
-        errno.ECONNRESET,
-        errno.EPIPE,
-    }
-    for item in chain:
-        if isinstance(item, retryable_types):
-            return True
-        if isinstance(item, OSError) and item.errno in retryable_errnos:
-            return True
-
-    return any(
-        marker in message
-        for marker in (
-            "unexpected_eof_while_reading",
-            "eof occurred in violation of protocol",
-            "connection reset by peer",
-            "connection aborted",
-            "remote end closed connection without response",
-            "remote disconnected",
-            "broken pipe",
-        )
-    )
+    # Only the HTTP connection layer can prove a request was not sent. A
+    # whole image-operation retry may duplicate a paid generation after a read
+    # disconnect, timeout, download failure, or ambiguous upstream 5xx.
+    return False
 
 
 def _transient_image_retry_delay_seconds(failed_attempt: int) -> float:
