@@ -1813,6 +1813,17 @@ input[type=range].slider:disabled::-moz-range-thumb {
 .status-text.error { color: var(--danger); }
 .status-text.running { color: var(--primary-strong); }
 
+.generation-availability-notice:not([hidden]) {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 /* Output settings use field labels and spacing instead of repeated section titles. */
 .output-field-heading {
   display: flex;

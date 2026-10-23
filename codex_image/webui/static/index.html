@@ -121,7 +121,7 @@
         });
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=runtime-862" />
+    <link rel="stylesheet" href="/static/styles.css?v=runtime-863" />
   </head>
   <body>
     <div class="layout-container">
@@ -614,8 +614,12 @@
               <div class="prompt-submit-row">
                   <p id="executionSummary" class="execution-summary" aria-live="polite"></p>
                 <div class="prompt-run-wrap">
-                  <button id="runButton" class="run-button prompt-run-button" type="button" aria-keyshortcuts="Meta+Enter" title="开始生成（Cmd+Enter）" data-i18n="prompt.run" data-i18n-attr="title:prompt.runTitle">开始生成</button>
+                  <button id="runButton" class="run-button prompt-run-button" type="button" disabled aria-keyshortcuts="Meta+Enter" title="开始生成（Cmd+Enter）" data-i18n="prompt.run" data-i18n-attr="title:prompt.runTitle">开始生成</button>
                 </div>
+              </div>
+              <div id="generationAvailabilityNotice" class="generation-availability-notice" role="status" hidden>
+                <span id="generationAvailabilityMessage"></span>
+                <button id="generationAvailabilityAction" class="ghost-button text-sm" type="button"></button>
               </div>
             </section>
 
@@ -1689,7 +1693,7 @@
     </div>
 
     <div id="taskNotificationToastRegion" class="task-notification-toast-region" aria-live="polite"></div>
-  <script src="/static/app.js?v=runtime-865"></script>
+  <script src="/static/app.js?v=runtime-866"></script>
     <script>
       (() => {
         document.querySelectorAll(".radio-group").forEach((group) => {

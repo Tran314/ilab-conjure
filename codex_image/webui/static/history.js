@@ -895,6 +895,9 @@
     "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "Auth source",
     "auth.checking": "Checking auth",
+    "auth.healthCheckFailed": "Could not check the local service. Confirm the app is running, then refresh the page.",
+    "modelSelection.setupRequired": "No provider is available for the current model. Configure a provider or select another model.",
+    "modelSelection.catalogLoadFailed": "Could not load models and providers. Confirm the app is running, then try refreshing.",
     "auth.missingCodexSession": "No Codex session detected",
     "auth.switchFailed": "Failed to switch auth source",
     "auth.sourceUnavailable": "{source} unavailable",
@@ -14712,6 +14715,9 @@
     "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "\u6388\u6743\u6765\u6E90",
     "auth.checking": "\u6388\u6743\u68C0\u67E5\u4E2D",
+    "auth.healthCheckFailed": "\u65E0\u6CD5\u68C0\u67E5\u672C\u5730\u670D\u52A1\u3002\u8BF7\u786E\u8BA4\u7A0B\u5E8F\u6B63\u5728\u8FD0\u884C\u540E\u5237\u65B0\u9875\u9762\u3002",
+    "modelSelection.setupRequired": "\u5F53\u524D\u578B\u53F7\u65E0\u53EF\u7528\u4F9B\u5E94\u5546\uFF0C\u8BF7\u914D\u7F6E\u6216\u9009\u62E9\u5176\u4ED6\u578B\u53F7\u3002",
+    "modelSelection.catalogLoadFailed": "\u578B\u53F7\u4E0E\u4F9B\u5E94\u5546\u52A0\u8F7D\u5931\u8D25\uFF0C\u8BF7\u786E\u8BA4\u7A0B\u5E8F\u6B63\u5728\u8FD0\u884C\u3002",
     "auth.missingCodexSession": "\u6CA1\u6709\u68C0\u6D4B\u5230 Codex \u767B\u5F55\u6001",
     "auth.switchFailed": "\u6388\u6743\u6765\u6E90\u5207\u6362\u5931\u8D25",
     "auth.sourceUnavailable": "{source} \u4E0D\u53EF\u7528",
@@ -24020,6 +24026,18 @@
     });
     els9.saveToGalleryButton?.addEventListener("click", () => call(methods, "saveUploadToGallery"));
     bindSharedTopNavSettingsEvents(els9, methods);
+    els9.generationAvailabilityAction?.addEventListener("click", async () => {
+      if (state5.generationCatalog) {
+        call(methods, "openGenerationProviderSettings");
+        return;
+      }
+      els9.generationAvailabilityAction.disabled = true;
+      try {
+        await call(methods, "refreshGenerationCatalog");
+      } finally {
+        els9.generationAvailabilityAction.disabled = false;
+      }
+    });
     els9.runButton.addEventListener("click", () => call(methods, "runTask"));
     document.addEventListener("keydown", (event) => handleRunTaskShortcut(event, els9, methods));
     els9.refreshButton.addEventListener("click", () => {
@@ -24098,6 +24116,9 @@
       concreteModelOptions: document.querySelector("#concreteModelOptions"),
       generationProviderSelect: document.querySelector("#generationProviderSelect"),
       generationProviderSettingsButton: document.querySelector("#generationProviderSettingsButton"),
+      generationAvailabilityNotice: document.querySelector("#generationAvailabilityNotice"),
+      generationAvailabilityMessage: document.querySelector("#generationAvailabilityMessage"),
+      generationAvailabilityAction: document.querySelector("#generationAvailabilityAction"),
       githubLink: document.querySelector("#githubLink"),
       apiStatus: document.querySelector("#apiStatus"),
       versionInfo: document.querySelector("#versionInfo"),
@@ -26447,10 +26468,15 @@
       select.setAttribute("aria-invalid", resolved ? "false" : "true");
       syncThemedSelect(select);
     }
-    if (catalog && els9.statusText?.dataset.statusSource === "codex-health") {
+    if ((catalog || state5.generationCatalogError) && els9.statusText?.dataset.statusSource === "codex-health") {
       getLegacyBridge().methods.setStatus?.("", "");
     }
     if (els9.runButton) els9.runButton.disabled = !resolved;
+    if (els9.generationAvailabilityNotice) {
+      els9.generationAvailabilityNotice.hidden = Boolean(resolved) || !catalog && !state5.generationCatalogError;
+      els9.generationAvailabilityMessage.textContent = translate(catalog ? "modelSelection.setupRequired" : "modelSelection.catalogLoadFailed");
+      els9.generationAvailabilityAction.textContent = translate(catalog ? "modelSelection.openSettings" : "action.refresh");
+    }
   }
   function selectGenerationProvider(selectionOrProviderId) {
     const { state: state5 } = getLegacyBridge();
@@ -26644,14 +26670,16 @@
   async function refreshHealth() {
     try {
       const response = await fetch("/api/health");
+      if (!response.ok) throw new Error(`${translate("auth.healthCheckFailed")} (HTTP ${response.status})`);
       const data = await response.json();
-      if (!state2.generationCatalog) state2.authAvailable = Boolean(data.auth_available);
+      if (els3.statusText?.dataset.statusSource === "service-health") setStatus2("", "");
+      if (!state2.generationCatalog) state2.authAvailable = !state2.generationCatalogError && Boolean(data.auth_available);
       state2.authStatus = data.auth || null;
       renderAuthSource(state2.authStatus);
       els3.apiStatus.className = `status-dot ${state2.authAvailable ? "ok" : "error"}`;
       if (state2.generationCatalog) getLegacyBridge().methods.renderProviderSelection?.();
       els3.runButton.disabled = !state2.authAvailable;
-      if (!state2.authAvailable && !state2.generationCatalog) {
+      if (!state2.authAvailable && !state2.generationCatalog && !state2.generationCatalogError) {
         setStatus2(translate("auth.missingCodexSession"), "error");
         if (els3.statusText) els3.statusText.dataset.statusSource = "codex-health";
       }
@@ -26661,12 +26689,13 @@
         getLegacyBridge().methods.renderProviderSelection?.();
         getLegacyBridge().methods.updateModeSpecificSettings?.();
         updateRequestPreview();
-        return;
+      } else {
+        state2.authAvailable = false;
+        els3.apiStatus.className = "status-dot error";
+        els3.runButton.disabled = true;
       }
-      state2.authAvailable = false;
-      els3.apiStatus.className = "status-dot error";
-      els3.runButton.disabled = true;
       setStatus2(error.message, "error");
+      if (els3.statusText) els3.statusText.dataset.statusSource = "service-health";
     }
   }
   async function applyAuthSource(source) {
@@ -26685,7 +26714,7 @@
       }
       state2.pendingAuthSource = null;
       state2.authStatus = data;
-      if (!state2.generationCatalog) state2.authAvailable = Boolean(data.auth_available);
+      if (!state2.generationCatalog) state2.authAvailable = !state2.generationCatalogError && Boolean(data.auth_available);
       renderAuthSource(data);
       if (state2.generationCatalog) getLegacyBridge().methods.renderProviderSelection?.();
       getLegacyBridge().methods.updateModeSpecificSettings?.();

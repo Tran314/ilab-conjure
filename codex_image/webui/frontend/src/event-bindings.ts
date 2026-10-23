@@ -126,6 +126,18 @@ export function bindWebUIEvents(state: WebUIState, els: WebUIElements, methods: 
   });
   els.saveToGalleryButton?.addEventListener("click", () => call(methods, "saveUploadToGallery"));
   bindSharedTopNavSettingsEvents(els, methods);
+  els.generationAvailabilityAction?.addEventListener("click", async () => {
+    if (state.generationCatalog) {
+      call(methods, "openGenerationProviderSettings");
+      return;
+    }
+    els.generationAvailabilityAction.disabled = true;
+    try {
+      await call(methods, "refreshGenerationCatalog");
+    } finally {
+      els.generationAvailabilityAction.disabled = false;
+    }
+  });
   els.runButton.addEventListener("click", () => call(methods, "runTask"));
   document.addEventListener("keydown", (event) => handleRunTaskShortcut(event, els, methods));
   els.refreshButton.addEventListener("click", () => {

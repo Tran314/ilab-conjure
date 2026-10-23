@@ -25,14 +25,16 @@ function codexModeLabel(mode: any): string { return legacyMethod("codexModeLabel
 export async function refreshHealth(): Promise<void> {
   try {
     const response = await fetch("/api/health");
+    if (!response.ok) throw new Error(`${translate("auth.healthCheckFailed")} (HTTP ${response.status})`);
     const data = await response.json();
-    if (!state.generationCatalog) state.authAvailable = Boolean(data.auth_available);
+    if (els.statusText?.dataset.statusSource === "service-health") setStatus("", "");
+    if (!state.generationCatalog) state.authAvailable = !state.generationCatalogError && Boolean(data.auth_available);
     state.authStatus = data.auth || null;
     renderAuthSource(state.authStatus);
     els.apiStatus.className = `status-dot ${state.authAvailable ? "ok" : "error"}`;
     if (state.generationCatalog) getLegacyBridge().methods.renderProviderSelection?.();
     els.runButton.disabled = !state.authAvailable;
-    if (!state.authAvailable && !state.generationCatalog) {
+    if (!state.authAvailable && !state.generationCatalog && !state.generationCatalogError) {
       setStatus(translate("auth.missingCodexSession"), "error");
       if (els.statusText) els.statusText.dataset.statusSource = "codex-health";
     }
@@ -42,12 +44,13 @@ export async function refreshHealth(): Promise<void> {
       getLegacyBridge().methods.renderProviderSelection?.();
       getLegacyBridge().methods.updateModeSpecificSettings?.();
       updateRequestPreview();
-      return;
+    } else {
+      state.authAvailable = false;
+      els.apiStatus.className = "status-dot error";
+      els.runButton.disabled = true;
     }
-    state.authAvailable = false;
-    els.apiStatus.className = "status-dot error";
-    els.runButton.disabled = true;
     setStatus(error.message, "error");
+    if (els.statusText) els.statusText.dataset.statusSource = "service-health";
   }
 }
 
@@ -67,7 +70,7 @@ async function applyAuthSource(source: any): Promise<boolean> {
     }
     state.pendingAuthSource = null;
     state.authStatus = data;
-    if (!state.generationCatalog) state.authAvailable = Boolean(data.auth_available);
+    if (!state.generationCatalog) state.authAvailable = !state.generationCatalogError && Boolean(data.auth_available);
     renderAuthSource(data);
     if (state.generationCatalog) getLegacyBridge().methods.renderProviderSelection?.();
     getLegacyBridge().methods.updateModeSpecificSettings?.();

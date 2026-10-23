@@ -611,6 +611,9 @@
     "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "Auth source",
     "auth.checking": "Checking auth",
+    "auth.healthCheckFailed": "Could not check the local service. Confirm the app is running, then refresh the page.",
+    "modelSelection.setupRequired": "No provider is available for the current model. Configure a provider or select another model.",
+    "modelSelection.catalogLoadFailed": "Could not load models and providers. Confirm the app is running, then try refreshing.",
     "auth.missingCodexSession": "No Codex session detected",
     "auth.switchFailed": "Failed to switch auth source",
     "auth.sourceUnavailable": "{source} unavailable",
@@ -14428,6 +14431,9 @@
     "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "\u6388\u6743\u6765\u6E90",
     "auth.checking": "\u6388\u6743\u68C0\u67E5\u4E2D",
+    "auth.healthCheckFailed": "\u65E0\u6CD5\u68C0\u67E5\u672C\u5730\u670D\u52A1\u3002\u8BF7\u786E\u8BA4\u7A0B\u5E8F\u6B63\u5728\u8FD0\u884C\u540E\u5237\u65B0\u9875\u9762\u3002",
+    "modelSelection.setupRequired": "\u5F53\u524D\u578B\u53F7\u65E0\u53EF\u7528\u4F9B\u5E94\u5546\uFF0C\u8BF7\u914D\u7F6E\u6216\u9009\u62E9\u5176\u4ED6\u578B\u53F7\u3002",
+    "modelSelection.catalogLoadFailed": "\u578B\u53F7\u4E0E\u4F9B\u5E94\u5546\u52A0\u8F7D\u5931\u8D25\uFF0C\u8BF7\u786E\u8BA4\u7A0B\u5E8F\u6B63\u5728\u8FD0\u884C\u3002",
     "auth.missingCodexSession": "\u6CA1\u6709\u68C0\u6D4B\u5230 Codex \u767B\u5F55\u6001",
     "auth.switchFailed": "\u6388\u6743\u6765\u6E90\u5207\u6362\u5931\u8D25",
     "auth.sourceUnavailable": "{source} \u4E0D\u53EF\u7528",
@@ -19108,6 +19114,18 @@
     });
     els44.saveToGalleryButton?.addEventListener("click", () => call(methods, "saveUploadToGallery"));
     bindSharedTopNavSettingsEvents(els44, methods);
+    els44.generationAvailabilityAction?.addEventListener("click", async () => {
+      if (state33.generationCatalog) {
+        call(methods, "openGenerationProviderSettings");
+        return;
+      }
+      els44.generationAvailabilityAction.disabled = true;
+      try {
+        await call(methods, "refreshGenerationCatalog");
+      } finally {
+        els44.generationAvailabilityAction.disabled = false;
+      }
+    });
     els44.runButton.addEventListener("click", () => call(methods, "runTask"));
     document.addEventListener("keydown", (event) => handleRunTaskShortcut(event, els44, methods));
     els44.refreshButton.addEventListener("click", () => {
@@ -19186,6 +19204,9 @@
       concreteModelOptions: document.querySelector("#concreteModelOptions"),
       generationProviderSelect: document.querySelector("#generationProviderSelect"),
       generationProviderSettingsButton: document.querySelector("#generationProviderSettingsButton"),
+      generationAvailabilityNotice: document.querySelector("#generationAvailabilityNotice"),
+      generationAvailabilityMessage: document.querySelector("#generationAvailabilityMessage"),
+      generationAvailabilityAction: document.querySelector("#generationAvailabilityAction"),
       githubLink: document.querySelector("#githubLink"),
       apiStatus: document.querySelector("#apiStatus"),
       versionInfo: document.querySelector("#versionInfo"),
@@ -38575,10 +38596,15 @@ ${hint}` : hint;
       select.setAttribute("aria-invalid", resolved ? "false" : "true");
       syncThemedSelect(select);
     }
-    if (catalog && els44.statusText?.dataset.statusSource === "codex-health") {
+    if ((catalog || state33.generationCatalogError) && els44.statusText?.dataset.statusSource === "codex-health") {
       getLegacyBridge().methods.setStatus?.("", "");
     }
     if (els44.runButton) els44.runButton.disabled = !resolved;
+    if (els44.generationAvailabilityNotice) {
+      els44.generationAvailabilityNotice.hidden = Boolean(resolved) || !catalog && !state33.generationCatalogError;
+      els44.generationAvailabilityMessage.textContent = translate(catalog ? "modelSelection.setupRequired" : "modelSelection.catalogLoadFailed");
+      els44.generationAvailabilityAction.textContent = translate(catalog ? "modelSelection.openSettings" : "action.refresh");
+    }
   }
   function selectGenerationProvider(selectionOrProviderId) {
     const { state: state33 } = getLegacyBridge();
@@ -38772,14 +38798,16 @@ ${hint}` : hint;
   async function refreshHealth() {
     try {
       const response = await fetch("/api/health");
+      if (!response.ok) throw new Error(`${translate("auth.healthCheckFailed")} (HTTP ${response.status})`);
       const data = await response.json();
-      if (!state8.generationCatalog) state8.authAvailable = Boolean(data.auth_available);
+      if (els9.statusText?.dataset.statusSource === "service-health") setStatus7("", "");
+      if (!state8.generationCatalog) state8.authAvailable = !state8.generationCatalogError && Boolean(data.auth_available);
       state8.authStatus = data.auth || null;
       renderAuthSource(state8.authStatus);
       els9.apiStatus.className = `status-dot ${state8.authAvailable ? "ok" : "error"}`;
       if (state8.generationCatalog) getLegacyBridge().methods.renderProviderSelection?.();
       els9.runButton.disabled = !state8.authAvailable;
-      if (!state8.authAvailable && !state8.generationCatalog) {
+      if (!state8.authAvailable && !state8.generationCatalog && !state8.generationCatalogError) {
         setStatus7(translate("auth.missingCodexSession"), "error");
         if (els9.statusText) els9.statusText.dataset.statusSource = "codex-health";
       }
@@ -38789,12 +38817,13 @@ ${hint}` : hint;
         getLegacyBridge().methods.renderProviderSelection?.();
         getLegacyBridge().methods.updateModeSpecificSettings?.();
         updateRequestPreview4();
-        return;
+      } else {
+        state8.authAvailable = false;
+        els9.apiStatus.className = "status-dot error";
+        els9.runButton.disabled = true;
       }
-      state8.authAvailable = false;
-      els9.apiStatus.className = "status-dot error";
-      els9.runButton.disabled = true;
       setStatus7(error.message, "error");
+      if (els9.statusText) els9.statusText.dataset.statusSource = "service-health";
     }
   }
   async function applyAuthSource(source) {
@@ -38813,7 +38842,7 @@ ${hint}` : hint;
       }
       state8.pendingAuthSource = null;
       state8.authStatus = data;
-      if (!state8.generationCatalog) state8.authAvailable = Boolean(data.auth_available);
+      if (!state8.generationCatalog) state8.authAvailable = !state8.generationCatalogError && Boolean(data.auth_available);
       renderAuthSource(data);
       if (state8.generationCatalog) getLegacyBridge().methods.renderProviderSelection?.();
       getLegacyBridge().methods.updateModeSpecificSettings?.();

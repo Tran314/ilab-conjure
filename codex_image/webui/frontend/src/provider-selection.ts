@@ -224,10 +224,17 @@ export function renderProviderSelection(): void {
     select.setAttribute("aria-invalid", resolved ? "false" : "true");
     syncThemedSelect(select);
   }
-  if (catalog && els.statusText?.dataset.statusSource === "codex-health") {
+  if ((catalog || state.generationCatalogError) && els.statusText?.dataset.statusSource === "codex-health") {
     getLegacyBridge().methods.setStatus?.("", "");
   }
   if (els.runButton) els.runButton.disabled = !resolved;
+  if (els.generationAvailabilityNotice) {
+    els.generationAvailabilityNotice.hidden = Boolean(resolved) || (!catalog && !state.generationCatalogError);
+    els.generationAvailabilityMessage.textContent = translate(catalog
+      ? "modelSelection.setupRequired" : "modelSelection.catalogLoadFailed");
+    els.generationAvailabilityAction.textContent = translate(catalog
+      ? "modelSelection.openSettings" : "action.refresh");
+  }
 }
 
 export function selectGenerationProvider(selectionOrProviderId: string): void {

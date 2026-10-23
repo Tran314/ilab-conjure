@@ -156,3 +156,29 @@ test("provider resolution clears only the stale Codex health warning", async () 
   assert.equal(statusText.textContent,"Task request failed: 503");
   assert.equal(runButton.disabled,false); assert.equal(state.selectedProviderId,"api");
 });
+
+test("health responses cannot enable generation after catalog or HTTP failures", async () => {
+  const previous = { window: globalThis.window, fetch: globalThis.fetch };
+  const state: any = { generationCatalog: null, generationCatalogError: null, authAvailable: false };
+  const els: any = { runButton: { disabled: true }, apiStatus: {}, statusText: { dataset: {} } };
+  (globalThis as any).window = { __codexImageWebUI: { state, els, methods: {
+    currentApiMode: () => "images", currentCodexMode: () => "images",
+    syncReferenceFileAvailability() {}, updateRequestPreview() {},
+    setStatus: (text: string) => { els.statusText.textContent = text; delete els.statusText.dataset.statusSource; },
+  } } };
+  try {
+    const { refreshHealth } = await import("../../codex_image/webui/frontend/src/auth-source");
+    for (const [httpStatus, catalogError, disabled] of [
+      [200, null, false], [200, "generation catalog unavailable", true], [503, null, true], [200, null, false],
+    ] as const) {
+      state.generationCatalogError = catalogError;
+      globalThis.fetch = (async () => new Response(JSON.stringify({ auth_available: true }), {
+        status: httpStatus, headers: { "Content-Type": "application/json" },
+      })) as any;
+      await refreshHealth();
+      assert.equal(els.runButton.disabled, disabled, `HTTP ${httpStatus}; catalog: ${catalogError}`);
+      assert.equal(state.authAvailable, !disabled);
+    }
+    assert.equal(els.statusText.textContent, "", "a recovered service clears its own warning");
+  } finally { Object.assign(globalThis, previous); }
+});
