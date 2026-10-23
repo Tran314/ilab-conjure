@@ -158,10 +158,10 @@ async function run() {
   click("[data-history-open-management]");
   await until(() => Boolean(d.activeElement?.matches(".history-detail-title"))
     && find("[data-history-open-backup]").getBoundingClientRect().width > 0, "visible management actions");
-  const backupTrigger = find("[data-history-open-backup]");
+  find("[data-history-open-backup]").focus();
   click("[data-history-open-backup]"); await until(() => !find("#historyBackupDialog").hidden, "backup dialog");
   check("backup modal isolates page", find(".history-page").inert && Boolean(d.activeElement?.closest("#historyBackupDialog")));
-  key("Escape"); check("backup Escape restores page and focus", find("#historyBackupDialog").hidden && !find(".history-page").inert && Boolean(d.activeElement?.matches("[data-history-open-backup]")), { active: d.activeElement?.outerHTML, hidden: find("#historyBackupDialog").hidden, inert: find(".history-page").inert, triggerConnected: backupTrigger.isConnected, triggerHtml: backupTrigger.outerHTML, pageClass: find(".history-page").className });
+  key("Escape"); check("backup Escape restores page and focus", find("#historyBackupDialog").hidden && !find(".history-page").inert && Boolean(d.activeElement?.matches("[data-history-open-backup]")));
   click("[data-history-open-import]"); await until(() => !find("#historyImportDialog").hidden, "import dialog"); key("Escape");
   check("import opens and closes without starting upload", find("#historyImportDialog").hidden);
   for (const width of [1440, 390]) {
