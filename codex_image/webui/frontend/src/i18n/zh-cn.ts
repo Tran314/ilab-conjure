@@ -7,7 +7,7 @@ export const ZH_CN_DICTIONARY: TranslationDictionary = {
     "history.media.empty": "未生成图片",
     "history.media.failed": "生成失败",
     "history.media.loading": "正在加载图片",
-    "prompt.referenceHelpText": "输入 @ 引用图库图片，# 插入颜色，~ 引用提示词片段。",
+    "prompt.referenceHelpText": "输入 @ 可引用当前参考图或图库图片；输入 # 可插入颜色码；输入 ~ 或 ～ 可调用提示词片段。",
     "prompt.referenceHelp": "提示词快捷引用",
     "mobile.taskActions": "任务操作",
     "mobile.photos": "照片",

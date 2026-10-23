@@ -7,6 +7,8 @@ import shutil
 import subprocess
 import textwrap
 
+from tests.frontend_runner import frontend_tools
+
 
 def _typescript_function_body(source: str, name: str) -> str:
     marker = f"function {name}"
@@ -367,7 +369,7 @@ class WebUIStaticHistoryTests(unittest.TestCase):
               process.stdout.write(JSON.stringify({{ calls, afterWrongName, afterWrongSize, finalPending: historyImportResumePending }}));
             }})();
         """)
-        esbuild = Path("node_modules/.bin/esbuild")
+        esbuild = frontend_tools()[1]
         compiled = subprocess.run(
             [str(esbuild), "--loader=ts", "--format=esm", "--target=es2020"],
             input=harness,
@@ -2210,7 +2212,8 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         self.assertIn('function historyBackendChannelLabel', _history_source("history-presentation"))
         self.assertIn('if (value === "openai_responses") return "Responses";', _history_source("history-presentation"))
         self.assertIn('<span>${escapeHtml(historyTaskSourceLabel(task))}</span>', _history_source("history-detail-controller"))
-        self.assertIn('orientation', _history_source("history-card-view"))
+        self.assertIn('historyThumbnailRatioStyle(task)', _history_source("history-card-view"))
+        self.assertIn('task.ratio', _history_source("history-presentation"))
         self.assertIn('prompt_mode', _history_source("history-card-view"))
         self.assertIn('quality', _history_source("history-card-view"))
         self.assertIn('HISTORY_RATIO_OTHER_VALUE', _history_source("history-presentation"))
@@ -2836,5 +2839,5 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         )
         self.assertRegex(
             styles,
-            r"@media \(min-width: 1101px\)[\s\S]*\.history-management-button\s*\{[^}]*display:\s*none",
+            r"@media \(min-width: 1101px\)[\s\S]*\.history-management-button\s*\{[^}]*display:\s*grid",
         )

@@ -57,6 +57,28 @@ class WebUISecurityTests(unittest.TestCase):
             auto_start_queue=False,
         )
 
+    def test_output_media_types_do_not_depend_on_the_system_registry(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            app = self._create_app(Path(tmp))
+            storage = app.state.storage
+            with TestClient(app) as client, patch(
+                "codex_image.webui.storage_utils.mimetypes.guess_type", return_value=("", None),
+            ):
+                for output_format, mime in (("png", "image/png"), ("jpeg", "image/jpeg"), ("webp", "image/webp")):
+                    with self.subTest(output_format=output_format):
+                        buffer = BytesIO()
+                        Image.new("RGB", (12, 8)).save(buffer, format=output_format)
+                        task = storage.create_task("generate")
+                        path = storage.write_output(task.task_id, buffer.getvalue(), output_format, index=1)
+                        filename = storage.output_file(path)
+                        storage.write_metadata(task.task_id, {
+                            "task_id": task.task_id, "status": "completed", "output_files": [filename],
+                            "outputs": [{"index": 1, "status": "completed", "file": filename}],
+                        })
+                        response = client.get(f"/outputs/{filename}")
+                        self.assertEqual(response.status_code, 200)
+                        self.assertEqual(response.headers["content-type"], mime)
+
     def test_task_media_routes_preserve_known_files_and_hide_unowned_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

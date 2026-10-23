@@ -1,6 +1,14 @@
 import type { TranslationDictionary } from "./types";
 
 export const VI_DICTIONARY: TranslationDictionary = {
+    "history.media.details": "Mở tác vụ để xem chi tiết",
+    "history.media.unavailable": "Không thể tải ảnh",
+    "history.media.missing": "Thiếu tệp ảnh gốc",
+    "history.media.empty": "Chưa tạo ảnh nào",
+    "history.media.failed": "Tạo ảnh thất bại",
+    "history.media.loading": "Đang tải ảnh",
+    "prompt.referenceHelpText": "Nhập @ để tham chiếu ảnh hiện tại hoặc thư viện, # để chèn mã màu và ~ hoặc ～ để gọi đoạn gợi ý.",
+    "prompt.referenceHelp": "Phím tắt gợi ý",
     "mobile.taskActions": "Thao tác tác vụ",
     "mobile.photos": "Ảnh",
     "mobile.files": "Tệp",
@@ -491,6 +499,9 @@ export const VI_DICTIONARY: TranslationDictionary = {
     "language.vi": "Tiếng Việt",
     "auth.label": "Nguồn xác thực",
     "auth.checking": "Kiểm tra xác thực",
+    "auth.healthCheckFailed": "Không thể kiểm tra dịch vụ cục bộ. Hãy xác nhận ứng dụng đang chạy rồi tải lại trang.",
+    "modelSelection.setupRequired": "Không có nhà cung cấp cho mô hình hiện tại. Hãy cấu hình nhà cung cấp hoặc chọn mô hình khác.",
+    "modelSelection.catalogLoadFailed": "Không thể tải mô hình và nhà cung cấp. Hãy xác nhận ứng dụng đang chạy rồi thử tải lại.",
     "auth.missingCodexSession": "Không phát hiện thấy phiên Codex nào",
     "auth.switchFailed": "Không thể chuyển đổi nguồn xác thực",
     "auth.sourceUnavailable": "{source} không khả dụng",
@@ -655,7 +666,6 @@ export const VI_DICTIONARY: TranslationDictionary = {
     "output.lock.frame": "Khung hình",
     "output.lock.outputCount": "Số ảnh đầu ra",
     "output.lock.output": "Đầu ra",
-"output.lock.search": "Tìm kiếm",
     "output.lock.call": "Lệnh gọi",
     "output.lock.sheets": "ảnh",
     "output.lock.imageModel": "Mô hình hình ảnh",

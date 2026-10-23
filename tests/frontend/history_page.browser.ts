@@ -139,7 +139,8 @@ async function run() {
   key("a", { ctrlKey: true });
   check("Ctrl+A selects only mounted 300 tasks", cards().length === 300 && cards().every(c => c.classList.contains("selected")) && /300/.test(find("#historySelectionDockCount").textContent || ""));
   click("[data-history-bulk-clear]");
-  click('[data-history-view="grid"]'); await pause(150);
+  click('[data-history-view="grid"]');
+  await until(() => Number.parseFloat(cards()[0].style.getPropertyValue("--history-task-card-width")) > 0, "grid layout");
   check("grid view lays out the same window", cards().length === 300 && list.classList.contains("history-view-grid") && Number.parseFloat(cards()[0].style.getPropertyValue("--history-task-card-width")) > 0);
   click('[data-history-task-id="qa-history-0000"]'); await until(() => detail.dataset.historyDetailMode === "task", "detail in grid");
   const card = cards()[0]; card.dispatchEvent(new w.MouseEvent("contextmenu", { bubbles: true, clientX: 450, clientY: 200 }));
@@ -154,9 +155,13 @@ async function run() {
   check("search updates URL and filtered tasks", new URL(w.location.href).searchParams.get("q") === search.value);
   click("[data-history-clear-all-filters]"); await until(() => cards().length >= 50, "clear filters");
   check("clear filters retains sort and grid view", new URL(w.location.href).searchParams.get("sort") === "oldest" && list.classList.contains("history-view-grid"));
+  click("[data-history-open-management]");
+  await until(() => Boolean(d.activeElement?.matches(".history-detail-title"))
+    && find("[data-history-open-backup]").getBoundingClientRect().width > 0, "visible management actions");
+  const backupTrigger = find("[data-history-open-backup]");
   click("[data-history-open-backup]"); await until(() => !find("#historyBackupDialog").hidden, "backup dialog");
   check("backup modal isolates page", find(".history-page").inert && Boolean(d.activeElement?.closest("#historyBackupDialog")));
-  key("Escape"); check("backup Escape restores page and focus", find("#historyBackupDialog").hidden && !find(".history-page").inert && Boolean(d.activeElement?.matches("[data-history-open-backup]")));
+  key("Escape"); check("backup Escape restores page and focus", find("#historyBackupDialog").hidden && !find(".history-page").inert && Boolean(d.activeElement?.matches("[data-history-open-backup]")), { active: d.activeElement?.outerHTML, hidden: find("#historyBackupDialog").hidden, inert: find(".history-page").inert, triggerConnected: backupTrigger.isConnected, triggerHtml: backupTrigger.outerHTML, pageClass: find(".history-page").className });
   click("[data-history-open-import]"); await until(() => !find("#historyImportDialog").hidden, "import dialog"); key("Escape");
   check("import opens and closes without starting upload", find("#historyImportDialog").hidden);
   for (const width of [1440, 390]) {

@@ -30,7 +30,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn('"historyLibrary.openFull": "打开完整历史库"', i18n_source)
         self.assertRegex(sidebar_styles, r"\.task-history-library-slot\s*\{[^}]*margin-bottom:\s*12px")
         self.assertRegex(task_styles, r"\.task-history-library-card\s*\{[^}]*text-align:\s*center")
-        self.assertRegex(html, r'<a class="task-history-library-card" href="/history">\s*<span data-i18n="footer.historyLibrary">[^<]+</span>\s*<small data-i18n="historyLibrary.openFull">[^<]+</small>')
+        self.assertRegex(html, r'<a class="task-history-library-card" href="/history">\s*<span data-i18n="footer.historyLibrary">[^<]+</span>\s*</a>')
         self.assertRegex(Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8"), r"\.task-history-library-card\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)")
         self.assertRegex(Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8"), r"\.task-history-library-card\s*\{[^}]*min-height:\s*54px")
 
@@ -607,7 +607,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn('translate("taskGroup.today")', model_source)
         self.assertIn('translate("taskGroup.yesterday")', model_source)
         self.assertIn('translate("taskGroup.last7")', model_source)
-        self.assertIn('data-i18n="historyLibrary.openFull"', Path("codex_image/webui/static/index.html").read_text(encoding="utf-8"))
+        self.assertIn('data-i18n="footer.historyLibrary"', Path("codex_image/webui/static/index.html").read_text(encoding="utf-8"))
         self.assertNotIn('"recent"', render_source)
         self.assertIn('formatTranslation("taskGroup.expand"', script)
         self.assertIn('formatTranslation("taskGroup.collapse"', card_source)

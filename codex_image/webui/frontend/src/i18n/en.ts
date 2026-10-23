@@ -7,7 +7,7 @@ export const EN_DICTIONARY: TranslationDictionary = {
     "history.media.empty": "No images generated",
     "history.media.failed": "Generation failed",
     "history.media.loading": "Loading image",
-    "prompt.referenceHelpText": "Use @ for gallery images, # for colors, and ~ for prompt snippets.",
+    "prompt.referenceHelpText": "Use @ for current references or gallery images, # for colors, and ~ or ～ for prompt snippets.",
     "prompt.referenceHelp": "Prompt shortcuts",
     "mobile.taskActions": "Task actions",
     "mobile.photos": "Photos",

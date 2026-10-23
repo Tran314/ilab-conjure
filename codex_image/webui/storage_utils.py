@@ -5,6 +5,8 @@ import re
 from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
 
+from codex_image.raster_validation import RASTER_FORMAT_MIME_TYPES
+
 
 def utc_now() -> str:
     return datetime.now(UTC).isoformat()
@@ -56,5 +58,9 @@ def _safe_output_relative_path(filename: str) -> Path:
 
 
 def _guess_mime_type(filename: str) -> str:
+    extension = Path(filename).suffix[1:].upper()
+    raster_mime = RASTER_FORMAT_MIME_TYPES.get("JPEG" if extension == "JPG" else extension)
+    if raster_mime:
+        return raster_mime
     mime_type, _ = mimetypes.guess_type(filename)
     return mime_type or "application/octet-stream"

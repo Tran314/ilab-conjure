@@ -353,17 +353,20 @@ class WebUIStaticPromptTests(WebUIStaticTestCase):
         self.assertIsNotNone(heading_html)
         self.assertRegex(heading_html.group(0), r"<div class=\"prompt-heading-main\">[\s\S]*<h2[^>]*>提示词</h2>[\s\S]*id=\"charCount\"")
         self.assertNotIn("promptTemplateButton", heading_html.group(0))
-        self.assertIn('id="executionSummary"', heading_html.group(0))
+        self.assertNotIn('id="executionSummary"', heading_html.group(0))
         self.assertNotIn("prompt-editor-toolbar", prompt_html)
         self.assertNotIn("prompt-run-toolbar", prompt_html)
         compose_html = prompt_html.split('<div class="prompt-compose">', 1)[1].split('<p id="promptValidationError"', 1)[0]
         self.assertIn('id="promptEditor"', compose_html)
-        self.assertIn('id="runButton"', compose_html)
+        self.assertNotIn('id="runButton"', compose_html)
+        submit_html = prompt_html.split('<div class="prompt-submit-row">', 1)[1]
+        self.assertIn('id="executionSummary"', submit_html)
+        self.assertIn('id="runButton"', submit_html)
         self.assertIn('aria-keyshortcuts="Meta+Enter"', prompt_html)
         self.assertIn('title="开始生成（Cmd+Enter）"', prompt_html)
         self.assertRegex(
             prompt_html,
-            r"<div class=\"prompt-run-wrap\">[\s\S]*id=\"runButton\"[\s\S]*<div class=\"prompt-template-row\">[\s\S]*<div class=\"prompt-footer\">[\s\S]*id=\"clearPromptButton\"[\s\S]*id=\"promptFindButton\"[\s\S]*id=\"promptTemplateRecentDock\"[\s\S]*<div class=\"prompt-template-entry\">[\s\S]*id=\"promptTemplateButton\"",
+            r"<div class=\"prompt-template-row\">[\s\S]*<div class=\"prompt-footer\">[\s\S]*id=\"clearPromptButton\"[\s\S]*id=\"promptFindButton\"[\s\S]*id=\"promptTemplateRecentDock\"[\s\S]*<div class=\"prompt-template-entry\">[\s\S]*id=\"promptTemplateButton\"[\s\S]*<div class=\"prompt-submit-row\">[\s\S]*id=\"executionSummary\"[\s\S]*id=\"runButton\"",
         )
         self.assertIn('class="ghost-button text-sm icon-text-button resource-manage-button prompt-template-button"', prompt_html)
         self.assertIn('title="管理模板库"', prompt_html)
@@ -1139,8 +1142,8 @@ console.log(cases.map((color) => readableTextColor(color)).join("\\n"));
         self.assertRegex(html, r"<div class=\"prompt-footer\">\s*<button id=\"clearPromptButton\" class=\"ghost-button icon-text-button text-sm quiet-danger-button\"[\s\S]*<svg[\s\S]*<span[^>]*>清空</span>")
         self.assertNotRegex(html, r"<div class=\"panel-heading prompt-heading\">\s*<h2>提示词</h2>\s*<button id=\"clearPromptButton\"")
         self.assertRegex(styles, r"\.prompt-compose\s*\{[^}]*display:\s*grid")
-        self.assertRegex(styles, r"\.prompt-compose\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*var\(--prompt-action-column-width\)")
-        self.assertRegex(styles, r"\.prompt-compose\s+\.run-button\s*\{[^}]*width:\s*100%[^}]*height:\s*140px")
+        self.assertRegex(styles, r"\.prompt-compose\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*;")
+        self.assertRegex(styles, r"\.prompt-submit-row\s+\.run-button\s*\{[^}]*min-width:\s*132px[^}]*height:\s*44px")
         self.assertRegex(styles, r"\.prompt-footer\s*\{[^}]*justify-content:\s*flex-start")
         self.assertRegex(styles, r"\.prompt-footer\s+\.ghost-button\s*\{[^}]*height:\s*var\(--prompt-secondary-action-height\)")
         self.assertRegex(styles, r"\.prompt-footer\s*>\s*\.icon-text-button\s*\{[^}]*flex:\s*0 0 auto")
