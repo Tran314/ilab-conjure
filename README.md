@@ -1,4 +1,4 @@
-> 本仓库是 [kadevin/ilab-conjure](https://github.com/kadevin/ilab-conjure) 的 Tran314 分支，包含备份恢复安全与 Windows 兼容性修复。下载和签名更新使用本 fork 的独立发布渠道；首次从上游版本切换时，请手动下载完整安装包。
+> 本仓库是 [kadevin/ilab-conjure](https://github.com/Tran314/ilab-conjure) 的 Tran314 分支，包含备份恢复安全与 Windows 兼容性修复。下载和签名更新使用本 fork 的独立发布渠道；首次从上游版本切换时，请手动下载完整安装包。
 
 <h1 align="center">iLab CONJURE</h1>
 
@@ -60,7 +60,7 @@ API 中转站可分别绑定 GPT Image 2、GPT Image 2.5 Flare 和 Sunburst，�
 
 ## 功能
 
-- 在同一模型目录中使用 GPT Image 与 Gemini，覆盖文生图及模型支持的参考图生成、图像编辑工作流。
+- 在同一模型目录中使用 GPT Image 与 Gemini，覆盖文生图及模型支持的参考图生成、图像编辑工作流。Gemini 包含 Nano Banana Pro、2.1、2 和 2 Lite；Nano Banana 2.1 支持 1K / 2K / 4K、最多 14 张参考图及 Google 搜索。
 - 支持 Codex Image、Codex Responses 和 OpenAI 兼容 API 接入；公开或共享使用优先选择 API 模式。
 - 多任务并发、本地队列状态、分页历史库、缩略图和结果归档。
 - 停止任务会中断本地请求及等待中的图片槽位，保留已生成图片和历史记录；服务商可能仍继续生成并计费。
@@ -164,15 +164,15 @@ http://127.0.0.1:8787/
 
 ## 应用包下载
 
-当前版本为 `v0.9.7`。正式安装包见
+当前版本为 `v0.9.9`。正式安装包见
 [下载 / Releases](RELEASES.md) 或 [GitHub 最新正式版](https://github.com/Tran314/ilab-conjure/releases/latest)。
 
 新用户建议优先下载标准包：
 
-1. macOS：Apple Silicon 下载 `iLab-GPT-CONJURE-macos-arm64-0.9.7.dmg`，
-   Intel 下载 `iLab-GPT-CONJURE-macos-x64-0.9.7.dmg`，然后把
+1. macOS：Apple Silicon 下载 `iLab-GPT-CONJURE-macos-arm64-0.9.9.dmg`，
+   Intel 下载 `iLab-GPT-CONJURE-macos-x64-0.9.9.dmg`，然后把
    `iLab GPT CONJURE.app` 拖到 Applications。
-2. Windows：下载 `iLab-GPT-CONJURE-windows-x64_0.9.7.zip`，
+2. Windows：下载 `iLab-GPT-CONJURE-windows-x64_0.9.9.zip`，
    解压到普通用户目录，双击 `iLab GPT CONJURE.exe`。
 
 标准包的用户数据会写入 macOS 的
@@ -298,8 +298,8 @@ HTTP(S) 缩略图仍保留为 URL；缺失素材或无效路径会跳过并显�
 
 提示词编辑器支持三种原子 chip：
 
-- `@` 图库 chip：搜索公用图库，将选中的图片同步加入参考图输入，并为模型附加
-  可见的参考图说明。
+- `@` 图片 chip：统一搜索当前参考图和公用图库，当前参考图优先。选择已上传的
+  图片只插入引用，选择图库图片会同时加入参考输入。支持上下键选择、回车确认和 Esc 关闭。
 - `#` 颜色 chip：插入 `#FF6600` 这类十六进制颜色，适合约束商品、海报、品牌、
   材质或背景色。
 - `~` 提示词片段 chip：用短标签插入常用提示词片段。编辑器保持短标签可见，
@@ -307,6 +307,13 @@ HTTP(S) 缩略图仍保留为 URL；缺失素材或无效路径会跳过并显�
 
 提示词片段可以从选中文本收藏，之后可用 `~`、`～` 或常见波浪号变体再次调用；
 chip 支持查看完整内容、展开为正文、编辑和复用。
+
+图片引用按实际提交、去重后的图片顺序解析为“参考图 N”，原文模式也会解析引用，
+但不附加图库用途说明。同一图片可多次引用；同名图片依靠身份区分。删除上传图的
+chip 会保留参考图，删除图库最后一处 chip 会同步移除本次图库参考。删除参考栏图片
+会移除对应引用，可用“恢复输入”整体恢复。历史和草稿保留引用身份；缺失引用需要
+重新选择或删除。粘贴的普通 `@图1` 文本不会自动绑定图片，保存模板时上传图引用
+转换为 `{{图1}}` 这类占位符。
 
 ## 提示词模板
 

@@ -456,6 +456,7 @@
     "ux.checkProvider": "Check provider settings",
     "ux.acceptDetail": "Keep successful images and finish the task without filling the failed slots.",
     "ux.editInputs": "Edit inputs and settings",
+    "ux.editInputsReady": "Task inputs and settings loaded. Edit them before generating again.",
     "ux.errorDetails": "Error details",
     "ux.openRecovery": "Resolve on generation page",
     "ux.useSize": "Use {width} \xD7 {height}",
@@ -554,6 +555,7 @@
     "queue.reorderFailed": "Failed to reorder queue",
     "queue.realtimeUpdateFailed": "Failed to update live status",
     "queue.realtimeDisconnected": "Live status connection was interrupted. Reconnecting automatically\u2026",
+    "queue.realtimePolling": "Task status is updating periodically. Restoring the live connection\u2026",
     "queue.readFailed": "Failed to load queue",
     "status.waiting": "Waiting",
     "status.shownActiveTasks": "Showing active tasks",
@@ -952,6 +954,7 @@
     "status.loadedTask": "Loaded task {taskId}",
     "status.reusedTask": "Opened task {taskId} in generator",
     "status.loadingHistoryInputs": "Loading historical input images...",
+    "status.taskChangedDuringLoad": "The task changed while loading. Please select it again.",
     "status.historyInputLoadFailed": "Failed to load historical input image: {url}",
     "referenceCollector.alreadyStaged": "Already staged as a reference",
     "referenceCollector.staged": "Staged {count} reference images",
@@ -1024,6 +1027,15 @@
     "promptGallery.remove": "Remove @{name}",
     "prompt.title": "Prompt",
     "prompt.editorLabel": "Prompt",
+    "promptMention.image": "Image {number}",
+    "promptMention.reference": "reference image {number}",
+    "promptMention.remove": "Remove mention, keep reference image",
+    "promptMention.missing": "A referenced image is missing. Select it again or remove its mention.",
+    "promptMention.choose": "Choose a reference image",
+    "promptMention.current": "Current reference images",
+    "promptMention.gallery": "Public gallery",
+    "promptMention.empty": "No matching images",
+    "promptMention.more": "More gallery images\u2026",
     "prompt.placeholder": "Describe the image you want to create or edit",
     "prompt.run": "Generate",
     "prompt.runEdit": "Start editing",
@@ -1090,10 +1102,10 @@
     "output.promptHelpTitle": "Prompt handling",
     "output.promptHelp.responsesChannel": "Responses \xB7 main model involved",
     "output.promptHelp.imagesChannel": "Images \xB7 direct generation",
-    "output.promptHelp.responses.original": "Sends your exact original text without app-added prompt rules; the provider may still return a revised prompt or interpret the result differently.",
+    "output.promptHelp.responses.original": "Resolves image mentions to reference numbers and sends your original text without app-added prompt rules; the provider may still return a revised prompt or interpret the result differently.",
     "output.promptHelp.responses.strict": "Lets the main model organize or expand the prompt, while preserving hard constraints such as subjects, text, colors, and composition.",
     "output.promptHelp.responses.automatic": "Adds no extra constraints, allowing the main model to interpret and optimize the prompt before calling the image tool.",
-    "output.promptHelp.images.original": "Adds no app-level prompt rules and submits your original text directly to the image endpoint.",
+    "output.promptHelp.images.original": "Resolves image mentions to reference numbers, adds no app-level prompt rules, and submits the rest of your original text directly.",
     "output.promptHelp.images.strict": "Submits fidelity rules together with the original prompt to emphasize every hard constraint.",
     "output.promptHelp.images.automatic": "Uses the image endpoint's default handling; required gallery-reference notes are still included.",
     "output.size": "Output size",
@@ -2339,7 +2351,16 @@
     "promptGallery.remove": "Entfernen Sie @{name}",
     "prompt.title": "Prompt",
     "prompt.editorLabel": "Prompt",
-    "prompt.placeholder": "Beschreiben Sie das Bild, das Sie erstellen oder bearbeiten m\xF6chten. Geben Sie @ f\xFCr Galeriereferenzen, # f\xFCr Farbcodes und ~ f\xFCr Eingabeaufforderungsausschnitte ein.",
+    "promptMention.image": "Bild {number}",
+    "promptMention.reference": "Referenzbild {number}",
+    "promptMention.remove": "Erw\xE4hnung entfernen, Bild behalten",
+    "promptMention.missing": "Ein Referenzbild fehlt. Erneut ausw\xE4hlen oder die Erw\xE4hnung entfernen.",
+    "promptMention.choose": "Referenzbild ausw\xE4hlen",
+    "promptMention.current": "Aktuelle Referenzbilder",
+    "promptMention.gallery": "\xD6ffentliche Galerie",
+    "promptMention.empty": "Keine passenden Bilder",
+    "promptMention.more": "Weitere Galeriebilder\u2026",
+    "prompt.placeholder": "Beschreiben Sie das Bild, das Sie erstellen oder bearbeiten m\xF6chten. Geben Sie @ f\xFCr aktuelle Referenzbilder oder Galeriebilder, # f\xFCr Farbcodes und ~ f\xFCr Eingabeaufforderungsausschnitte ein.",
     "prompt.run": "Generieren",
     "prompt.runEdit": "Beginnen Sie mit der Bearbeitung",
     "prompt.runTitle": "Generieren (Cmd+Enter)",
@@ -3566,7 +3587,16 @@
     "promptGallery.remove": "Quitar @{name}",
     "prompt.title": "r\xE1pido",
     "prompt.editorLabel": "r\xE1pido",
-    "prompt.placeholder": "Describe la imagen que deseas generar o editar. Escriba @ para referencias de galer\xEDa, # para c\xF3digos de color y ~ para fragmentos de mensajes.",
+    "promptMention.image": "Imagen {number}",
+    "promptMention.reference": "imagen de referencia {number}",
+    "promptMention.remove": "Quitar menci\xF3n, conservar imagen",
+    "promptMention.missing": "Falta una imagen de referencia. Selecci\xF3nala de nuevo o quita su menci\xF3n.",
+    "promptMention.choose": "Elegir imagen de referencia",
+    "promptMention.current": "Referencias actuales",
+    "promptMention.gallery": "Galer\xEDa p\xFAblica",
+    "promptMention.empty": "No hay im\xE1genes coincidentes",
+    "promptMention.more": "M\xE1s im\xE1genes de la galer\xEDa\u2026",
+    "prompt.placeholder": "Describe la imagen que deseas generar o editar. Escriba @ para im\xE1genes de referencia actuales o de la galer\xEDa, # para c\xF3digos de color y ~ para fragmentos de mensajes.",
     "prompt.run": "generar",
     "prompt.runEdit": "Empezar a editar",
     "prompt.runTitle": "Generar (Cmd+Enter)",
@@ -4793,7 +4823,16 @@
     "promptGallery.remove": "Supprimer @{name}",
     "prompt.title": "Invite",
     "prompt.editorLabel": "Invite",
-    "prompt.placeholder": "D\xE9crivez l'image que vous souhaitez g\xE9n\xE9rer ou modifier. Tapez @ pour les r\xE9f\xE9rences de galerie, # pour les codes de couleur et ~ pour les extraits d'invite.",
+    "promptMention.image": "Image {number}",
+    "promptMention.reference": "image de r\xE9f\xE9rence {number}",
+    "promptMention.remove": "Supprimer la mention, garder l\u2019image",
+    "promptMention.missing": "Image de r\xE9f\xE9rence manquante. S\xE9lectionnez-la \xE0 nouveau ou retirez sa mention.",
+    "promptMention.choose": "Choisir une image de r\xE9f\xE9rence",
+    "promptMention.current": "R\xE9f\xE9rences actuelles",
+    "promptMention.gallery": "Galerie publique",
+    "promptMention.empty": "Aucune image correspondante",
+    "promptMention.more": "Plus d\u2019images de la galerie\u2026",
+    "prompt.placeholder": "D\xE9crivez l'image que vous souhaitez g\xE9n\xE9rer ou modifier. Tapez @ pour les images actuelles ou celles de la galerie, # pour les codes de couleur et ~ pour les extraits d'invite.",
     "prompt.run": "G\xE9n\xE9rer",
     "prompt.runEdit": "Commencer l'\xE9dition",
     "prompt.runTitle": "G\xE9n\xE9rer (Cmd+Enter)",
@@ -6020,7 +6059,16 @@
     "promptGallery.remove": "@{name}\u3092\u524A\u9664",
     "prompt.title": "\u30D7\u30ED\u30F3\u30D7\u30C8",
     "prompt.editorLabel": "\u30D7\u30ED\u30F3\u30D7\u30C8",
-    "prompt.placeholder": "\u751F\u6210\u307E\u305F\u306F\u7DE8\u96C6\u3059\u308B\u753B\u50CF\u3092\u8A18\u8FF0\u3057\u307E\u3059\u3002\u30AE\u30E3\u30E9\u30EA\u30FC\u53C2\u7167\u306E\u5834\u5408\u306F @\u3001\u30AB\u30E9\u30FC \u30B3\u30FC\u30C9\u306E\u5834\u5408\u306F #\u3001\u30D7\u30ED\u30F3\u30D7\u30C8 \u30B9\u30CB\u30DA\u30C3\u30C8\u306E\u5834\u5408\u306F ~ \u3068\u5165\u529B\u3057\u307E\u3059\u3002",
+    "promptMention.image": "\u753B\u50CF{number}",
+    "promptMention.reference": "\u53C2\u7167\u753B\u50CF {number}",
+    "promptMention.remove": "\u53C2\u7167\u753B\u50CF\u3092\u6B8B\u3057\u3066\u8A00\u53CA\u3092\u524A\u9664",
+    "promptMention.missing": "\u53C2\u7167\u753B\u50CF\u304C\u3042\u308A\u307E\u305B\u3093\u3002\u518D\u9078\u629E\u3059\u308B\u304B\u8A00\u53CA\u3092\u524A\u9664\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
+    "promptMention.choose": "\u53C2\u7167\u753B\u50CF\u3092\u9078\u629E",
+    "promptMention.current": "\u73FE\u5728\u306E\u53C2\u7167\u753B\u50CF",
+    "promptMention.gallery": "\u5171\u6709\u30AE\u30E3\u30E9\u30EA\u30FC",
+    "promptMention.empty": "\u4E00\u81F4\u3059\u308B\u753B\u50CF\u304C\u3042\u308A\u307E\u305B\u3093",
+    "promptMention.more": "\u30AE\u30E3\u30E9\u30EA\u30FC\u3092\u3082\u3063\u3068\u8868\u793A\u2026",
+    "prompt.placeholder": "\u751F\u6210\u307E\u305F\u306F\u7DE8\u96C6\u3059\u308B\u753B\u50CF\u3092\u8A18\u8FF0\u3057\u307E\u3059\u3002\u73FE\u5728\u306E\u53C2\u7167\u753B\u50CF\u3084\u30AE\u30E3\u30E9\u30EA\u30FC\u753B\u50CF\u306B\u306F @\u3001\u30AB\u30E9\u30FC \u30B3\u30FC\u30C9\u306E\u5834\u5408\u306F #\u3001\u30D7\u30ED\u30F3\u30D7\u30C8 \u30B9\u30CB\u30DA\u30C3\u30C8\u306E\u5834\u5408\u306F ~ \u3068\u5165\u529B\u3057\u307E\u3059\u3002",
     "prompt.run": "\u751F\u6210\u3092\u958B\u59CB",
     "prompt.runEdit": "\u7DE8\u96C6\u3092\u958B\u59CB",
     "prompt.runTitle": "\u751F\u6210 (Cmd+Enter)",
@@ -7247,7 +7295,16 @@
     "promptGallery.remove": "@{name}\uC81C\uAC70",
     "prompt.title": "\uD504\uB86C\uD504\uD2B8",
     "prompt.editorLabel": "\uD504\uB86C\uD504\uD2B8",
-    "prompt.placeholder": "\uC0DD\uC131\uD558\uAC70\uB098 \uD3B8\uC9D1\uD558\uB824\uB294 \uC774\uBBF8\uC9C0\uB97C \uC124\uBA85\uD558\uC138\uC694. \uAC24\uB7EC\uB9AC \uCC38\uC870\uC758 \uACBD\uC6B0 @, \uC0C9\uC0C1 \uCF54\uB4DC\uC758 \uACBD\uC6B0 #, \uD504\uB86C\uD504\uD2B8 \uC2A4\uB2C8\uD3AB\uC758 \uACBD\uC6B0 ~\uB97C \uC785\uB825\uD569\uB2C8\uB2E4.",
+    "promptMention.image": "\uC774\uBBF8\uC9C0 {number}",
+    "promptMention.reference": "\uCC38\uC870 \uC774\uBBF8\uC9C0 {number}",
+    "promptMention.remove": "\uC774\uBBF8\uC9C0\uB97C \uC720\uC9C0\uD558\uACE0 \uCC38\uC870 \uBB38\uAD6C \uC0AD\uC81C",
+    "promptMention.missing": "\uCC38\uC870 \uC774\uBBF8\uC9C0\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uC120\uD0DD\uD558\uAC70\uB098 \uCC38\uC870\uB97C \uC0AD\uC81C\uD558\uC138\uC694.",
+    "promptMention.choose": "\uCC38\uC870 \uC774\uBBF8\uC9C0 \uC120\uD0DD",
+    "promptMention.current": "\uD604\uC7AC \uCC38\uC870 \uC774\uBBF8\uC9C0",
+    "promptMention.gallery": "\uACF5\uC6A9 \uAC24\uB7EC\uB9AC",
+    "promptMention.empty": "\uC77C\uCE58\uD558\uB294 \uC774\uBBF8\uC9C0 \uC5C6\uC74C",
+    "promptMention.more": "\uAC24\uB7EC\uB9AC \uB354 \uBCF4\uAE30\u2026",
+    "prompt.placeholder": "\uC0DD\uC131\uD558\uAC70\uB098 \uD3B8\uC9D1\uD558\uB824\uB294 \uC774\uBBF8\uC9C0\uB97C \uC124\uBA85\uD558\uC138\uC694. \uD604\uC7AC \uCC38\uC870 \uC774\uBBF8\uC9C0 \uB610\uB294 \uAC24\uB7EC\uB9AC \uC774\uBBF8\uC9C0\uC758 \uACBD\uC6B0 @, \uC0C9\uC0C1 \uCF54\uB4DC\uC758 \uACBD\uC6B0 #, \uD504\uB86C\uD504\uD2B8 \uC2A4\uB2C8\uD3AB\uC758 \uACBD\uC6B0 ~\uB97C \uC785\uB825\uD569\uB2C8\uB2E4.",
     "prompt.run": "\uC0DD\uC131 \uC2DC\uC791",
     "prompt.runEdit": "\uD3B8\uC9D1 \uC2DC\uC791",
     "prompt.runTitle": "\uC0DD\uC131(Cmd+Enter)",
@@ -8474,7 +8531,16 @@
     "promptGallery.remove": "Remover @{name}",
     "prompt.title": "Alerta",
     "prompt.editorLabel": "Alerta",
-    "prompt.placeholder": "Descreva a imagem que voc\xEA deseja gerar ou editar. Digite @ para refer\xEAncias de galeria, # para c\xF3digos de cores e ~ para trechos de prompt.",
+    "promptMention.image": "Imagem {number}",
+    "promptMention.reference": "imagem de refer\xEAncia {number}",
+    "promptMention.remove": "Remover men\xE7\xE3o, manter imagem",
+    "promptMention.missing": "Falta uma imagem de refer\xEAncia. Selecione-a novamente ou remova a men\xE7\xE3o.",
+    "promptMention.choose": "Escolher imagem de refer\xEAncia",
+    "promptMention.current": "Refer\xEAncias atuais",
+    "promptMention.gallery": "Galeria p\xFAblica",
+    "promptMention.empty": "Nenhuma imagem correspondente",
+    "promptMention.more": "Mais imagens da galeria\u2026",
+    "prompt.placeholder": "Descreva a imagem que voc\xEA deseja gerar ou editar. Digite @ para imagens de refer\xEAncia atuais ou da galeria, # para c\xF3digos de cores e ~ para trechos de prompt.",
     "prompt.run": "Gerar",
     "prompt.runEdit": "Comece a editar",
     "prompt.runTitle": "Gerar (Cmd+Enter)",
@@ -9701,7 +9767,16 @@
     "promptGallery.remove": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C @{name}",
     "prompt.title": "\u041F\u043E\u0434\u0441\u043A\u0430\u0436\u0438\u0442\u0435",
     "prompt.editorLabel": "\u041F\u043E\u0434\u0441\u043A\u0430\u0436\u0438\u0442\u0435",
-    "prompt.placeholder": "\u041E\u043F\u0438\u0448\u0438\u0442\u0435 image, \u043A\u043E\u0442\u043E\u0440\u044B\u0439 \u0432\u044B \u0445\u043E\u0442\u0438\u0442\u0435 \u0441\u043E\u0437\u0434\u0430\u0442\u044C \u0438\u043B\u0438 \u043E\u0442\u0440\u0435\u0434\u0430\u043A\u0442\u0438\u0440\u043E\u0432\u0430\u0442\u044C. \u0412\u0432\u0435\u0434\u0438\u0442\u0435 @ \u0434\u043B\u044F \u0441\u0441\u044B\u043B\u043A\u0438 \u043D\u0430 \u0433\u0430\u043B\u0435\u0440\u0435\u044E, # \u0434\u043B\u044F \u0446\u0432\u0435\u0442\u043E\u0432\u044B\u0445 \u043A\u043E\u0434\u043E\u0432 \u0438 ~ \u0434\u043B\u044F \u0444\u0440\u0430\u0433\u043C\u0435\u043D\u0442\u043E\u0432 \u043F\u043E\u0434\u0441\u043A\u0430\u0437\u043E\u043A.",
+    "promptMention.image": "\u0418\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0435 {number}",
+    "promptMention.reference": "\u0440\u0435\u0444\u0435\u0440\u0435\u043D\u0441 {number}",
+    "promptMention.remove": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0443\u043F\u043E\u043C\u0438\u043D\u0430\u043D\u0438\u0435, \u043E\u0441\u0442\u0430\u0432\u0438\u0442\u044C \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0435",
+    "promptMention.missing": "\u0420\u0435\u0444\u0435\u0440\u0435\u043D\u0441 \u043E\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442. \u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0435\u0433\u043E \u0441\u043D\u043E\u0432\u0430 \u0438\u043B\u0438 \u0443\u0434\u0430\u043B\u0438\u0442\u0435 \u0443\u043F\u043E\u043C\u0438\u043D\u0430\u043D\u0438\u0435.",
+    "promptMention.choose": "\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0440\u0435\u0444\u0435\u0440\u0435\u043D\u0441",
+    "promptMention.current": "\u0422\u0435\u043A\u0443\u0449\u0438\u0435 \u0440\u0435\u0444\u0435\u0440\u0435\u043D\u0441\u044B",
+    "promptMention.gallery": "\u041E\u0431\u0449\u0430\u044F \u0433\u0430\u043B\u0435\u0440\u0435\u044F",
+    "promptMention.empty": "\u041D\u0435\u0442 \u043F\u043E\u0434\u0445\u043E\u0434\u044F\u0449\u0438\u0445 \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0439",
+    "promptMention.more": "\u0414\u0440\u0443\u0433\u0438\u0435 \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u044F \u0433\u0430\u043B\u0435\u0440\u0435\u0438\u2026",
+    "prompt.placeholder": "\u041E\u043F\u0438\u0448\u0438\u0442\u0435 image, \u043A\u043E\u0442\u043E\u0440\u044B\u0439 \u0432\u044B \u0445\u043E\u0442\u0438\u0442\u0435 \u0441\u043E\u0437\u0434\u0430\u0442\u044C \u0438\u043B\u0438 \u043E\u0442\u0440\u0435\u0434\u0430\u043A\u0442\u0438\u0440\u043E\u0432\u0430\u0442\u044C. \u0412\u0432\u0435\u0434\u0438\u0442\u0435 @ \u0434\u043B\u044F \u0442\u0435\u043A\u0443\u0449\u0438\u0445 \u0440\u0435\u0444\u0435\u0440\u0435\u043D\u0441\u043E\u0432 \u0438\u043B\u0438 \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0439 \u0433\u0430\u043B\u0435\u0440\u0435\u0438, # \u0434\u043B\u044F \u0446\u0432\u0435\u0442\u043E\u0432\u044B\u0445 \u043A\u043E\u0434\u043E\u0432 \u0438 ~ \u0434\u043B\u044F \u0444\u0440\u0430\u0433\u043C\u0435\u043D\u0442\u043E\u0432 \u043F\u043E\u0434\u0441\u043A\u0430\u0437\u043E\u043A.",
     "prompt.run": "\u0413\u0435\u043D\u0435\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
     "prompt.runEdit": "\u041D\u0430\u0447\u0430\u0442\u044C \u0440\u0435\u0434\u0430\u043A\u0442\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435",
     "prompt.runTitle": "\u0421\u043E\u0437\u0434\u0430\u0442\u044C (Cmd+Enter)",
@@ -10928,7 +11003,16 @@
     "promptGallery.remove": "Rimuovi @{name}",
     "prompt.title": "Richiedi",
     "prompt.editorLabel": "Richiedi",
-    "prompt.placeholder": "Descrivi il image che desideri generare o modificare. Digita @ per i riferimenti alla galleria, # per i codici colore e ~ per i frammenti di prompt.",
+    "promptMention.image": "Immagine {number}",
+    "promptMention.reference": "immagine di riferimento {number}",
+    "promptMention.remove": "Rimuovi menzione, conserva immagine",
+    "promptMention.missing": "Manca un\u2019immagine di riferimento. Riselezionala o rimuovi la menzione.",
+    "promptMention.choose": "Scegli immagine di riferimento",
+    "promptMention.current": "Riferimenti attuali",
+    "promptMention.gallery": "Galleria pubblica",
+    "promptMention.empty": "Nessuna immagine corrispondente",
+    "promptMention.more": "Altre immagini della galleria\u2026",
+    "prompt.placeholder": "Descrivi il image che desideri generare o modificare. Digita @ per le immagini di riferimento attuali o della galleria, # per i codici colore e ~ per i frammenti di prompt.",
     "prompt.run": "Genera",
     "prompt.runEdit": "Inizia a modificare",
     "prompt.runTitle": "Genera (Cmd+Invio)",
@@ -12155,7 +12239,16 @@
     "promptGallery.remove": "@{name} \u0939\u091F\u093E\u090F\u0902",
     "prompt.title": "\u092A\u094D\u0930\u0949\u092E\u094D\u092A\u094D\u091F",
     "prompt.editorLabel": "\u092A\u094D\u0930\u0949\u092E\u094D\u092A\u094D\u091F",
-    "prompt.placeholder": "\u091C\u093F\u0938 \u091A\u093F\u0924\u094D\u0930 \u0915\u094B \u092C\u0928\u093E\u0928\u093E \u092F\u093E \u0938\u0902\u092A\u093E\u0926\u093F\u0924 \u0915\u0930\u0928\u093E \u091A\u093E\u0939\u0924\u0947 \u0939\u0948\u0902 \u0909\u0938\u0915\u093E \u0935\u0930\u094D\u0923\u0928 \u0915\u0930\u0947\u0902\u0964 \u0917\u0948\u0932\u0930\u0940 \u0938\u0902\u0926\u0930\u094D\u092D\u094B\u0902 \u0915\u0947 \u0932\u093F\u090F @, \u0930\u0902\u0917 \u0915\u094B\u0921 \u0915\u0947 \u0932\u093F\u090F # \u0914\u0930 \u092A\u094D\u0930\u0949\u092E\u094D\u092A\u094D\u091F \u0938\u094D\u0928\u093F\u092A\u0947\u091F \u0915\u0947 \u0932\u093F\u090F ~ \u091F\u093E\u0907\u092A \u0915\u0930\u0947\u0902\u0964",
+    "promptMention.image": "\u091A\u093F\u0924\u094D\u0930 {number}",
+    "promptMention.reference": "\u0938\u0902\u0926\u0930\u094D\u092D \u091A\u093F\u0924\u094D\u0930 {number}",
+    "promptMention.remove": "\u0909\u0932\u094D\u0932\u0947\u0916 \u0939\u091F\u093E\u090F\u0901, \u091A\u093F\u0924\u094D\u0930 \u0930\u0916\u0947\u0902",
+    "promptMention.missing": "\u0938\u0902\u0926\u0930\u094D\u092D \u091A\u093F\u0924\u094D\u0930 \u0928\u0939\u0940\u0902 \u092E\u093F\u0932\u093E\u0964 \u092B\u093F\u0930 \u0938\u0947 \u091A\u0941\u0928\u0947\u0902 \u092F\u093E \u0909\u0938\u0915\u093E \u0909\u0932\u094D\u0932\u0947\u0916 \u0939\u091F\u093E\u090F\u0901\u0964",
+    "promptMention.choose": "\u0938\u0902\u0926\u0930\u094D\u092D \u091A\u093F\u0924\u094D\u0930 \u091A\u0941\u0928\u0947\u0902",
+    "promptMention.current": "\u092E\u094C\u091C\u0942\u0926\u093E \u0938\u0902\u0926\u0930\u094D\u092D \u091A\u093F\u0924\u094D\u0930",
+    "promptMention.gallery": "\u0938\u093E\u091D\u093E \u0917\u0948\u0932\u0930\u0940",
+    "promptMention.empty": "\u0915\u094B\u0908 \u092E\u0947\u0932 \u0916\u093E\u0924\u093E \u091A\u093F\u0924\u094D\u0930 \u0928\u0939\u0940\u0902",
+    "promptMention.more": "\u0917\u0948\u0932\u0930\u0940 \u0915\u0947 \u0914\u0930 \u091A\u093F\u0924\u094D\u0930\u2026",
+    "prompt.placeholder": "\u091C\u093F\u0938 \u091A\u093F\u0924\u094D\u0930 \u0915\u094B \u092C\u0928\u093E\u0928\u093E \u092F\u093E \u0938\u0902\u092A\u093E\u0926\u093F\u0924 \u0915\u0930\u0928\u093E \u091A\u093E\u0939\u0924\u0947 \u0939\u0948\u0902 \u0909\u0938\u0915\u093E \u0935\u0930\u094D\u0923\u0928 \u0915\u0930\u0947\u0902\u0964 \u092E\u094C\u091C\u0942\u0926\u093E \u0938\u0902\u0926\u0930\u094D\u092D \u091A\u093F\u0924\u094D\u0930\u094B\u0902 \u092F\u093E \u0917\u0948\u0932\u0930\u0940 \u091A\u093F\u0924\u094D\u0930\u094B\u0902 \u0915\u0947 \u0932\u093F\u090F @, \u0930\u0902\u0917 \u0915\u094B\u0921 \u0915\u0947 \u0932\u093F\u090F # \u0914\u0930 \u092A\u094D\u0930\u0949\u092E\u094D\u092A\u094D\u091F \u0938\u094D\u0928\u093F\u092A\u0947\u091F \u0915\u0947 \u0932\u093F\u090F ~ \u091F\u093E\u0907\u092A \u0915\u0930\u0947\u0902\u0964",
     "prompt.run": "\u091C\u0928\u0930\u0947\u091F \u0915\u0930\u0947\u0902",
     "prompt.runEdit": "\u0938\u0902\u092A\u093E\u0926\u0928 \u092A\u094D\u0930\u093E\u0930\u0902\u092D \u0915\u0930\u0947\u0902",
     "prompt.runTitle": "\u091C\u0928\u0930\u0947\u091F \u0915\u0930\u0947\u0902 (Cmd+Enter)",
@@ -12885,6 +12978,7 @@
     "ux.checkProvider": "Ki\u1EC3m tra nh\xE0 cung c\u1EA5p",
     "ux.acceptDetail": "Gi\u1EEF \u1EA3nh th\xE0nh c\xF4ng v\xE0 k\u1EBFt th\xFAc t\xE1c v\u1EE5 m\xE0 kh\xF4ng t\u1EA1o l\u1EA1i \u1EA3nh th\u1EA5t b\u1EA1i.",
     "ux.editInputs": "S\u1EEDa \u0111\u1EA7u v\xE0o v\xE0 thi\u1EBFt l\u1EADp",
+    "ux.editInputsReady": "\u0110\xE3 t\u1EA3i \u0111\u1EA7u v\xE0o v\xE0 thi\u1EBFt l\u1EADp c\u1EE7a t\xE1c v\u1EE5. B\u1EA1n c\xF3 th\u1EC3 ch\u1EC9nh s\u1EEDa r\u1ED3i t\u1EA1o l\u1EA1i.",
     "ux.errorDetails": "Chi ti\u1EBFt l\u1ED7i",
     "ux.openRecovery": "X\u1EED l\xFD tr\xEAn trang t\u1EA1o \u1EA3nh",
     "ux.useSize": "D\xF9ng {width} \xD7 {height}",
@@ -12983,6 +13077,7 @@
     "queue.reorderFailed": "Kh\xF4ng th\u1EC3 s\u1EAFp x\u1EBFp l\u1EA1i h\xE0ng \u0111\u1EE3i",
     "queue.realtimeUpdateFailed": "Kh\xF4ng c\u1EADp nh\u1EADt \u0111\u01B0\u1EE3c tr\u1EA1ng th\xE1i tr\u1EF1c ti\u1EBFp",
     "queue.realtimeDisconnected": "K\u1EBFt n\u1ED1i tr\u1EA1ng th\xE1i tr\u1EF1c ti\u1EBFp b\u1ECB gi\xE1n \u0111o\u1EA1n. \u0110ang t\u1EF1 \u0111\u1ED9ng k\u1EBFt n\u1ED1i l\u1EA1i\u2026",
+    "queue.realtimePolling": "Tr\u1EA1ng th\xE1i t\xE1c v\u1EE5 \u0111ang \u0111\u01B0\u1EE3c c\u1EADp nh\u1EADt \u0111\u1ECBnh k\u1EF3. \u0110ang kh\xF4i ph\u1EE5c k\u1EBFt n\u1ED1i tr\u1EF1c ti\u1EBFp\u2026",
     "queue.readFailed": "Kh\xF4ng th\u1EC3 t\u1EA3i h\xE0ng \u0111\u1EE3i",
     "status.waiting": "\u0110ang ch\u1EDD",
     "status.shownActiveTasks": "Hi\u1EC3n th\u1ECB c\xE1c t\xE1c v\u1EE5 \u0111ang ch\u1EA1y",
@@ -13378,6 +13473,7 @@
     "status.loadedTask": "\u0110\xE3 t\u1EA3i t\xE1c v\u1EE5 {taskId}",
     "status.reusedTask": "\u0110\xE3 m\u1EDF t\xE1c v\u1EE5 {taskId} trong tr\xECnh t\u1EA1o",
     "status.loadingHistoryInputs": "\u0110ang t\u1EA3i h\xECnh \u1EA3nh \u0111\u1EA7u v\xE0o l\u1ECBch s\u1EED...",
+    "status.taskChangedDuringLoad": "T\xE1c v\u1EE5 \u0111\xE3 thay \u0111\u1ED5i trong khi t\u1EA3i. Vui l\xF2ng ch\u1ECDn l\u1EA1i t\xE1c v\u1EE5.",
     "status.historyInputLoadFailed": "Kh\xF4ng t\u1EA3i \u0111\u01B0\u1EE3c h\xECnh \u1EA3nh \u0111\u1EA7u v\xE0o l\u1ECBch s\u1EED: {url}",
     "referenceCollector.alreadyStaged": "\u0110\xE3 t\u1EA1m gi\u1EEF l\xE0m \u1EA3nh tham kh\u1EA3o",
     "referenceCollector.staged": "\u0110\xE3 t\u1EA1m gi\u1EEF {count} \u1EA3nh tham kh\u1EA3o",
@@ -13450,7 +13546,16 @@
     "promptGallery.remove": "X\xF3a @{name}",
     "prompt.title": "L\u1EDDi nh\u1EAFc",
     "prompt.editorLabel": "L\u1EDDi nh\u1EAFc",
-    "prompt.placeholder": "M\xF4 t\u1EA3 h\xECnh \u1EA3nh b\u1EA1n mu\u1ED1n t\u1EA1o ho\u1EB7c ch\u1EC9nh s\u1EEDa. Nh\u1EADp @ \u0111\u1EC3 tham kh\u1EA3o th\u01B0 vi\u1EC7n, # cho m\xE3 m\xE0u v\xE0 ~ cho \u0111o\u1EA1n l\u1EDDi nh\u1EAFc.",
+    "promptMention.image": "\u1EA2nh {number}",
+    "promptMention.reference": "\u1EA3nh tham kh\u1EA3o {number}",
+    "promptMention.remove": "X\xF3a nh\u1EAFc \u0111\u1EBFn, gi\u1EEF \u1EA3nh tham kh\u1EA3o",
+    "promptMention.missing": "Thi\u1EBFu \u1EA3nh tham kh\u1EA3o. Ch\u1ECDn l\u1EA1i ho\u1EB7c x\xF3a nh\u1EAFc \u0111\u1EBFn.",
+    "promptMention.choose": "Ch\u1ECDn \u1EA3nh tham kh\u1EA3o",
+    "promptMention.current": "\u1EA2nh tham kh\u1EA3o hi\u1EC7n t\u1EA1i",
+    "promptMention.gallery": "Th\u01B0 vi\u1EC7n chung",
+    "promptMention.empty": "Kh\xF4ng c\xF3 \u1EA3nh ph\xF9 h\u1EE3p",
+    "promptMention.more": "Xem th\xEAm \u1EA3nh th\u01B0 vi\u1EC7n\u2026",
+    "prompt.placeholder": "M\xF4 t\u1EA3 h\xECnh \u1EA3nh b\u1EA1n mu\u1ED1n t\u1EA1o ho\u1EB7c ch\u1EC9nh s\u1EEDa. Nh\u1EADp @ \u0111\u1EC3 tham chi\u1EBFu \u1EA3nh hi\u1EC7n t\u1EA1i ho\u1EB7c \u1EA3nh trong th\u01B0 vi\u1EC7n, # cho m\xE3 m\xE0u v\xE0 ~ cho \u0111o\u1EA1n l\u1EDDi nh\u1EAFc.",
     "prompt.run": "T\u1EA1o",
     "prompt.runEdit": "B\u1EAFt \u0111\u1EA7u ch\u1EC9nh s\u1EEDa",
     "prompt.runTitle": "T\u1EA1o (Cmd+Enter)",
@@ -14276,6 +14381,7 @@
     "ux.checkProvider": "\u68C0\u67E5\u4F9B\u5E94\u5546\u8BBE\u7F6E",
     "ux.acceptDetail": "\u4FDD\u7559\u5DF2\u6210\u529F\u56FE\u7247\u5E76\u7ED3\u675F\u4EFB\u52A1\uFF0C\u4E0D\u518D\u8865\u9F50\u5931\u8D25\u56FE\u7247\u3002",
     "ux.editInputs": "\u4FEE\u6539\u8F93\u5165\u4E0E\u53C2\u6570",
+    "ux.editInputsReady": "\u5DF2\u8F7D\u5165\u4EFB\u52A1\u8F93\u5165\u4E0E\u53C2\u6570\uFF0C\u53EF\u4FEE\u6539\u540E\u91CD\u65B0\u751F\u6210\u3002",
     "ux.errorDetails": "\u9519\u8BEF\u8BE6\u60C5",
     "ux.openRecovery": "\u8FDB\u5165\u751F\u6210\u9875\u5904\u7406",
     "ux.useSize": "\u91C7\u7528 {width} \xD7 {height}",
@@ -14374,6 +14480,7 @@
     "queue.reorderFailed": "\u961F\u5217\u6392\u5E8F\u5931\u8D25",
     "queue.realtimeUpdateFailed": "\u5B9E\u65F6\u72B6\u6001\u66F4\u65B0\u5931\u8D25",
     "queue.realtimeDisconnected": "\u5B9E\u65F6\u72B6\u6001\u8FDE\u63A5\u5DF2\u4E2D\u65AD\uFF0C\u6B63\u5728\u81EA\u52A8\u91CD\u8FDE\u2026",
+    "queue.realtimePolling": "\u4EFB\u52A1\u72B6\u6001\u5DF2\u5207\u6362\u4E3A\u5B9A\u65F6\u66F4\u65B0\uFF0C\u6B63\u5728\u6062\u590D\u5B9E\u65F6\u8FDE\u63A5\u2026",
     "queue.readFailed": "\u961F\u5217\u8BFB\u53D6\u5931\u8D25",
     "status.waiting": "\u7B49\u5F85\u4EFB\u52A1",
     "status.shownActiveTasks": "\u5DF2\u663E\u793A\u8FDB\u884C\u4E2D\u4EFB\u52A1",
@@ -14772,6 +14879,7 @@
     "status.loadedTask": "\u5DF2\u8F7D\u5165\u4EFB\u52A1 {taskId}",
     "status.reusedTask": "\u5DF2\u5728\u751F\u6210\u9875\u6253\u5F00\u4EFB\u52A1 {taskId}",
     "status.loadingHistoryInputs": "\u6B63\u5728\u8F7D\u5165\u5386\u53F2\u8F93\u5165\u56FE...",
+    "status.taskChangedDuringLoad": "\u4EFB\u52A1\u72B6\u6001\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u9009\u62E9\u8BE5\u4EFB\u52A1\u3002",
     "status.historyInputLoadFailed": "\u65E0\u6CD5\u8F7D\u5165\u5386\u53F2\u8F93\u5165\u56FE: {url}",
     "referenceCollector.alreadyStaged": "\u5DF2\u5728\u5F85\u52A0\u5165\u53C2\u8003\u56FE",
     "referenceCollector.staged": "\u5DF2\u6682\u5B58 {count} \u5F20\u53C2\u8003\u56FE",
@@ -14844,6 +14952,15 @@
     "promptGallery.remove": "\u79FB\u9664 @{name}",
     "prompt.title": "\u63D0\u793A\u8BCD",
     "prompt.editorLabel": "\u63D0\u793A\u8BCD",
+    "promptMention.image": "\u56FE{number}",
+    "promptMention.reference": "\u53C2\u8003\u56FE {number}",
+    "promptMention.remove": "\u79FB\u9664\u5F15\u7528\uFF0C\u4FDD\u7559\u53C2\u8003\u56FE",
+    "promptMention.missing": "\u5F15\u7528\u56FE\u7247\u5DF2\u7F3A\u5931\uFF0C\u8BF7\u91CD\u65B0\u9009\u62E9\u6216\u79FB\u9664\u5F15\u7528",
+    "promptMention.choose": "\u9009\u62E9\u53C2\u8003\u56FE\u7247",
+    "promptMention.current": "\u5F53\u524D\u53C2\u8003\u56FE",
+    "promptMention.gallery": "\u516C\u7528\u56FE\u5E93",
+    "promptMention.empty": "\u6CA1\u6709\u5339\u914D\u7684\u56FE\u7247",
+    "promptMention.more": "\u6D4F\u89C8\u66F4\u591A\u56FE\u5E93\u2026",
     "prompt.placeholder": "\u63CF\u8FF0\u4F60\u60F3\u751F\u6210\u6216\u7F16\u8F91\u7684\u56FE\u7247",
     "prompt.run": "\u5F00\u59CB\u751F\u6210",
     "prompt.runEdit": "\u5F00\u59CB\u7F16\u8F91",
@@ -14910,10 +15027,10 @@
     "output.promptHelpTitle": "\u63D0\u793A\u8BCD\u5904\u7406",
     "output.promptHelp.responsesChannel": "Responses \xB7 \u4E3B\u6A21\u578B\u53C2\u4E0E",
     "output.promptHelp.imagesChannel": "Images \xB7 \u76F4\u63A5\u751F\u6210",
-    "output.promptHelp.responses.original": "\u6309\u539F\u6587\u53D1\u9001\uFF0C\u4E0D\u6DFB\u52A0\u5E94\u7528\u7EA7\u63D0\u793A\u8BCD\u89C4\u5219\uFF1B\u670D\u52A1\u5546\u4ECD\u53EF\u80FD\u8FD4\u56DE revised prompt\uFF0C\u751F\u6210\u7ED3\u679C\u4E5F\u53EF\u80FD\u4E0E\u6587\u5B57\u7EA6\u675F\u6709\u504F\u5DEE\u3002",
+    "output.promptHelp.responses.original": "\u6309\u539F\u6587\u53D1\u9001\uFF0C\u56FE\u7247\u5F15\u7528\u89E3\u6790\u4E3A\u53C2\u8003\u56FE\u7F16\u53F7\uFF0C\u4E0D\u6DFB\u52A0\u5E94\u7528\u7EA7\u63D0\u793A\u8BCD\u89C4\u5219\uFF1B\u670D\u52A1\u5546\u4ECD\u53EF\u80FD\u8FD4\u56DE revised prompt\uFF0C\u751F\u6210\u7ED3\u679C\u4E5F\u53EF\u80FD\u4E0E\u6587\u5B57\u7EA6\u675F\u6709\u504F\u5DEE\u3002",
     "output.promptHelp.responses.strict": "\u5141\u8BB8\u4E3B\u6A21\u578B\u6574\u7406\u6216\u6269\u5199\uFF0C\u4F46\u5FC5\u987B\u4FDD\u7559\u5BF9\u8C61\u3001\u6587\u5B57\u3001\u989C\u8272\u3001\u6784\u56FE\u7B49\u786C\u6027\u7EA6\u675F\u3002",
     "output.promptHelp.responses.automatic": "\u4E0D\u6DFB\u52A0\u989D\u5916\u7EA6\u675F\uFF0C\u7531\u4E3B\u6A21\u578B\u7406\u89E3\u5E76\u4F18\u5316\u540E\u8C03\u7528\u56FE\u50CF\u5DE5\u5177\u3002",
-    "output.promptHelp.images.original": "\u5E94\u7528\u4E0D\u6DFB\u52A0\u63D0\u793A\u8BCD\u89C4\u5219\uFF0C\u6309\u7528\u6237\u539F\u6587\u76F4\u63A5\u63D0\u4EA4\u7ED9\u56FE\u50CF\u63A5\u53E3\u3002",
+    "output.promptHelp.images.original": "\u5E94\u7528\u4E0D\u6DFB\u52A0\u63D0\u793A\u8BCD\u89C4\u5219\uFF1B\u56FE\u7247\u5F15\u7528\u89E3\u6790\u4E3A\u53C2\u8003\u56FE\u7F16\u53F7\uFF0C\u5176\u4F59\u539F\u6587\u76F4\u63A5\u63D0\u4EA4\u7ED9\u56FE\u50CF\u63A5\u53E3\u3002",
     "output.promptHelp.images.strict": "\u5E94\u7528\u5C06\u4FDD\u771F\u89C4\u5219\u4E0E\u539F\u63D0\u793A\u8BCD\u4E00\u5E76\u63D0\u4EA4\uFF0C\u5F3A\u8C03\u4FDD\u7559\u6240\u6709\u786C\u6027\u7EA6\u675F\u3002",
     "output.promptHelp.images.automatic": "\u6309\u56FE\u50CF\u63A5\u53E3\u9ED8\u8BA4\u65B9\u5F0F\u63D0\u4EA4\uFF1B\u56FE\u5E93\u5F15\u7528\u7B49\u5FC5\u8981\u8BF4\u660E\u4ECD\u4F1A\u968F\u63D0\u793A\u8BCD\u53D1\u9001\u3002",
     "output.size": "\u8F93\u51FA\u5C3A\u5BF8",
@@ -16201,7 +16318,16 @@
     "promptGallery.remove": "\u79FB\u9664 @{name}",
     "prompt.title": "\u63D0\u793A\u8A5E",
     "prompt.editorLabel": "\u63D0\u793A\u8A5E",
-    "prompt.placeholder": "\u63CF\u8FF0\u4F60\u8981\u7522\u751F\u6216\u7DE8\u8F2F\u7684\u5716\u7247\uFF0C\u8F38\u5165 @ \u53EF\u8ABF\u7528\u5716\u5EAB\u53C3\u8003\u5716\uFF0C\u8F38\u5165 # \u53EF\u63D2\u5165\u984F\u8272\u78BC\uFF0C\u8F38\u5165 ~ \u6216 \uFF5E \u53EF\u8ABF\u7528\u63D0\u793A\u8A5E\u7247\u6BB5",
+    "promptMention.image": "\u5716{number}",
+    "promptMention.reference": "\u53C3\u8003\u5716 {number}",
+    "promptMention.remove": "\u79FB\u9664\u5F15\u7528\uFF0C\u4FDD\u7559\u53C3\u8003\u5716",
+    "promptMention.missing": "\u5F15\u7528\u5716\u7247\u5DF2\u907A\u5931\uFF0C\u8ACB\u91CD\u65B0\u9078\u64C7\u6216\u79FB\u9664\u5F15\u7528",
+    "promptMention.choose": "\u9078\u64C7\u53C3\u8003\u5716\u7247",
+    "promptMention.current": "\u76EE\u524D\u53C3\u8003\u5716",
+    "promptMention.gallery": "\u516C\u7528\u5716\u5EAB",
+    "promptMention.empty": "\u6C92\u6709\u7B26\u5408\u7684\u5716\u7247",
+    "promptMention.more": "\u700F\u89BD\u66F4\u591A\u5716\u5EAB\u2026",
+    "prompt.placeholder": "\u63CF\u8FF0\u4F60\u8981\u7522\u751F\u6216\u7DE8\u8F2F\u7684\u5716\u7247\uFF0C\u8F38\u5165 @ \u53EF\u5F15\u7528\u76EE\u524D\u5716\u7247\u6216\u516C\u7528\u5716\u5EAB\uFF0C\u8F38\u5165 # \u53EF\u63D2\u5165\u984F\u8272\u78BC\uFF0C\u8F38\u5165 ~ \u6216 \uFF5E \u53EF\u8ABF\u7528\u63D0\u793A\u8A5E\u7247\u6BB5",
     "prompt.run": "\u958B\u59CB\u751F\u6210",
     "prompt.runEdit": "\u958B\u59CB\u7DE8\u8F2F",
     "prompt.runTitle": "\u958B\u59CB\u7522\u751F\uFF08Cmd+Enter\uFF09",
@@ -17498,7 +17624,16 @@
     "promptGallery.remove": "\u79FB\u9664 @{name}",
     "prompt.title": "\u63D0\u793A\u8A5E",
     "prompt.editorLabel": "\u63D0\u793A\u8A5E",
-    "prompt.placeholder": "\u63CF\u8FF0\u4F60\u8981\u751F\u6210\u6216\u7DE8\u8F2F\u7684\u5716\u7247\uFF0C\u8F38\u5165 @ \u53EF\u547C\u53EB\u5716\u5EAB\u53C3\u8003\u5716\uFF0C\u8F38\u5165 # \u53EF\u63D2\u5165\u984F\u8272\u78BC\uFF0C\u8F38\u5165 ~ \u6216 \uFF5E \u53EF\u547C\u53EB\u63D0\u793A\u8A5E\u7247\u6BB5",
+    "promptMention.image": "\u5716{number}",
+    "promptMention.reference": "\u53C3\u8003\u5716 {number}",
+    "promptMention.remove": "\u79FB\u9664\u5F15\u7528\uFF0C\u4FDD\u7559\u53C3\u8003\u5716",
+    "promptMention.missing": "\u5F15\u7528\u5716\u7247\u5DF2\u907A\u5931\uFF0C\u8ACB\u91CD\u65B0\u9078\u64C7\u6216\u79FB\u9664\u5F15\u7528",
+    "promptMention.choose": "\u9078\u64C7\u53C3\u8003\u5716\u7247",
+    "promptMention.current": "\u76EE\u524D\u53C3\u8003\u5716",
+    "promptMention.gallery": "\u516C\u7528\u5716\u5EAB",
+    "promptMention.empty": "\u6C92\u6709\u7B26\u5408\u7684\u5716\u7247",
+    "promptMention.more": "\u700F\u89BD\u66F4\u591A\u5716\u5EAB\u2026",
+    "prompt.placeholder": "\u63CF\u8FF0\u4F60\u8981\u751F\u6210\u6216\u7DE8\u8F2F\u7684\u5716\u7247\uFF0C\u8F38\u5165 @ \u53EF\u5F15\u7528\u76EE\u524D\u5716\u7247\u6216\u516C\u7528\u5716\u5EAB\uFF0C\u8F38\u5165 # \u53EF\u63D2\u5165\u984F\u8272\u78BC\uFF0C\u8F38\u5165 ~ \u6216 \uFF5E \u53EF\u547C\u53EB\u63D0\u793A\u8A5E\u7247\u6BB5",
     "prompt.run": "\u958B\u59CB\u751F\u6210",
     "prompt.runEdit": "\u958B\u59CB\u7DE8\u8F2F",
     "prompt.runTitle": "\u958B\u59CB\u7522\u751F\uFF08Cmd+Enter\uFF09",
@@ -20488,6 +20623,44 @@
     return isHistoryLightboxActive();
   }
 
+  // codex_image/webui/frontend/src/state-sync.ts
+  var syncStates = /* @__PURE__ */ new WeakMap();
+  function taskUpdateIsOlder(previous, incoming) {
+    const previousTime = Date.parse(previous?.updated_at || previous?.created_at || "");
+    const incomingTime = Date.parse(incoming?.updated_at || incoming?.created_at || "");
+    return Number.isFinite(previousTime) && Number.isFinite(incomingTime) && incomingTime < previousTime;
+  }
+  function versionState(state5, version) {
+    if (!version || !version.instance || !Number.isSafeInteger(version.revision) || version.revision < 1) return null;
+    let current = syncStates.get(state5);
+    if (current?.retired.has(version.instance)) return false;
+    if (!current || current.instance !== version.instance) {
+      const retired = current?.retired || /* @__PURE__ */ new Set();
+      if (current) retired.add(current.instance);
+      current = { instance: version.instance, retired, queue: 0, tasks: 0, lastChange: 0, changes: /* @__PURE__ */ new Map() };
+      syncStates.set(state5, current);
+    }
+    return current;
+  }
+  function acceptQueueSnapshot(state5, version) {
+    const current = versionState(state5, version);
+    if (current === false) return false;
+    if (!current || !version) return true;
+    if (version.revision < Math.max(current.queue, current.tasks, current.lastChange)) return false;
+    current.queue = version.revision;
+    return true;
+  }
+  function acceptTaskUpdate(state5, task, version) {
+    const current = versionState(state5, version);
+    if (current === false || !task?.task_id) return false;
+    if (!current || !version) return true;
+    const id = String(task.task_id);
+    if (version.revision < current.tasks || version.revision < (current.changes.get(id)?.revision || 0)) return false;
+    current.lastChange = Math.max(current.lastChange, version.revision);
+    current.changes.set(id, { revision: version.revision, task });
+    return true;
+  }
+
   // codex_image/webui/frontend/src/history-detail-controller.ts
   function createHistoryDetailController(deps) {
     const els9 = {
@@ -20536,14 +20709,45 @@
         }
       }
     }
-    async function fetchHistoryTaskDetail(taskId) {
-      const response = await fetch(`/api/tasks/${encodeURIComponent(taskId)}`);
+    async function fetchHistoryTaskDetail(taskId, { signal } = {}) {
+      const response = await fetch(`/api/tasks/${encodeURIComponent(taskId)}`, { signal: signal ?? null });
       const data = await response.json().catch(() => ({}));
+      signal?.throwIfAborted();
       if (!response.ok) throw new Error(data.detail || translate("history.detailFailed"));
       return {
         ...data.task || {},
         ...data.organization || {}
       };
+    }
+    async function refreshTaskDetail({ task, signal } = {}) {
+      const previous = detailTask;
+      const taskId = String(previous?.task_id || "");
+      if (!taskId || !isCurrentHistoryDetailLoad(historyDetailLoadToken, taskId)) return;
+      if (task && String(task.task_id) !== taskId) return;
+      const summary = task || deps.list.historyTaskSummary(taskId);
+      if (!summary || taskUpdateIsOlder(previous, summary)) return;
+      if (!task && summary.updated_at && summary.updated_at === previous.updated_at && summary.status === previous.status) return;
+      const token = ++historyDetailLoadToken;
+      try {
+        const incoming = task && !task.summary_only ? task : await fetchHistoryTaskDetail(taskId, { signal });
+        signal?.throwIfAborted();
+        if (!isCurrentHistoryDetailLoad(token, taskId) || detailTask !== previous || taskUpdateIsOlder(previous, incoming)) return;
+        const current = { ...incoming, favorite: incoming.favorite ?? previous.favorite, tags: incoming.tags ?? previous.tags };
+        if (JSON.stringify(current) !== JSON.stringify(previous)) {
+          const active = document.activeElement;
+          const focused = active && els9.detail?.contains(active) ? active : null;
+          const identity = focused ? [...focused.attributes].filter((attr) => attr.name === "id" || attr.name.startsWith("data-history-")) : [];
+          renderTaskDetail(current);
+          if (identity.length) {
+            [...els9.detail?.querySelectorAll("button, input, a, [tabindex]") || []].find((element) => element.tagName === focused?.tagName && identity.every((attr) => element.getAttribute(attr.name) === attr.value))?.focus({ preventScroll: true });
+          }
+        }
+      } catch (error) {
+        if (signal?.aborted) throw error;
+        if (isCurrentHistoryDetailLoad(token, taskId) && detailTask === previous) {
+          setText(els9.resultSummary, errorMessage(error, translate("history.detailFailed")));
+        }
+      }
     }
     function isCurrentHistoryDetailLoad(loadToken, taskId) {
       return loadToken === historyDetailLoadToken && deps.selection.snapshot().selectedTaskId === taskId && deps.selection.snapshot().selectedTaskIds.size === 1 && deps.selection.snapshot().selectedTaskIds.has(taskId);
@@ -20892,6 +21096,7 @@
     return {
       loadTaskDetail,
       fetchHistoryTaskDetail,
+      refreshTaskDetail,
       renderHistoryManagementDetail,
       renderSelectionDetail,
       syncHistorySelectionDetail,
@@ -21299,6 +21504,7 @@
     };
     let historyTags = [];
     let historySummary = null;
+    let summaryRequestId = 0;
     let historyOrganizationFilters = {
       favorite: false,
       tagIds: [],
@@ -21555,9 +21761,13 @@
       });
     }
     async function loadSummary(options2 = {}) {
+      const requestId = ++summaryRequestId;
+      const isCurrent = () => requestId === summaryRequestId && !lifetime2.signal.aborted;
       try {
-        const response = await fetch("/api/task-history/summary");
+        const response = await fetch("/api/task-history/summary", { signal: options2.signal ?? null });
         const summary = await response.json();
+        options2.signal?.throwIfAborted();
+        if (!isCurrent()) return;
         if (!response.ok) throw new Error(summary.detail || translate("history.summaryFailed"));
         if (!historyOrganizationSummarySupported(summary)) {
           historyOrganizationApiSupported = false;
@@ -21582,6 +21792,11 @@
         syncArchiveButtons();
         renderHistoryActiveFilters();
       } catch (error) {
+        if (options2.signal?.aborted) {
+          if (options2.throwOnError) throw error;
+          return;
+        }
+        if (!isCurrent()) return;
         const message = errorMessage(
           error,
           translate("history.summaryFailed")
@@ -22668,13 +22883,27 @@
       if (!els9.taskList) return;
       els9.taskList.innerHTML = `<div class="${className}">${escapeHtml3(message)}</div>`;
     }
+    function captureFocus() {
+      const active = document.activeElement;
+      if (!active || !els9.taskList?.contains(active)) return null;
+      const taskId = active.closest("[data-history-task-card-id]")?.dataset.historyTaskCardId;
+      const selector = ["[data-history-task-id]", "[data-history-favorite-task]"].find((value) => active.matches(value));
+      return taskId && selector ? { taskId, selector } : null;
+    }
+    function restoreFocus(focus) {
+      if (focus) historyTaskCardElement(focus.taskId)?.querySelector(focus.selector)?.focus({ preventScroll: true });
+    }
     function replaceCard(card, html) {
+      const focusSelector2 = card.contains(document.activeElement) ? ["[data-history-task-id]", "[data-history-favorite-task]"].find((selector) => document.activeElement?.matches(selector)) : void 0;
       const template = document.createElement("template");
       template.innerHTML = html.trim();
       const replacement = template.content.firstElementChild;
-      if (replacement) card.replaceWith(replacement);
+      if (replacement) {
+        card.replaceWith(replacement);
+        if (focusSelector2) replacement.querySelector(focusSelector2)?.focus({ preventScroll: true });
+      }
     }
-    return { historyTaskCardElement, setLoadMoreState, captureHistoryScrollAnchorSkipping, renderTaskListMessage, replaceCard };
+    return { historyTaskCardElement, setLoadMoreState, captureHistoryScrollAnchorSkipping, renderTaskListMessage, replaceCard, captureFocus, restoreFocus };
   }
 
   // codex_image/webui/frontend/src/history-list-controller.ts
@@ -22693,10 +22922,12 @@
       exhausted: false,
       loadedTaskIds: /* @__PURE__ */ new Set(),
       loadedTaskSummaries: /* @__PURE__ */ new Map(),
-      requestId: 0
+      requestId: 0,
+      windowRevision: 0
     };
     const MAX_MOUNTED_TASK_CARDS = 300;
     let disposed = false;
+    let mountedRefreshId = 0;
     const pendingFrames = /* @__PURE__ */ new Map();
     function requestWindowFrame(callback) {
       const frame = window.requestAnimationFrame(() => {
@@ -22730,7 +22961,9 @@
       direction = "next",
       anchorTaskId: rawAnchorTaskId = "",
       anchor = null,
-      throwOnError = false
+      throwOnError = false,
+      signal,
+      preserveSelection = false
     } = {}) {
       const emptyResult = {
         anchorFound: null,
@@ -22756,13 +22989,23 @@
       }
       historyState.loading = true;
       const requestId = ++historyState.requestId;
-      if (reset) {
+      const backgroundReset = reset && preserveSelection;
+      const initialWindowRevision = historyState.windowRevision;
+      const initialScrollTop = els9.taskList?.scrollTop ?? 0;
+      const restoreLoadMore = () => setLoadMoreState(historyState.exhausted ? translate("history.noMore") : "", {
+        hidden: !historyState.exhausted,
+        busy: false
+      });
+      const clearWindow = () => {
         historyState.nextCursor = null;
         historyState.newerExhausted = true;
         historyState.exhausted = false;
         historyState.loadedTaskIds.clear();
         historyState.loadedTaskSummaries.clear();
-        deps.resetSelectionForLoad();
+      };
+      if (reset && !backgroundReset) {
+        clearWindow();
+        if (!preserveSelection) deps.resetSelectionForLoad();
         if (els9.taskList) els9.taskList.innerHTML = "";
         deps.renderToolbar();
       }
@@ -22775,8 +23018,9 @@
           );
         }
         const requestPage = async (url) => {
-          const response = await fetch(url);
+          const response = await fetch(url, { signal: signal ?? null });
           const data2 = await response.json();
+          signal?.throwIfAborted();
           if (!response.ok) {
             throw new Error(data2.detail || translate("history.tasksFailed"));
           }
@@ -22825,7 +23069,14 @@
         if (requestId !== historyState.requestId) return emptyResult;
         const tasks = data.tasks || [];
         validateOrganizationRows(tasks);
+        if (backgroundReset && (historyState.windowRevision !== initialWindowRevision || Math.abs((els9.taskList?.scrollTop ?? 0) - initialScrollTop) > 8)) {
+          restoreLoadMore();
+          return emptyResult;
+        }
+        const focus = backgroundReset ? view.captureFocus() : null;
+        if (backgroundReset) clearWindow();
         renderTasks3(tasks, { position: reset ? "replace" : direction === "previous" ? "prepend" : "append" });
+        view.restoreFocus(focus);
         if (direction === "previous") {
           historyState.newerExhausted = !data.previous_cursor || !tasks.length;
         } else {
@@ -22844,6 +23095,16 @@
           taskCount: tasks.length
         };
       } catch (error) {
+        if (signal?.aborted) {
+          if (requestId === historyState.requestId) restoreLoadMore();
+          if (throwOnError) throw error;
+          return emptyResult;
+        }
+        if (requestId !== historyState.requestId) return emptyResult;
+        if (backgroundReset && historyState.windowRevision !== initialWindowRevision) {
+          restoreLoadMore();
+          return emptyResult;
+        }
         if (requestId === historyState.requestId) {
           const message = errorMessage(error, translate("history.tasksFailed"));
           if (els9.taskList && historyTaskCards(els9.taskList).length) {
@@ -22851,9 +23112,9 @@
           } else {
             renderTaskListMessage("history-error", message);
           }
-          if (direction === "previous") {
+          if (!backgroundReset && direction === "previous") {
             historyState.newerExhausted = false;
-          } else {
+          } else if (!backgroundReset) {
             historyState.exhausted = false;
           }
           setLoadMoreState(translate("history.loadFailed"));
@@ -22863,6 +23124,51 @@
       } finally {
         if (requestId === historyState.requestId) historyState.loading = false;
       }
+    }
+    async function refreshMountedTasks({ signal } = {}) {
+      if (disposed || historyState.loading || !historyState.loadedTaskSummaries.size) return;
+      const requestId = historyState.requestId;
+      const refreshId = ++mountedRefreshId;
+      const before = new Map(historyState.loadedTaskSummaries);
+      const beforeKeys = new Map([...before].map(([id, task]) => [id, JSON.stringify(task)]));
+      const response = await fetch("/api/task-history/tasks/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_ids: [...before.keys()] }),
+        signal: signal ?? null
+      });
+      const data = await response.json();
+      signal?.throwIfAborted();
+      if (disposed || requestId !== historyState.requestId || refreshId !== mountedRefreshId) return;
+      if (!response.ok || !Array.isArray(data.tasks)) throw new Error(data.detail || translate("history.tasksFailed"));
+      const incoming = new Map(data.tasks.map((task) => [task.task_id, task]));
+      const updates = [];
+      const removedTaskIds = [];
+      for (const [taskId, previous] of before) {
+        if (historyState.loadedTaskSummaries.get(taskId) !== previous || JSON.stringify(previous) !== beforeKeys.get(taskId)) continue;
+        const task = incoming.get(taskId);
+        if (task && taskUpdateIsOlder(previous, task)) continue;
+        if (!task || !historyTaskMatchesCurrentArchiveFilter(task) || !taskMatchesHistoryOrganizationFilters(task, deps.filters.organization())) {
+          removedTaskIds.push(taskId);
+        } else if (JSON.stringify(task) !== beforeKeys.get(taskId)) {
+          updates.push(task);
+        }
+      }
+      if (!updates.length && !removedTaskIds.length) return;
+      refreshHistoryWindowAfterMutation(() => {
+        for (const taskId of removedTaskIds) {
+          historyState.loadedTaskIds.delete(taskId);
+          historyState.loadedTaskSummaries.delete(taskId);
+          deps.dropSelection(taskId);
+          historyTaskCardElement(taskId)?.remove();
+        }
+        for (const task of updates) {
+          historyState.loadedTaskSummaries.set(task.task_id, task);
+          const card = historyTaskCardElement(task.task_id);
+          if (card) view.replaceCard(card, deps.renderCard(task));
+        }
+      }, { removedTaskIds });
+      deps.reconcileSelection();
     }
     function taskWindowCursor(reset, direction) {
       if (reset || !els9.taskList) return null;
@@ -22899,6 +23205,7 @@
       deps.renderSelection();
     }
     function refreshHistoryWindowAfterMutation(mutate, options = {}) {
+      historyState.windowRevision++;
       if (!els9.taskList) {
         mutate();
         return;
@@ -23044,6 +23351,7 @@
       setLoadMoreState,
       maybeLoadMoreFromScroll,
       loadTasks,
+      refreshMountedTasks,
       removeHistoryTaskIdsFromWindow,
       applyHistoryOrganizations,
       upsertHistoryTaskSummaryCard,
@@ -23589,16 +23897,19 @@
     scroller,
     loadSummary,
     reloadNewestWindow,
+    refreshCurrentWindow,
     upsertTask
   }) {
-    const preserveCurrentWindow = Boolean(
-      scroller && scroller.scrollTop > HISTORY_REALTIME_TOP_THRESHOLD
-    );
     const taskId = String(task?.task_id || "");
     if (task && taskId) upsertTask(taskId, task);
     await loadSummary();
+    const preserveCurrentWindow = Boolean(
+      scroller && scroller.scrollTop > HISTORY_REALTIME_TOP_THRESHOLD
+    );
     if (!preserveCurrentWindow) {
       await reloadNewestWindow();
+    } else if (!taskId) {
+      await refreshCurrentWindow();
     }
   }
 
@@ -23882,6 +24193,44 @@
     updateViewport();
   }
 
+  // codex_image/webui/frontend/src/prompt-image-mentions.ts
+  function imageReferenceKey(source) {
+    if (source.prompt_ref_key) return source.prompt_ref_key;
+    source.prompt_ref_key = source.kind === "upload" ? `local:${Array.from(crypto.getRandomValues(new Uint32Array(4))).join("-")}` : `${source.kind}:${source.id}`;
+    return source.prompt_ref_key;
+  }
+  function sourcePointer(source) {
+    return source.kind === "upload" ? { kind: "local", id: imageReferenceKey(source) } : { kind: source.kind, id: source.id };
+  }
+  function captureImageMentions() {
+    const { els: els9, state: state5, methods } = getLegacyBridge();
+    if (!els9.promptEditor) return null;
+    const mentions = [];
+    let marker = "\0image-mention:";
+    while (methods.getPromptText().includes(marker)) marker += ":";
+    const marked = methods.promptTextFromNode(els9.promptEditor, (chip) => {
+      const key2 = chip.dataset.imageRefKey;
+      const stored = chip.dataset.imageRefSource ? JSON.parse(chip.dataset.imageRefSource) : null;
+      const source = !stored?.missing && state5.images.find((item) => key2 ? imageReferenceKey(item) === key2 : item.kind === "gallery" && item.id === chip.dataset.galleryId);
+      const pointer = source ? sourcePointer(source) : stored || { kind: "gallery", id: chip.dataset.galleryId };
+      const text = (chip.dataset.imageRefText || `@${chip.dataset.galleryName}`).replace(/\u00a0/g, " ").replace(/\r\n?/g, "\n");
+      mentions.push({ text, source: pointer });
+      return `${marker}${mentions.length - 1}\0`;
+    }).replace(/\u00a0/g, " ").replace(/\r\n?/g, "\n").trim();
+    if (!mentions.length) return null;
+    const parts = [];
+    let cursor = 0;
+    for (let index = 0; index < mentions.length; index++) {
+      const token = `${marker}${index}\0`;
+      const position = marked.indexOf(token, cursor);
+      if (position > cursor) parts.push(marked.slice(cursor, position));
+      parts.push(mentions[index]);
+      cursor = position + token.length;
+    }
+    if (cursor < marked.length) parts.push(marked.slice(cursor));
+    return { version: 1, parts };
+  }
+
   // codex_image/webui/frontend/src/composer-navigation-storage.ts
   var MAX_AGE = 7 * 24 * 60 * 60 * 1e3;
 
@@ -23890,10 +24239,10 @@
   var drafts = [];
   function capture() {
     const { state: state5, methods } = getLegacyBridge();
-    return { prompt: methods.getPromptText?.() || "", images: (state5.images || []).map((item) => ({ ...item })), files: (state5.referenceFiles || []).map((item) => ({ ...item })), mode: state5.mode };
+    return { prompt: methods.getPromptText?.() || "", prompt_image_mentions: captureImageMentions(), images: (state5.images || []).map((item) => ({ ...item })), files: (state5.referenceFiles || []).map((item) => ({ ...item })), mode: state5.mode };
   }
   function key(draft) {
-    return JSON.stringify([draft.prompt, draft.images.map((item) => [item.id, item.name, item.file ? null : item.previewUrl, item.file?.size, item.file?.lastModified]), draft.files.map((item) => [item.id, item.filename, item.file?.size, item.file?.lastModified]), draft.mode]);
+    return JSON.stringify([draft.prompt, draft.prompt_image_mentions, draft.images.map((item) => [item.id, item.name, item.file ? null : item.previewUrl, item.file?.size, item.file?.lastModified]), draft.files.map((item) => [item.id, item.filename, item.file?.size, item.file?.lastModified]), draft.mode]);
   }
   function markComposerBaseline(prompt) {
     const draft = capture();
@@ -23904,8 +24253,8 @@
     const draft = capture();
     return Boolean(draft.prompt || draft.images.length || draft.files.length) && key(draft) !== baseline;
   }
-  function preserveComposerDraft() {
-    if (!composerHasChanges()) return;
+  function preserveComposerDraft(force = false) {
+    if (!force && !composerHasChanges()) return;
     const draft = capture();
     if (key(drafts[drafts.length - 1] || { prompt: "", images: [], files: [], mode: "generate" }) !== key(draft)) drafts.push(draft);
     renderRestoreButton();
@@ -24479,44 +24828,6 @@
   }
   function taskCancellationPending(task) {
     return Boolean(task?.cancel_requested && !taskWasCancelled(task));
-  }
-
-  // codex_image/webui/frontend/src/state-sync.ts
-  var syncStates = /* @__PURE__ */ new WeakMap();
-  function taskUpdateIsOlder(previous, incoming) {
-    const previousTime = Date.parse(previous?.updated_at || previous?.created_at || "");
-    const incomingTime = Date.parse(incoming?.updated_at || incoming?.created_at || "");
-    return Number.isFinite(previousTime) && Number.isFinite(incomingTime) && incomingTime < previousTime;
-  }
-  function versionState(state5, version) {
-    if (!version || !version.instance || !Number.isSafeInteger(version.revision) || version.revision < 1) return null;
-    let current = syncStates.get(state5);
-    if (current?.retired.has(version.instance)) return false;
-    if (!current || current.instance !== version.instance) {
-      const retired = current?.retired || /* @__PURE__ */ new Set();
-      if (current) retired.add(current.instance);
-      current = { instance: version.instance, retired, queue: 0, tasks: 0, lastChange: 0, changes: /* @__PURE__ */ new Map() };
-      syncStates.set(state5, current);
-    }
-    return current;
-  }
-  function acceptQueueSnapshot(state5, version) {
-    const current = versionState(state5, version);
-    if (current === false) return false;
-    if (!current || !version) return true;
-    if (version.revision < Math.max(current.queue, current.tasks, current.lastChange)) return false;
-    current.queue = version.revision;
-    return true;
-  }
-  function acceptTaskUpdate(state5, task, version) {
-    const current = versionState(state5, version);
-    if (current === false || !task?.task_id) return false;
-    if (!current || !version) return true;
-    const id = String(task.task_id);
-    if (version.revision < current.tasks || version.revision < (current.changes.get(id)?.revision || 0)) return false;
-    current.lastChange = Math.max(current.lastChange, version.revision);
-    current.changes.set(id, { revision: version.revision, task });
-    return true;
   }
 
   // codex_image/webui/frontend/src/runtime-feedback.ts
@@ -30393,10 +30704,19 @@
   // codex_image/webui/frontend/src/queue.ts
   var REALTIME_EVENTS_URL = "/api/events?stream=1";
   var QUEUE_DISPATCH_RESYNC_DELAY_MS = 1500;
+  var REALTIME_FALLBACK_INTERVAL_MS = 5e3;
+  var REALTIME_STALE_TIMEOUT_MS = 45e3;
+  var REALTIME_RESYNC_TIMEOUT_MS = 1e4;
   var queueFeatureInitialized = false;
   var realtimeConnectionNeedsResync = false;
   var realtimeResyncRequested = false;
   var realtimeResyncPromise = null;
+  var realtimeUpdatesEnabled = false;
+  var realtimeGeneration = 0;
+  var realtimeFallbackTimerId = null;
+  var realtimeWatchdogTimerId = null;
+  var realtimeResyncController = null;
+  var realtimePollingHealthy = false;
   function initializeQueueFeature() {
     if (queueFeatureInitialized) return;
     queueFeatureInitialized = true;
@@ -30418,21 +30738,42 @@
   }
   function startRealtimeUpdates({ migrateLegacyArchives = false } = {}) {
     const state5 = getState();
-    if (!window.EventSource) return false;
     closeRealtimeUpdates();
+    realtimeUpdatesEnabled = true;
     state5.realtimeSnapshotNeedsArchiveMigration = migrateLegacyArchives;
-    realtimeConnectionNeedsResync = false;
+    if (!window.EventSource) {
+      realtimeConnectionNeedsResync = true;
+      void requestRealtimeResync();
+      return false;
+    }
+    connectRealtimeSource();
+    return true;
+  }
+  function connectRealtimeSource() {
+    const state5 = getState();
+    state5.realtimeSource?.close();
     const source = new EventSource(REALTIME_EVENTS_URL);
     state5.realtimeSource = source;
+    resetRealtimeWatchdog(source);
     source.onopen = () => {
       if (state5.realtimeSource !== source) return;
+      resetRealtimeWatchdog(source);
       if (!realtimeConnectionNeedsResync) return;
       realtimeConnectionNeedsResync = false;
+      realtimePollingHealthy = false;
+      stopRealtimeFallback();
+      cancelRealtimeResync();
       void requestRealtimeResync();
       clearRealtimeReconnectStatus();
     };
+    source.addEventListener("heartbeat", () => {
+      if (state5.realtimeSource === source) resetRealtimeWatchdog(source);
+    });
     source.onmessage = (event) => {
+      if (state5.realtimeSource !== source) return;
+      resetRealtimeWatchdog(source);
       handleRealtimeMessage(event).catch((error) => {
+        if (state5.realtimeSource !== source) return;
         console.error(error);
         getLegacyBridge().methods.setStatus(errorMessage2(error, translate("queue.realtimeUpdateFailed")), "error");
       });
@@ -30441,49 +30782,116 @@
       if (state5.realtimeSource !== source) return;
       realtimeConnectionNeedsResync = true;
       void requestRealtimeResync();
-      getLegacyBridge().methods.setStatus(translate("queue.realtimeDisconnected"), "error");
+      if (!realtimePollingHealthy) {
+        getLegacyBridge().methods.setStatus(translate("queue.realtimeDisconnected"), "error");
+      }
     };
-    return true;
+  }
+  function resetRealtimeWatchdog(source) {
+    if (realtimeWatchdogTimerId !== null) window.clearTimeout(realtimeWatchdogTimerId);
+    realtimeWatchdogTimerId = window.setTimeout(() => {
+      realtimeWatchdogTimerId = null;
+      if (!realtimeUpdatesEnabled || getState().realtimeSource !== source) return;
+      realtimeConnectionNeedsResync = true;
+      connectRealtimeSource();
+      void requestRealtimeResync();
+    }, REALTIME_STALE_TIMEOUT_MS);
+  }
+  function stopRealtimeFallback() {
+    if (realtimeFallbackTimerId !== null) window.clearTimeout(realtimeFallbackTimerId);
+    realtimeFallbackTimerId = null;
+  }
+  function scheduleRealtimeFallback() {
+    if (!realtimeUpdatesEnabled || !realtimeConnectionNeedsResync || realtimeFallbackTimerId !== null) return;
+    realtimeFallbackTimerId = window.setTimeout(() => {
+      realtimeFallbackTimerId = null;
+      if (!realtimeUpdatesEnabled || !realtimeConnectionNeedsResync) return;
+      if (window.EventSource && getState().realtimeSource?.readyState === window.EventSource.CLOSED) connectRealtimeSource();
+      void requestRealtimeResync();
+    }, REALTIME_FALLBACK_INTERVAL_MS);
+  }
+  function cancelRealtimeResync() {
+    realtimeGeneration += 1;
+    realtimeResyncRequested = false;
+    realtimeResyncController?.abort();
+    realtimeResyncController = null;
+    realtimeResyncPromise = null;
   }
   function closeRealtimeUpdates() {
     const state5 = getState();
+    realtimeUpdatesEnabled = false;
+    realtimePollingHealthy = false;
     realtimeConnectionNeedsResync = false;
-    realtimeResyncRequested = false;
+    cancelRealtimeResync();
+    stopRealtimeFallback();
+    if (realtimeWatchdogTimerId !== null) window.clearTimeout(realtimeWatchdogTimerId);
+    realtimeWatchdogTimerId = null;
     if (!state5.realtimeSource) return;
     state5.realtimeSource.close();
     state5.realtimeSource = null;
   }
-  async function resyncRealtimeState() {
+  async function resyncRealtimeState(signal) {
     const bridge7 = getLegacyBridge();
     const state5 = bridge7.state;
     const shouldMigrateArchives = state5.realtimeSnapshotNeedsArchiveMigration;
-    await Promise.all([refreshQueue(), bridge7.methods.refreshTasks({ migrateLegacyArchives: shouldMigrateArchives })]);
+    await refreshQueue({ signal, throwOnError: true });
+    signal.throwIfAborted();
+    await bridge7.methods.refreshTasks({ migrateLegacyArchives: shouldMigrateArchives, signal });
   }
   function requestRealtimeResync() {
     realtimeResyncRequested = true;
     if (realtimeResyncPromise) return realtimeResyncPromise;
+    const generation = realtimeGeneration;
     const resyncPromise = (async () => {
-      while (realtimeResyncRequested) {
+      while (realtimeResyncRequested && generation === realtimeGeneration) {
         realtimeResyncRequested = false;
-        await resyncRealtimeState();
+        const controller = new AbortController();
+        realtimeResyncController = controller;
+        let onAbort;
+        const aborted = new Promise((_resolve, reject) => {
+          onAbort = () => reject(controller.signal.reason);
+          controller.signal.addEventListener("abort", onAbort, { once: true });
+        });
+        const timeoutId = window.setTimeout(() => controller.abort(), REALTIME_RESYNC_TIMEOUT_MS);
+        try {
+          await Promise.race([resyncRealtimeState(controller.signal), aborted]);
+        } finally {
+          window.clearTimeout(timeoutId);
+          controller.signal.removeEventListener("abort", onAbort);
+          controller.abort();
+          if (realtimeResyncController === controller) realtimeResyncController = null;
+        }
+        if (generation !== realtimeGeneration) return;
+        if (realtimeConnectionNeedsResync) {
+          realtimePollingHealthy = true;
+          const bridge7 = getLegacyBridge();
+          if (["", translate("status.waiting"), translate("queue.realtimeDisconnected")].includes(bridge7.els.statusText?.textContent || "")) {
+            bridge7.methods.setStatus(translate("queue.realtimePolling"), "");
+          }
+        }
       }
     })().catch((error) => {
+      if (generation !== realtimeGeneration) return;
       const bridge7 = getLegacyBridge();
       if (realtimeConnectionNeedsResync) {
+        realtimePollingHealthy = false;
         bridge7.methods.setStatus(translate("queue.realtimeDisconnected"), "error");
         return;
       }
+      if (error instanceof DOMException && error.name === "AbortError") return;
       console.error(error);
       bridge7.methods.setStatus(errorMessage2(error, translate("queue.realtimeUpdateFailed")), "error");
     }).finally(() => {
+      if (generation !== realtimeGeneration) return;
       realtimeResyncPromise = null;
+      scheduleRealtimeFallback();
     });
     realtimeResyncPromise = resyncPromise;
     return resyncPromise;
   }
   function clearRealtimeReconnectStatus() {
     const bridge7 = getLegacyBridge();
-    if (bridge7.els.statusText?.textContent !== translate("queue.realtimeDisconnected")) return;
+    if (![translate("queue.realtimeDisconnected"), translate("queue.realtimePolling")].includes(bridge7.els.statusText?.textContent || "")) return;
     bridge7.methods.setStatus("", "");
   }
   async function handleRealtimeMessage(event) {
@@ -30491,7 +30899,8 @@
     const payload = JSON.parse(String(event.data));
     await handleRealtimePayload(payload);
   }
-  async function handleRealtimePayload(payload) {
+  async function handleRealtimePayload(payload, { signal } = {}) {
+    signal?.throwIfAborted();
     const bridge7 = getLegacyBridge();
     const state5 = bridge7.state;
     if (payload?.type === "snapshot") {
@@ -30499,8 +30908,10 @@
       await bridge7.methods.applyTasksSnapshot(payload.tasks || [], {
         migrateLegacyArchives: state5.realtimeSnapshotNeedsArchiveMigration,
         ...payload.task_groups ? { taskGroups: payload.task_groups } : {},
-        sync: payload.sync
+        sync: payload.sync,
+        signal
       });
+      signal?.throwIfAborted();
       if (acceptQueueSnapshot(state5, payload.sync)) applyQueueTasks(state5.queue);
       return;
     }
@@ -30511,7 +30922,7 @@
       await applyRealtimeTaskPayloads(updatedTasks, payload.sync);
       if (!acceptQueueSnapshot(state5, payload.sync)) return;
       if (queueMutated && !updatedTasks.length && !queueTaskCount(payload.queue)) {
-        await bridge7.methods.refreshTasks();
+        await bridge7.methods.refreshTasks({ signal });
         return;
       }
       applyQueueTasks(state5.queue);
@@ -30534,20 +30945,29 @@
       await bridge7.methods.applyTaskUpdate(task);
     }
   }
-  async function refreshQueue() {
+  async function refreshQueue({ signal, throwOnError = false } = {}) {
     const bridge7 = getLegacyBridge();
     const state5 = bridge7.state;
-    const requestSeq = ++state5.queueRequestSeq;
+    let requestSeq = ++state5.queueRequestSeq;
+    const generation = realtimeGeneration;
+    let expectedQueue = state5.queue;
     try {
-      const response = await fetch("/api/queue");
+      const response = await fetch("/api/queue", { signal: signal ?? null });
       const data = await response.json();
+      signal?.throwIfAborted();
       if (requestSeq !== state5.queueRequestSeq) return;
       if (!response.ok) {
         throw new Error(data.detail || translate("queue.readFailed"));
       }
       if (!acceptQueueSnapshot(state5, data.sync)) return;
-      await handleRealtimePayload({ type: "queue", queue: data, sync: data.sync });
+      const applying = handleRealtimePayload({ type: "queue", queue: data, sync: data.sync }, { signal });
+      expectedQueue = state5.queue;
+      requestSeq = state5.queueRequestSeq;
+      await applying;
     } catch (error) {
+      if (signal?.aborted) throw error;
+      if (requestSeq !== state5.queueRequestSeq || generation !== realtimeGeneration || state5.queue !== expectedQueue) return;
+      if (throwOnError) throw error;
       bridge7.methods.setStatus(errorMessage2(error, translate("queue.readFailed")), "error");
     }
   }
@@ -31844,8 +32264,8 @@
           await options.refreshHistoryTasks?.(task);
         }
       },
-      refreshTasks: async () => {
-        await options.refreshHistoryTasks?.();
+      refreshTasks: async ({ signal } = {}) => {
+        await options.refreshHistoryTasks?.(void 0, signal);
       },
       selectTask: async (taskId) => {
         bridge7.state.selectedTaskId = String(taskId);
@@ -34861,16 +35281,19 @@
     });
     initializeHistoryShell({
       selectHistoryTask: details.loadTaskDetail,
-      refreshHistoryTasks: async (task) => {
+      refreshHistoryTasks: async (task, signal) => {
+        if (task) await details.refreshTaskDetail({ task, signal });
         await refreshHistoryForRealtimeTask({
           task,
           scroller: els8.taskList,
-          loadSummary: filters.loadSummary,
+          loadSummary: () => filters.loadSummary({ signal, throwOnError: true }),
           reloadNewestWindow: async () => {
-            await list.loadTasks({ reset: true });
+            await list.loadTasks({ reset: true, signal, throwOnError: true, preserveSelection: true });
           },
+          refreshCurrentWindow: () => list.refreshMountedTasks({ signal }),
           upsertTask: list.upsertHistoryTaskSummaryCard
         });
+        if (!task) await details.refreshTaskDetail({ signal });
       }
     });
     applyHistoryLocale();

@@ -13,7 +13,7 @@ dependencies = [
   "uvicorn==0.46.0",
   "python-multipart==0.0.32",
   "httpx==0.28.1",
-  "Pillow==12.3.0",
+  "Pillow==13.0.0",
 ]
 
 [project.scripts]

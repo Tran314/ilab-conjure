@@ -575,6 +575,14 @@ class ReferenceFileFrontendContractTests(unittest.TestCase):
                 if (name === "./composer-draft") return {{ preserveComposerDraft() {{}}, markComposerBaseline() {{}} }};
                 if (name === "./task-recovery") return {{ taskRecoveryMessage: () => "input error" }};
                 if (name === "./task-model-summary") return {{ taskOutputSettingsView: () => "locked-summary" }};
+                if (name === "./state-sync") {{
+                  const sync = {{ exports: {{}} }};
+                  const syncCode = ts.transpileModule(fs.readFileSync({str(module_path.with_name('state-sync.ts'))!r}, "utf8"), {{
+                    compilerOptions: {{ module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }},
+                  }}).outputText;
+                  vm.runInNewContext(syncCode, {{ module: sync, exports: sync.exports }});
+                  return sync.exports;
+                }}
                 throw new Error(`unexpected require: ${{name}}`);
               }},
             }});
@@ -636,6 +644,14 @@ class ReferenceFileFrontendContractTests(unittest.TestCase):
                 if (name === "./composer-draft") return {{ preserveComposerDraft() {{}}, markComposerBaseline() {{}} }};
                 if (name === "./task-recovery") return {{ taskRecoveryMessage: () => "input error" }};
                 if (name === "./task-model-summary") return {{ taskOutputSettingsView: () => "locked-summary" }};
+                if (name === "./state-sync") {{
+                  const sync = {{ exports: {{}} }};
+                  const syncCode = ts.transpileModule(fs.readFileSync({str(module_path.with_name('state-sync.ts'))!r}, "utf8"), {{
+                    compilerOptions: {{ module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }},
+                  }}).outputText;
+                  vm.runInNewContext(syncCode, {{ module: sync, exports: sync.exports }});
+                  return sync.exports;
+                }}
                 throw new Error(`unexpected require: ${{name}}`);
               }},
             }});
@@ -1039,6 +1055,8 @@ class ReferenceFileFrontendBehaviorTests(unittest.TestCase):
               if (name === "./i18n") return i18n;
               if (name === "./state") return stateModule;
               if (name === "./upload-thumbnails") return {{ uploadThumbnailUrl: () => Promise.resolve("data:image/webp;base64,cA==") }};
+              if (name === "./prompt-image-mentions") return {{ refreshImageMentionChips() {{}}, imageMentionLabel: (source) => `Image ${{state.images.indexOf(source) + 1}}` }};
+              if (name === "./composer-draft") return {{ preserveComposerDraft() {{}} }};
               throw new Error(`unexpected image require: ${{name}}`);
             }});
             imageApi.initImageStripFeature();
@@ -1207,6 +1225,8 @@ class ReferenceFileFrontendBehaviorTests(unittest.TestCase):
               if (name === "./i18n") return i18n;
               if (name === "./state") return stateModule;
               if (name === "./upload-thumbnails") return {{ uploadThumbnailUrl: () => Promise.resolve("data:image/webp;base64,cA==") }};
+              if (name === "./prompt-image-mentions") return {{ refreshImageMentionChips() {{}}, imageMentionLabel: (source) => `Image ${{state.images.indexOf(source) + 1}}` }};
+              if (name === "./composer-draft") return {{ preserveComposerDraft() {{}} }};
               throw new Error(`unexpected strip require: ${{name}}`);
             }});
             referenceApi.initReferenceFileInputsFeature();
