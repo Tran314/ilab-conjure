@@ -13310,6 +13310,7 @@
     "output.lock.frame": "Khung h\xECnh",
     "output.lock.outputCount": "S\u1ED1 \u1EA3nh \u0111\u1EA7u ra",
     "output.lock.output": "\u0110\u1EA7u ra",
+    "output.lock.search": "T\xECm ki\u1EBFm",
     "output.lock.call": "L\u1EC7nh g\u1ECDi",
     "output.lock.sheets": "\u1EA3nh",
     "output.lock.imageModel": "M\xF4 h\xECnh h\xECnh \u1EA3nh",

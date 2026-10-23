@@ -666,6 +666,7 @@ export const VI_DICTIONARY: TranslationDictionary = {
     "output.lock.frame": "Khung hình",
     "output.lock.outputCount": "Số ảnh đầu ra",
     "output.lock.output": "Đầu ra",
+"output.lock.search": "Tìm kiếm",
     "output.lock.call": "Lệnh gọi",
     "output.lock.sheets": "ảnh",
     "output.lock.imageModel": "Mô hình hình ảnh",
